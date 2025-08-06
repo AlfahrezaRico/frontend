@@ -1,7 +1,6 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { 
   User, 
@@ -11,6 +10,7 @@ import {
   Building, 
   CreditCard, 
   Banknote,
+  Calendar,
   CalendarDays,
   UserCheck,
   Building2,
@@ -18,9 +18,6 @@ import {
   Edit,
   Share2
 } from 'lucide-react';
-import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
-import { useEffect } from 'react';
 
 interface EmployeeProfileDialogProps {
   open: boolean;
@@ -29,35 +26,6 @@ interface EmployeeProfileDialogProps {
 }
 
 export const EmployeeProfileDialog = ({ open, onOpenChange, profile }: EmployeeProfileDialogProps) => {
-  // Add print styles when component mounts
-  useEffect(() => {
-    const style = document.createElement('style');
-    style.textContent = `
-      @media print {
-        body * {
-          visibility: hidden;
-        }
-        .print-profile, .print-profile * {
-          visibility: visible;
-        }
-        .print-profile {
-          position: absolute;
-          left: 0;
-          top: 0;
-          width: 100%;
-          height: 100%;
-          background: white;
-          padding: 20px;
-        }
-        .no-print {
-          display: none !important;
-        }
-      }
-    `;
-    document.head.appendChild(style);
-    return () => document.head.removeChild(style);
-  }, []);
-
   if (!profile) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -76,12 +44,14 @@ export const EmployeeProfileDialog = ({ open, onOpenChange, profile }: EmployeeP
     );
   }
 
-
-
   const formatDate = (dateString: string) => {
     if (!dateString) return '-';
     try {
-      return format(new Date(dateString), 'dd MMMM yyyy', { locale: id });
+      return new Date(dateString).toLocaleDateString('id-ID', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
     } catch {
       return new Date(dateString).toLocaleDateString('id-ID');
     }
@@ -90,83 +60,14 @@ export const EmployeeProfileDialog = ({ open, onOpenChange, profile }: EmployeeP
   const formatBirthDate = (dateString: string) => {
     if (!dateString) return '-';
     try {
-      return format(new Date(dateString), 'dd/MM/yyyy');
+      return new Date(dateString).toLocaleDateString('id-ID');
     } catch {
       return new Date(dateString).toLocaleDateString('id-ID');
     }
   };
 
   const handlePrint = () => {
-    const printContent = document.createElement('div');
-    printContent.className = 'print-profile';
-    printContent.innerHTML = `
-      <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px;">
-        <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px;">
-          <h1 style="color: #1f2937; margin: 0; font-size: 28px;">PROFIL KARYAWAN</h1>
-          <p style="color: #6b7280; margin: 10px 0 0 0;">Sistem HRIS - ${new Date().toLocaleDateString('id-ID')}</p>
-        </div>
-        
-        <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 30px; padding: 20px; background: #f8fafc; border-radius: 8px;">
-          <div style="width: 80px; height: 80px; background: #3b82f6; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold;">
-            ${(profile.first_name?.charAt(0) || '') + (profile.last_name?.charAt(0) || '')}
-          </div>
-          <div>
-            <h2 style="color: #1f2937; margin: 0 0 5px 0; font-size: 24px;">${profile.first_name} ${profile.last_name}</h2>
-            <p style="color: #6b7280; margin: 0 0 10px 0; font-size: 16px;">${profile.position || 'Posisi tidak tersedia'}</p>
-            <div style="display: flex; gap: 10px;">
-              <span style="background: #dbeafe; color: #1e40af; padding: 4px 8px; border-radius: 4px; font-size: 12px;">${profile.departemen?.nama || profile.department || 'Departemen tidak tersedia'}</span>
-              <span style="border: 1px solid #10b981; color: #059669; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Aktif</span>
-            </div>
-          </div>
-        </div>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-          <div>
-            <h3 style="color: #1f2937; margin: 0 0 15px 0; font-size: 18px;">Informasi Pribadi</h3>
-            <div style="margin-bottom: 10px;">
-              <strong style="color: #6b7280; font-size: 12px;">Email:</strong>
-              <p style="margin: 5px 0; color: #1f2937;">${profile.email || '-'}</p>
-            </div>
-            <div style="margin-bottom: 10px;">
-              <strong style="color: #6b7280; font-size: 12px;">Nomor Telepon:</strong>
-              <p style="margin: 5px 0; color: #1f2937;">${profile.phone_number || '-'}</p>
-            </div>
-            <div style="margin-bottom: 10px;">
-              <strong style="color: #6b7280; font-size: 12px;">Alamat:</strong>
-              <p style="margin: 5px 0; color: #1f2937;">${profile.address || '-'}</p>
-            </div>
-            <div style="margin-bottom: 10px;">
-              <strong style="color: #6b7280; font-size: 12px;">Tanggal Lahir:</strong>
-              <p style="margin: 5px 0; color: #1f2937;">${formatBirthDate(profile.date_of_birth)}</p>
-            </div>
-            <div style="margin-bottom: 10px;">
-              <strong style="color: #6b7280; font-size: 12px;">Tanggal Bergabung:</strong>
-              <p style="margin: 5px 0; color: #1f2937;">${formatDate(profile.hire_date)}</p>
-            </div>
-            <div style="margin-bottom: 10px;">
-              <strong style="color: #6b7280; font-size: 12px;">NIK:</strong>
-              <p style="margin: 5px 0; color: #1f2937; font-family: monospace;">${profile.nik || '-'}</p>
-            </div>
-          </div>
-          
-          <div>
-            <h3 style="color: #1f2937; margin: 0 0 15px 0; font-size: 18px;">Informasi Bank</h3>
-            <div style="margin-bottom: 10px;">
-              <strong style="color: #6b7280; font-size: 12px;">Nomor Rekening:</strong>
-              <p style="margin: 5px 0; color: #1f2937; font-family: monospace;">${profile.bank_account_number || '-'}</p>
-            </div>
-            <div style="margin-bottom: 10px;">
-              <strong style="color: #6b7280; font-size: 12px;">Nama Bank:</strong>
-              <p style="margin: 5px 0; color: #1f2937;">${profile.bank_name || '-'}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-    
-    document.body.appendChild(printContent);
     window.print();
-    document.body.removeChild(printContent);
   };
 
   return (
@@ -186,11 +87,11 @@ export const EmployeeProfileDialog = ({ open, onOpenChange, profile }: EmployeeP
                 </h2>
                 <p className="text-gray-600 mb-2">{profile.position || 'Posisi tidak tersedia'}</p>
                 <div className="flex items-center gap-4">
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                  <Badge className="bg-blue-100 text-blue-800">
                     <Building2 className="w-3 h-3 mr-1" />
                     {profile.departemen?.nama || profile.department || 'Departemen tidak tersedia'}
                   </Badge>
-                  <Badge variant="outline" className="border-green-200 text-green-700">
+                  <Badge className="border-green-200 text-green-700 border">
                     <UserCheck className="w-3 h-3 mr-1" />
                     Aktif
                   </Badge>
@@ -282,12 +183,10 @@ export const EmployeeProfileDialog = ({ open, onOpenChange, profile }: EmployeeP
               </div>
             </CardContent>
           </Card>
-
-
         </div>
 
         {/* Action Buttons */}
-        <DialogFooter className="pt-4 border-t border-gray-200 no-print">
+        <div className="pt-4 border-t border-gray-200">
           <div className="flex gap-2 w-full">
             <Button variant="outline" className="flex-1" onClick={handlePrint}>
               <Download className="w-4 h-4 mr-2" />
@@ -302,7 +201,7 @@ export const EmployeeProfileDialog = ({ open, onOpenChange, profile }: EmployeeP
               Edit Profil
             </Button>
           </div>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
