@@ -44,6 +44,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           currentPath.startsWith('/hr-reports') ||
           currentPath.startsWith('/superadmin/') ||
           currentPath.startsWith('/payroll-management') ||
+          currentPath.startsWith('/payroll-configuration') ||
           currentPath.startsWith('/hrd-izin-sakit-management')
       ) {
         return;
