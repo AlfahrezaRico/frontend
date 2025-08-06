@@ -123,10 +123,23 @@ const PayrollConfiguration = () => {
       console.log('Preventing page unload');
     };
     
+    // Prevent navigation away from this page
+    const handlePopState = (e: PopStateEvent) => {
+      console.log('Preventing navigation away from PayrollConfiguration');
+      window.history.pushState(null, '', '/payroll-configuration');
+    };
+    
     window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+    
+    // Ensure we're on the correct route
+    if (window.location.pathname !== '/payroll-configuration') {
+      window.history.pushState(null, '', '/payroll-configuration');
+    }
     
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
     };
   }, []);
 
