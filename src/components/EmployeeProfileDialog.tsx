@@ -14,9 +14,7 @@ import {
   CalendarDays,
   UserCheck,
   Building2,
-  Download,
-  Edit,
-  Share2
+  Download
 } from 'lucide-react';
 
 interface EmployeeProfileDialogProps {
@@ -187,18 +185,10 @@ export const EmployeeProfileDialog = ({ open, onOpenChange, profile }: EmployeeP
 
         {/* Action Buttons */}
         <div className="pt-4 border-t border-gray-200">
-          <div className="flex gap-2 w-full">
-            <Button variant="outline" className="flex-1" onClick={handlePrint}>
+          <div className="flex justify-center">
+            <Button variant="outline" onClick={handlePrint}>
               <Download className="w-4 h-4 mr-2" />
               Cetak Profil
-            </Button>
-            <Button variant="outline" className="flex-1">
-              <Share2 className="w-4 h-4 mr-2" />
-              Bagikan
-            </Button>
-            <Button className="flex-1">
-              <Edit className="w-4 h-4 mr-2" />
-              Edit Profil
             </Button>
           </div>
         </div>
