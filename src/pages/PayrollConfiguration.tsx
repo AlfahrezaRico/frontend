@@ -22,7 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { usePayrollComponents } from '@/hooks/usePayrollComponents';
 
 interface PayrollComponent {
-  id: string;
+  id: number;
   name: string;
   type: 'income' | 'deduction';
   category: 'fixed' | 'variable' | 'bpjs' | 'allowance';
@@ -124,6 +124,35 @@ const PayrollConfiguration = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="bg-white shadow-sm border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              <div className="flex items-center gap-4">
+                <Button variant="ghost" onClick={() => navigate(-1)}>
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Kembali
+                </Button>
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">Konfigurasi Payroll</h1>
+                  <p className="text-gray-600">Kelola komponen perhitungan gaji otomatis</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center justify-center py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-500">Memuat konfigurasi payroll...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow-sm border-b">
@@ -148,76 +177,65 @@ const PayrollConfiguration = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {loading && (
-          <div className="flex items-center justify-center py-8">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-500">Memuat konfigurasi payroll...</p>
-            </div>
-          </div>
-        )}
-
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
             <p className="text-red-800">Error: {error}</p>
           </div>
         )}
 
-        {!loading && !error && (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-green-100 rounded-lg">
                   <DollarSign className="w-6 h-6 text-green-600" />
                 </div>
-                                 <div>
-                   <p className="text-sm text-gray-600">Total Pendapatan</p>
-                   <p className="text-2xl font-bold text-gray-900">{stats?.income_count || 0}</p>
-                 </div>
-               </div>
-             </CardContent>
-           </Card>
-           <Card>
-             <CardContent className="p-6">
-               <div className="flex items-center gap-3">
-                 <div className="p-2 bg-red-100 rounded-lg">
-                   <Calculator className="w-6 h-6 text-red-600" />
-                 </div>
-                 <div>
-                   <p className="text-sm text-gray-600">Total Pemotongan</p>
-                   <p className="text-2xl font-bold text-gray-900">{stats?.deduction_count || 0}</p>
-                 </div>
-               </div>
-             </CardContent>
-           </Card>
-           <Card>
-             <CardContent className="p-6">
-               <div className="flex items-center gap-3">
-                 <div className="p-2 bg-blue-100 rounded-lg">
-                   <Shield className="w-6 h-6 text-blue-600" />
-                 </div>
-                 <div>
-                   <p className="text-sm text-gray-600">Komponen BPJS</p>
-                   <p className="text-2xl font-bold text-gray-900">{stats?.bpjs_count || 0}</p>
-                 </div>
-               </div>
-             </CardContent>
-           </Card>
-           <Card>
-             <CardContent className="p-6">
-               <div className="flex items-center gap-3">
-                 <div className="p-2 bg-purple-100 rounded-lg">
-                   <Settings className="w-6 h-6 text-purple-600" />
-                 </div>
-                 <div>
-                   <p className="text-sm text-gray-600">Aktif</p>
-                   <p className="text-2xl font-bold text-gray-900">{stats?.active_count || 0}</p>
-                 </div>
-               </div>
-             </CardContent>
-           </Card>
+                <div>
+                  <p className="text-sm text-gray-600">Total Pendapatan</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats?.income_count || 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-red-100 rounded-lg">
+                  <Calculator className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Total Pemotongan</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats?.deduction_count || 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Shield className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Komponen BPJS</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats?.bpjs_count || 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Settings className="w-6 h-6 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Aktif</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats?.active_count || 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <Card>
@@ -314,8 +332,7 @@ const PayrollConfiguration = () => {
             </Table>
           </CardContent>
         </Card>
-            </>
-          )}
+      </div>
 
       {editingComponent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
