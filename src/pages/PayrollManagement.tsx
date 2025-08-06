@@ -112,7 +112,7 @@ export default function PayrollManagement() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b">
+      <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center py-4 justify-between">
             <div className="flex items-center">
@@ -134,77 +134,78 @@ export default function PayrollManagement() {
                 <Settings className="h-4 w-4 mr-2" />
                 Konfigurasi Payroll
               </Button>
-            <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-              <DialogTrigger asChild>
-                <Button>Tambah Payroll</Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Tambah Payroll Baru</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleAddPayroll} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Pilih Karyawan</label>
-                    <select
-                      name="employee_id"
-                      value={form.employee_id}
-                      onChange={handleFormChange}
-                      className="border px-2 py-1 rounded w-full"
-                      required
-                    >
-                      <option value="">Pilih karyawan</option>
-                      {employees.map((emp: any) => (
-                        <option key={emp.id} value={emp.id}>{emp.first_name} {emp.last_name} - {emp.position}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
+              <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+                <DialogTrigger asChild>
+                  <Button>Tambah Payroll</Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Tambah Payroll Baru</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleAddPayroll} className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium mb-1">Periode Mulai</label>
-                      <Input name="pay_period_start" type="date" value={form.pay_period_start} onChange={handleFormChange} required />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Periode Akhir</label>
-                      <Input name="pay_period_end" type="date" value={form.pay_period_end} onChange={handleFormChange} required />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Gaji Pokok</label>
-                      <Input name="gross_salary" type="number" value={form.gross_salary} onChange={handleFormChange} required />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Potongan</label>
-                      <Input name="deductions" type="number" value={form.deductions} onChange={handleFormChange} required />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Total Diterima</label>
-                      <Input name="net_salary" type="number" value={form.net_salary} onChange={handleFormChange} required />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Tanggal Bayar</label>
-                      <Input name="payment_date" type="date" value={form.payment_date} onChange={handleFormChange} required />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Status</label>
-                      <select name="status" value={form.status} onChange={handleFormChange} className="border px-2 py-1 rounded w-full" required>
-                        <option value="PAID">PAID</option>
-                        <option value="UNPAID">UNPAID</option>
+                      <label className="block text-sm font-medium mb-1">Pilih Karyawan</label>
+                      <select
+                        name="employee_id"
+                        value={form.employee_id}
+                        onChange={handleFormChange}
+                        className="border px-2 py-1 rounded w-full"
+                        required
+                      >
+                        <option value="">Pilih karyawan</option>
+                        {employees.map((emp: any) => (
+                          <option key={emp.id} value={emp.id}>{emp.first_name} {emp.last_name} - {emp.position}</option>
+                        ))}
                       </select>
                     </div>
-                  </div>
-                  <DialogFooter>
-                    <Button type="button" variant="outline" onClick={() => setModalOpen(false)}>Batal</Button>
-                    <Button type="submit" disabled={submitting}>{submitting ? 'Menyimpan...' : 'Simpan'}</Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Periode Mulai</label>
+                        <Input name="pay_period_start" type="date" value={form.pay_period_start} onChange={handleFormChange} required />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Periode Akhir</label>
+                        <Input name="pay_period_end" type="date" value={form.pay_period_end} onChange={handleFormChange} required />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Gaji Pokok</label>
+                        <Input name="gross_salary" type="number" value={form.gross_salary} onChange={handleFormChange} required />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Potongan</label>
+                        <Input name="deductions" type="number" value={form.deductions} onChange={handleFormChange} required />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Total Diterima</label>
+                        <Input name="net_salary" type="number" value={form.net_salary} onChange={handleFormChange} required />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Tanggal Bayar</label>
+                        <Input name="payment_date" type="date" value={form.payment_date} onChange={handleFormChange} required />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Status</label>
+                        <select name="status" value={form.status} onChange={handleFormChange} className="border px-2 py-1 rounded w-full" required>
+                          <option value="PAID">PAID</option>
+                          <option value="UNPAID">UNPAID</option>
+                        </select>
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button type="button" variant="outline" onClick={() => setModalOpen(false)}>Batal</Button>
+                      <Button type="submit" disabled={submitting}>{submitting ? 'Menyimpan...' : 'Simpan'}</Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
         </div>
-      </header>
+      </div>
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <Card>
