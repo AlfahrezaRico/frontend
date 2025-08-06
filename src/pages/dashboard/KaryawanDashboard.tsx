@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { DialogFooter } from "@/components/ui/dialog";
 import { IzinSakitList } from './IzinSakitList';
+import { EmployeeProfileDialog } from '@/components/EmployeeProfileDialog';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 
@@ -414,30 +415,11 @@ const KaryawanDashboard = () => {
       </main>
 
       {/* Profile Dialog */}
-      <Dialog open={profileDialogOpen} onOpenChange={setProfileDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Profil Karyawan</DialogTitle>
-          </DialogHeader>
-          {profile ? (
-            <div className="space-y-2">
-              <div><b>Nama:</b> {profile.first_name} {profile.last_name}</div>
-              <div><b>Email:</b> {profile.email || '-'}</div>
-              <div><b>Telepon:</b> {profile.phone_number || '-'}</div>
-              <div><b>Posisi:</b> {profile.position || '-'}</div>
-              <div><b>Departemen:</b> {profile.departemen?.nama || '-'}</div>
-              <div><b>Tanggal Bergabung:</b> {profile.hire_date ? format(new Date(profile.hire_date), 'dd MMMM yyyy', { locale: id }) : '-'}</div>
-              <div><b>NIK:</b> {profile.nik || '-'}</div>
-              <div><b>Tanggal Lahir:</b> {profile.date_of_birth ? new Date(profile.date_of_birth).toLocaleDateString('id-ID') : '-'}</div>
-              <div><b>Alamat:</b> {profile.address || '-'}</div>
-              <div><b>Nomor Rekening:</b> {profile.bank_account_number || '-'}</div>
-              <div><b>Nama Bank:</b> {profile.bank_name || '-'}</div>
-            </div>
-          ) : (
-            <div>Loading...</div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <EmployeeProfileDialog 
+        open={profileDialogOpen} 
+        onOpenChange={setProfileDialogOpen} 
+        profile={profile} 
+      />
 
       {/* Izin/Sakit Dialog */}
       <Dialog open={izinDialogOpen} onOpenChange={setIzinDialogOpen}>
