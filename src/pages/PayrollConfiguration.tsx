@@ -117,30 +117,10 @@ const PayrollConfiguration = () => {
   useEffect(() => {
     console.log('PayrollConfiguration component mounted');
     console.log('Current components:', components);
+    console.log('Current URL:', window.location.pathname);
     
-    // Prevent any automatic redirects
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      console.log('Preventing page unload');
-    };
-    
-    // Prevent navigation away from this page
-    const handlePopState = (e: PopStateEvent) => {
-      console.log('Preventing navigation away from PayrollConfiguration');
-      window.history.pushState(null, '', '/payroll-configuration');
-    };
-    
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('popstate', handlePopState);
-    
-    // Ensure we're on the correct route
-    if (window.location.pathname !== '/payroll-configuration') {
-      window.history.pushState(null, '', '/payroll-configuration');
-    }
-    
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('popstate', handlePopState);
-    };
+    // Log untuk debugging navigation
+    console.log('PayrollConfiguration: Component successfully mounted and rendered');
   }, []);
 
   // Filter components
