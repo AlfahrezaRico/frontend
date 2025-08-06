@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from '@/hooks/use-toast';
+import { usePayrollComponents } from '@/hooks/usePayrollComponents';
 
 interface PayrollComponent {
   id: string;
@@ -34,189 +35,15 @@ interface PayrollComponent {
 const PayrollConfiguration = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  
-  const [components, setComponents] = useState<PayrollComponent[]>([
-    {
-      id: 'basic_salary',
-      name: 'Gaji Pokok',
-      type: 'income',
-      category: 'fixed',
-      percentage: 0,
-      amount: 0,
-      is_active: true,
-      description: 'Gaji pokok karyawan'
-    },
-    {
-      id: 'bpjs_jht_company',
-      name: 'BPJS Ketenagakerjaan JHT (Perusahaan)',
-      type: 'income',
-      category: 'bpjs',
-      percentage: 3.7,
-      amount: 0,
-      is_active: true,
-      description: 'Jaminan Hari Tua dari perusahaan'
-    },
-    {
-      id: 'bpjs_jkm_company',
-      name: 'BPJS Ketenagakerjaan JKM (Perusahaan)',
-      type: 'income',
-      category: 'bpjs',
-      percentage: 0.3,
-      amount: 0,
-      is_active: true,
-      description: 'Jaminan Kematian dari perusahaan'
-    },
-    {
-      id: 'bpjs_jkk_company',
-      name: 'BPJS Ketenagakerjaan JKK (Perusahaan)',
-      type: 'income',
-      category: 'bpjs',
-      percentage: 0.24,
-      amount: 0,
-      is_active: true,
-      description: 'Jaminan Kecelakaan Kerja dari perusahaan'
-    },
-    {
-      id: 'bpjs_pension_company',
-      name: 'BPJS Jaminan Pensiun (Perusahaan)',
-      type: 'income',
-      category: 'bpjs',
-      percentage: 2,
-      amount: 0,
-      is_active: true,
-      description: 'Jaminan Pensiun dari perusahaan'
-    },
-    {
-      id: 'bpjs_health_company',
-      name: 'BPJS Kesehatan (Perusahaan)',
-      type: 'income',
-      category: 'bpjs',
-      percentage: 4,
-      amount: 0,
-      is_active: true,
-      description: 'BPJS Kesehatan dari perusahaan'
-    },
-    {
-      id: 'position_allowance',
-      name: 'Tunjangan Jabatan',
-      type: 'income',
-      category: 'allowance',
-      percentage: 0,
-      amount: 0,
-      is_active: true,
-      description: 'Tunjangan berdasarkan jabatan'
-    },
-    {
-      id: 'management_allowance',
-      name: 'Tunjangan Pengurus',
-      type: 'income',
-      category: 'allowance',
-      percentage: 0,
-      amount: 0,
-      is_active: true,
-      description: 'Tunjangan untuk pengurus'
-    },
-    {
-      id: 'phone_allowance',
-      name: 'Tunjangan Pulsa',
-      type: 'income',
-      category: 'allowance',
-      percentage: 0,
-      amount: 100000,
-      is_active: true,
-      description: 'Tunjangan pulsa bulanan'
-    },
-    {
-      id: 'incentive_allowance',
-      name: 'Tunjangan Insentif',
-      type: 'income',
-      category: 'allowance',
-      percentage: 0,
-      amount: 500000,
-      is_active: true,
-      description: 'Tunjangan insentif kinerja'
-    },
-    {
-      id: 'overtime_allowance',
-      name: 'Tunjangan Lembur',
-      type: 'income',
-      category: 'allowance',
-      percentage: 0,
-      amount: 0,
-      is_active: true,
-      description: 'Tunjangan lembur'
-    },
-    {
-      id: 'bpjs_health_employee',
-      name: 'BPJS Kesehatan (Karyawan)',
-      type: 'deduction',
-      category: 'bpjs',
-      percentage: 1,
-      amount: 0,
-      is_active: true,
-      description: 'BPJS Kesehatan dari karyawan'
-    },
-    {
-      id: 'bpjs_jht_employee',
-      name: 'BPJS Ketenagakerjaan JHT (Karyawan)',
-      type: 'deduction',
-      category: 'bpjs',
-      percentage: 2,
-      amount: 0,
-      is_active: true,
-      description: 'Jaminan Hari Tua dari karyawan'
-    },
-    {
-      id: 'bpjs_pension_employee',
-      name: 'BPJS Jaminan Pensiun (Karyawan)',
-      type: 'deduction',
-      category: 'bpjs',
-      percentage: 1,
-      amount: 0,
-      is_active: true,
-      description: 'Jaminan Pensiun dari karyawan'
-    },
-    {
-      id: 'cash_advance',
-      name: 'Kasbon',
-      type: 'deduction',
-      category: 'variable',
-      percentage: 0,
-      amount: 0,
-      is_active: true,
-      description: 'Pinjaman kasbon'
-    },
-    {
-      id: 'loan_installment',
-      name: 'Angsuran Kredit',
-      type: 'deduction',
-      category: 'variable',
-      percentage: 0,
-      amount: 0,
-      is_active: true,
-      description: 'Angsuran kredit karyawan'
-    },
-    {
-      id: 'late_penalty',
-      name: 'Telat',
-      type: 'deduction',
-      category: 'variable',
-      percentage: 0,
-      amount: 0,
-      is_active: true,
-      description: 'Denda keterlambatan'
-    },
-    {
-      id: 'absent_penalty',
-      name: 'Alfa',
-      type: 'deduction',
-      category: 'variable',
-      percentage: 0,
-      amount: 0,
-      is_active: true,
-      description: 'Denda ketidakhadiran'
-    }
-  ]);
+  const { 
+    components, 
+    stats, 
+    loading, 
+    error, 
+    updateComponent, 
+    deleteComponent, 
+    toggleActive 
+  } = usePayrollComponents();
 
   const [editingComponent, setEditingComponent] = useState<PayrollComponent | null>(null);
 
@@ -224,29 +51,53 @@ const PayrollConfiguration = () => {
     setEditingComponent(component);
   };
 
-  const handleSave = (component: PayrollComponent) => {
-    setComponents(prev => 
-      prev.map(c => c.id === component.id ? component : c)
-    );
-    setEditingComponent(null);
-    toast({
-      title: 'Berhasil',
-      description: 'Komponen payroll berhasil diupdate',
-    });
+  const handleSave = async (component: PayrollComponent) => {
+    try {
+      await updateComponent(component.id, component);
+      setEditingComponent(null);
+      toast({
+        title: 'Berhasil',
+        description: 'Komponen payroll berhasil diupdate',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Gagal mengupdate komponen',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const handleToggleActive = (id: string) => {
-    setComponents(prev => 
-      prev.map(c => c.id === id ? { ...c, is_active: !c.is_active } : c)
-    );
+  const handleToggleActive = async (id: number) => {
+    try {
+      await toggleActive(id);
+      toast({
+        title: 'Berhasil',
+        description: 'Status komponen berhasil diubah',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Gagal mengubah status',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setComponents(prev => prev.filter(c => c.id !== id));
-    toast({
-      title: 'Berhasil',
-      description: 'Komponen payroll berhasil dihapus',
-    });
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteComponent(id);
+      toast({
+        title: 'Berhasil',
+        description: 'Komponen payroll berhasil dihapus',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Gagal menghapus komponen',
+        variant: 'destructive',
+      });
+    }
   };
 
   const getCategoryIcon = (category: string) => {
@@ -297,59 +148,76 @@ const PayrollConfiguration = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        {loading && (
+          <div className="flex items-center justify-center py-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-500">Memuat konfigurasi payroll...</p>
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p className="text-red-800">Error: {error}</p>
+          </div>
+        )}
+
+        {!loading && !error && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-green-100 rounded-lg">
                   <DollarSign className="w-6 h-6 text-green-600" />
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600">Total Pendapatan</p>
-                  <p className="text-2xl font-bold text-gray-900">11</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-red-100 rounded-lg">
-                  <Calculator className="w-6 h-6 text-red-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Total Pemotongan</p>
-                  <p className="text-2xl font-bold text-gray-900">6</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Shield className="w-6 h-6 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Komponen BPJS</p>
-                  <p className="text-2xl font-bold text-gray-900">8</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <Settings className="w-6 h-6 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Aktif</p>
-                  <p className="text-2xl font-bold text-gray-900">17</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                                 <div>
+                   <p className="text-sm text-gray-600">Total Pendapatan</p>
+                   <p className="text-2xl font-bold text-gray-900">{stats?.income_count || 0}</p>
+                 </div>
+               </div>
+             </CardContent>
+           </Card>
+           <Card>
+             <CardContent className="p-6">
+               <div className="flex items-center gap-3">
+                 <div className="p-2 bg-red-100 rounded-lg">
+                   <Calculator className="w-6 h-6 text-red-600" />
+                 </div>
+                 <div>
+                   <p className="text-sm text-gray-600">Total Pemotongan</p>
+                   <p className="text-2xl font-bold text-gray-900">{stats?.deduction_count || 0}</p>
+                 </div>
+               </div>
+             </CardContent>
+           </Card>
+           <Card>
+             <CardContent className="p-6">
+               <div className="flex items-center gap-3">
+                 <div className="p-2 bg-blue-100 rounded-lg">
+                   <Shield className="w-6 h-6 text-blue-600" />
+                 </div>
+                 <div>
+                   <p className="text-sm text-gray-600">Komponen BPJS</p>
+                   <p className="text-2xl font-bold text-gray-900">{stats?.bpjs_count || 0}</p>
+                 </div>
+               </div>
+             </CardContent>
+           </Card>
+           <Card>
+             <CardContent className="p-6">
+               <div className="flex items-center gap-3">
+                 <div className="p-2 bg-purple-100 rounded-lg">
+                   <Settings className="w-6 h-6 text-purple-600" />
+                 </div>
+                 <div>
+                   <p className="text-sm text-gray-600">Aktif</p>
+                   <p className="text-2xl font-bold text-gray-900">{stats?.active_count || 0}</p>
+                 </div>
+               </div>
+             </CardContent>
+           </Card>
         </div>
 
         <Card>
@@ -447,6 +315,8 @@ const PayrollConfiguration = () => {
           </CardContent>
         </Card>
       </div>
+            </>
+          )}
 
       {editingComponent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
