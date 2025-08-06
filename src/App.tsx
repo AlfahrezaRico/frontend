@@ -26,6 +26,7 @@ import RequireAuth from "@/components/RequireAuth";
 import { ToastProvider } from "@/hooks/use-toast";
 import DashboardRedirect from "./pages/DashboardRedirect";
 import PayrollManagement from "./pages/PayrollManagement";
+import PayrollConfiguration from "./pages/PayrollConfiguration";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ const App = () => (
               <Route path="/superadmin/nik-configuration" element={<RequireAuth allowedRoles={["superadmin"]}><NIKConfiguration /></RequireAuth>} />
               <Route path="/dashboard/hrd/leave-quotas" element={<RequireAuth allowedRoles={["hrd", "superadmin"]}><LeaveQuotaManagement /></RequireAuth>} />
               <Route path="/payroll-management" element={<RequireAuth allowedRoles={["hrd", "superadmin"]}><PayrollManagement /></RequireAuth>} />
+              <Route path="/payroll-configuration" element={<RequireAuth allowedRoles={["hrd", "superadmin"]}><PayrollConfiguration /></RequireAuth>} />
               <Route path="/hrd-izin-sakit-management" element={<RequireAuth allowedRoles={["hrd", "superadmin"]}><HRDIzinSakitManagement /></RequireAuth>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

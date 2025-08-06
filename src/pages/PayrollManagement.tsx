@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, Trash2, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -126,6 +126,14 @@ export default function PayrollManagement() {
               </Button>
               <h1 className="text-xl font-bold text-gray-900">Management Payroll</h1>
             </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => navigate('/payroll-configuration')}
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Konfigurasi Payroll
+              </Button>
             <Dialog open={modalOpen} onOpenChange={setModalOpen}>
               <DialogTrigger asChild>
                 <Button>Tambah Payroll</Button>
