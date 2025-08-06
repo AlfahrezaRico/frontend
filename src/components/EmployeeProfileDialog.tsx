@@ -2,14 +2,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { 
   User, 
   Mail, 
   Phone, 
   MapPin, 
-  Calendar, 
   Building, 
   CreditCard, 
   Banknote,
@@ -78,9 +76,7 @@ export const EmployeeProfileDialog = ({ open, onOpenChange, profile }: EmployeeP
     );
   }
 
-  const getInitials = (firstName: string, lastName: string) => {
-    return `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase();
-  };
+
 
   const formatDate = (dateString: string) => {
     if (!dateString) return '-';
@@ -112,7 +108,7 @@ export const EmployeeProfileDialog = ({ open, onOpenChange, profile }: EmployeeP
         
         <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 30px; padding: 20px; background: #f8fafc; border-radius: 8px;">
           <div style="width: 80px; height: 80px; background: #3b82f6; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold;">
-            ${getInitials(profile.first_name, profile.last_name)}
+            ${(profile.first_name?.charAt(0) || '') + (profile.last_name?.charAt(0) || '')}
           </div>
           <div>
             <h2 style="color: #1f2937; margin: 0 0 5px 0; font-size: 24px;">${profile.first_name} ${profile.last_name}</h2>
@@ -184,27 +180,20 @@ export const EmployeeProfileDialog = ({ open, onOpenChange, profile }: EmployeeP
           {/* Header Profile */}
           <Card className="border-0 shadow-sm bg-gradient-to-r from-blue-50 to-indigo-50">
             <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <Avatar className="h-16 w-16 border-4 border-white shadow-lg">
-                  <AvatarFallback className="bg-blue-600 text-white text-lg font-semibold">
-                    {getInitials(profile.first_name, profile.last_name)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-1">
-                    {profile.first_name} {profile.last_name}
-                  </h2>
-                  <p className="text-gray-600 mb-2">{profile.position || 'Posisi tidak tersedia'}</p>
-                  <div className="flex items-center gap-4">
-                    <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                      <Building2 className="w-3 h-3 mr-1" />
-                      {profile.departemen?.nama || profile.department || 'Departemen tidak tersedia'}
-                    </Badge>
-                    <Badge variant="outline" className="border-green-200 text-green-700">
-                      <UserCheck className="w-3 h-3 mr-1" />
-                      Aktif
-                    </Badge>
-                  </div>
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold text-gray-800 mb-1">
+                  {profile.first_name} {profile.last_name}
+                </h2>
+                <p className="text-gray-600 mb-2">{profile.position || 'Posisi tidak tersedia'}</p>
+                <div className="flex items-center gap-4">
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                    <Building2 className="w-3 h-3 mr-1" />
+                    {profile.departemen?.nama || profile.department || 'Departemen tidak tersedia'}
+                  </Badge>
+                  <Badge variant="outline" className="border-green-200 text-green-700">
+                    <UserCheck className="w-3 h-3 mr-1" />
+                    Aktif
+                  </Badge>
                 </div>
               </div>
             </CardContent>
@@ -294,41 +283,7 @@ export const EmployeeProfileDialog = ({ open, onOpenChange, profile }: EmployeeP
             </CardContent>
           </Card>
 
-          {/* Quick Stats */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Calendar className="w-5 h-5 text-purple-600" />
-                <h3 className="text-lg font-semibold text-gray-800">Statistik Singkat</h3>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center p-4 bg-purple-50 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600 mb-1">
-                    {profile.hire_date ? Math.floor((new Date().getTime() - new Date(profile.hire_date).getTime()) / (1000 * 60 * 60 * 24 * 365)) : 0}
-                  </div>
-                  <p className="text-xs text-gray-600">Tahun Bekerja</p>
-                </div>
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600 mb-1">
-                    {profile.nik ? profile.nik.slice(-4) : 'N/A'}
-                  </div>
-                  <p className="text-xs text-gray-600">ID Karyawan</p>
-                </div>
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600 mb-1">
-                    {profile.position ? profile.position.split(' ').length : 0}
-                  </div>
-                  <p className="text-xs text-gray-600">Level Posisi</p>
-                </div>
-                <div className="text-center p-4 bg-orange-50 rounded-lg">
-                  <div className="text-2xl font-bold text-orange-600 mb-1">
-                    {profile.departemen?.nama ? profile.departemen.nama.length : 0}
-                  </div>
-                  <p className="text-xs text-gray-600">Departemen</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+
         </div>
 
         {/* Action Buttons */}
