@@ -2,15 +2,19 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Trash2, Settings } from "lucide-react";
+import { ArrowLeft, Trash2, Settings, Plus, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 
 export default function PayrollManagement() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [payrolls, setPayrolls] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -66,14 +70,21 @@ export default function PayrollManagement() {
       const res = await fetch(`${API_URL}/api/payrolls/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Gagal hapus payroll");
       fetchPayrolls();
+      toast({
+        title: 'Berhasil',
+        description: 'Payroll berhasil dihapus',
+      });
     } catch (err) {
-      alert("Gagal hapus payroll");
+      toast({
+        title: 'Error',
+        description: 'Gagal hapus payroll',
+        variant: 'destructive',
+      });
     }
   };
 
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setForm(f => ({ ...f, [name]: name.includes("salary") || name === "deductions" ? Number(value) : value }));
+  const handleFormChange = (field: string, value: any) => {
+    setForm(f => ({ ...f, [field]: value }));
   };
 
   const handleAddPayroll = async (e: React.FormEvent) => {
@@ -89,8 +100,16 @@ export default function PayrollManagement() {
       setModalOpen(false);
       setForm({ employee_id: "", pay_period_start: "", pay_period_end: "", gross_salary: 0, deductions: 0, net_salary: 0, payment_date: "", status: "PAID" });
       fetchPayrolls();
+      toast({
+        title: 'Berhasil',
+        description: 'Payroll berhasil ditambahkan',
+      });
     } catch (err) {
-      alert("Gagal tambah payroll");
+      toast({
+        title: 'Error',
+        description: 'Gagal tambah payroll',
+        variant: 'destructive',
+      });
     } finally {
       setSubmitting(false);
     }
@@ -98,110 +117,151 @@ export default function PayrollManagement() {
 
   // Search & Pagination
   const filteredPayrolls = payrolls.filter((p) => {
-    const q = search.toLowerCase();
+    const searchTerm = search.toLowerCase();
     return (
-      (p.employee?.first_name?.toLowerCase().includes(q) || "") +
-      (p.employee?.last_name?.toLowerCase().includes(q) || "") +
-      (p.employee?.position?.toLowerCase().includes(q) || "") +
-      (p.employee?.department?.toLowerCase().includes(q) || "") +
-      (p.status?.toLowerCase().includes(q) || "")
-    ).includes(q);
+      p.employee?.first_name?.toLowerCase().includes(searchTerm) ||
+      p.employee?.last_name?.toLowerCase().includes(searchTerm) ||
+      p.employee?.position?.toLowerCase().includes(searchTerm) ||
+      p.employee?.department?.toLowerCase().includes(searchTerm) ||
+      p.status?.toLowerCase().includes(searchTerm)
+    );
   });
+
+  const totalPages = Math.ceil(filteredPayrolls.length / pageSize);
   const pagedPayrolls = filteredPayrolls.slice((page - 1) * pageSize, page * pageSize);
-  const totalPages = Math.max(1, Math.ceil(filteredPayrolls.length / pageSize));
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center py-4 justify-between">
-            <div className="flex items-center">
-              <Button
-                variant="ghost"
-                onClick={() => navigate('/dashboard/hrd')}
-                className="mr-4"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" onClick={() => navigate(-1)}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
                 Kembali
               </Button>
-              <h1 className="text-xl font-bold text-gray-900">Management Payroll</h1>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Management Payroll</h1>
+                <p className="text-gray-600">Kelola data gaji, slip gaji, dan histori pembayaran karyawan</p>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  console.log('Konfigurasi Payroll button clicked');
-                  console.log('Navigating to /payroll-configuration');
-                  navigate('/payroll-configuration');
-                }}
-              >
-                <Settings className="h-4 w-4 mr-2" />
+            <div className="flex items-center gap-4">
+              <Button variant="outline" onClick={() => navigate('/payroll-configuration')}>
+                <Settings className="w-4 h-4 mr-2" />
                 Konfigurasi Payroll
               </Button>
               <Dialog open={modalOpen} onOpenChange={setModalOpen}>
                 <DialogTrigger asChild>
-                  <Button>Tambah Payroll</Button>
+                  <Button>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Tambah Payroll
+                  </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl">
                   <DialogHeader>
                     <DialogTitle>Tambah Payroll Baru</DialogTitle>
                   </DialogHeader>
-                  <form onSubmit={handleAddPayroll} className="space-y-4">
+                  <form onSubmit={handleAddPayroll} className="space-y-6">
                     <div>
-                      <label className="block text-sm font-medium mb-1">Pilih Karyawan</label>
-                      <select
-                        name="employee_id"
-                        value={form.employee_id}
-                        onChange={handleFormChange}
-                        className="border px-2 py-1 rounded w-full"
-                        required
-                      >
-                        <option value="">Pilih karyawan</option>
-                        {employees.map((emp: any) => (
-                          <option key={emp.id} value={emp.id}>{emp.first_name} {emp.last_name} - {emp.position}</option>
-                        ))}
-                      </select>
+                      <Label htmlFor="employee_id">Pilih Karyawan</Label>
+                      <Select value={form.employee_id} onValueChange={(value) => handleFormChange('employee_id', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih karyawan" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {employees.map((emp: any) => (
+                            <SelectItem key={emp.id} value={emp.id}>
+                              {emp.first_name} {emp.last_name} - {emp.position}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium mb-1">Periode Mulai</label>
-                        <Input name="pay_period_start" type="date" value={form.pay_period_start} onChange={handleFormChange} required />
+                        <Label htmlFor="pay_period_start">Periode Mulai</Label>
+                        <Input 
+                          id="pay_period_start"
+                          type="date" 
+                          value={form.pay_period_start} 
+                          onChange={(e) => handleFormChange('pay_period_start', e.target.value)} 
+                          required 
+                        />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-1">Periode Akhir</label>
-                        <Input name="pay_period_end" type="date" value={form.pay_period_end} onChange={handleFormChange} required />
+                        <Label htmlFor="pay_period_end">Periode Akhir</Label>
+                        <Input 
+                          id="pay_period_end"
+                          type="date" 
+                          value={form.pay_period_end} 
+                          onChange={(e) => handleFormChange('pay_period_end', e.target.value)} 
+                          required 
+                        />
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-sm font-medium mb-1">Gaji Pokok</label>
-                        <Input name="gross_salary" type="number" value={form.gross_salary} onChange={handleFormChange} required />
+                        <Label htmlFor="gross_salary">Gaji Pokok</Label>
+                        <Input 
+                          id="gross_salary"
+                          type="number" 
+                          value={form.gross_salary} 
+                          onChange={(e) => handleFormChange('gross_salary', Number(e.target.value))} 
+                          required 
+                        />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-1">Potongan</label>
-                        <Input name="deductions" type="number" value={form.deductions} onChange={handleFormChange} required />
+                        <Label htmlFor="deductions">Potongan</Label>
+                        <Input 
+                          id="deductions"
+                          type="number" 
+                          value={form.deductions} 
+                          onChange={(e) => handleFormChange('deductions', Number(e.target.value))} 
+                          required 
+                        />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-1">Total Diterima</label>
-                        <Input name="net_salary" type="number" value={form.net_salary} onChange={handleFormChange} required />
+                        <Label htmlFor="net_salary">Total Diterima</Label>
+                        <Input 
+                          id="net_salary"
+                          type="number" 
+                          value={form.net_salary} 
+                          onChange={(e) => handleFormChange('net_salary', Number(e.target.value))} 
+                          required 
+                        />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium mb-1">Tanggal Bayar</label>
-                        <Input name="payment_date" type="date" value={form.payment_date} onChange={handleFormChange} required />
+                        <Label htmlFor="payment_date">Tanggal Bayar</Label>
+                        <Input 
+                          id="payment_date"
+                          type="date" 
+                          value={form.payment_date} 
+                          onChange={(e) => handleFormChange('payment_date', e.target.value)} 
+                          required 
+                        />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-1">Status</label>
-                        <select name="status" value={form.status} onChange={handleFormChange} className="border px-2 py-1 rounded w-full" required>
-                          <option value="PAID">PAID</option>
-                          <option value="UNPAID">UNPAID</option>
-                        </select>
+                        <Label htmlFor="status">Status</Label>
+                        <Select value={form.status} onValueChange={(value) => handleFormChange('status', value)}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="PAID">PAID</SelectItem>
+                            <SelectItem value="UNPAID">UNPAID</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                     <DialogFooter>
-                      <Button type="button" variant="outline" onClick={() => setModalOpen(false)}>Batal</Button>
-                      <Button type="submit" disabled={submitting}>{submitting ? 'Menyimpan...' : 'Simpan'}</Button>
+                      <Button type="button" variant="outline" onClick={() => setModalOpen(false)}>
+                        Batal
+                      </Button>
+                      <Button type="submit" disabled={submitting}>
+                        {submitting ? 'Menyimpan...' : 'Simpan'}
+                      </Button>
                     </DialogFooter>
                   </form>
                 </DialogContent>
@@ -220,15 +280,20 @@ export default function PayrollManagement() {
             <CardContent>
               {/* Search Bar */}
               <div className="flex gap-2 mb-4">
-                <input
-                  type="text"
-                  className="border px-2 py-1 rounded w-64"
-                  placeholder="Cari nama, posisi, departemen, status..."
-                  value={searchInput}
-                  onChange={e => setSearchInput(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') { setSearch(searchInput); setPage(1); } }}
-                />
-                <button className="px-3 py-1 bg-slate-700 text-white rounded" onClick={() => { setSearch(searchInput); setPage(1); }}>Cari</button>
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    type="text"
+                    className="pl-10"
+                    placeholder="Cari nama, posisi, departemen, status..."
+                    value={searchInput}
+                    onChange={e => setSearchInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { setSearch(searchInput); setPage(1); } }}
+                  />
+                </div>
+                <Button onClick={() => { setSearch(searchInput); setPage(1); }}>
+                  Cari
+                </Button>
               </div>
               {/* Tabel Payroll */}
               <Table>
@@ -261,7 +326,9 @@ export default function PayrollManagement() {
                       <TableCell>{p.payment_date}</TableCell>
                       <TableCell>{p.status}</TableCell>
                       <TableCell>
-                        <Button variant="outline" size="sm" onClick={() => handleDelete(p.id)}><Trash2 className="h-4 w-4" /></Button>
+                        <Button variant="outline" size="sm" onClick={() => handleDelete(p.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -269,9 +336,21 @@ export default function PayrollManagement() {
               </Table>
               {/* Pagination Controls */}
               <div className="flex justify-center items-center mt-4 gap-2">
-                <button onClick={() => setPage(page - 1)} disabled={page === 1} className="px-3 py-1 rounded bg-slate-200 disabled:opacity-50">&lt; Sebelumnya</button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setPage(page - 1)} 
+                  disabled={page === 1}
+                >
+                  &lt; Sebelumnya
+                </Button>
                 <span>Halaman {page} dari {totalPages}</span>
-                <button onClick={() => setPage(page + 1)} disabled={page === totalPages} className="px-3 py-1 rounded bg-slate-200 disabled:opacity-50">Selanjutnya &gt;</button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setPage(page + 1)} 
+                  disabled={page === totalPages}
+                >
+                  Selanjutnya &gt;
+                </Button>
               </div>
             </CardContent>
           </Card>
