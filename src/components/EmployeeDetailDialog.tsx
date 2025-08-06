@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -50,13 +50,44 @@ export const EmployeeDetailDialog = ({ employee }: EmployeeDetailDialogProps) =>
 
   const handleCopy = (text: string, label: string) => {
     if (text && text !== '-') {
-      navigator.clipboard.writeText(text);
-      toast({
-        title: 'Berhasil',
-        description: `${label} berhasil disalin`,
-      });
+      try {
+        navigator.clipboard.writeText(text);
+        toast({
+          title: 'Berhasil',
+          description: `${label} berhasil disalin`,
+        });
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: 'Gagal menyalin teks',
+          variant: 'destructive',
+        });
+      }
     }
   };
+
+  if (!employee) {
+    return (
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm">
+            <Eye className="h-4 w-4" />
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Detail Karyawan</DialogTitle>
+          </DialogHeader>
+          <div className="flex items-center justify-center py-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-500">Memuat data karyawan...</p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog>
@@ -80,7 +111,7 @@ export const EmployeeDetailDialog = ({ employee }: EmployeeDetailDialogProps) =>
                 </div>
                 <div className="flex-1">
                   <h2 className="text-2xl font-bold text-gray-800 mb-1">
-                    {employee.first_name} {employee.last_name}
+                    {employee.first_name || ''} {employee.last_name || ''}
                   </h2>
                   <p className="text-gray-600 mb-2">{employee.position || 'Posisi tidak tersedia'}</p>
                   <div className="flex items-center gap-4">
