@@ -35,59 +35,15 @@ interface PayrollComponent {
   description: string;
 }
 
-// Mock data untuk development
-const mockComponents: PayrollComponent[] = [
-  {
-    id: 1,
-    name: 'Gaji Pokok',
-    type: 'income',
-    category: 'fixed',
-    percentage: 0,
-    amount: 0,
-    is_active: true,
-    description: 'Gaji pokok karyawan'
-  },
-  {
-    id: 2,
-    name: 'BPJS Ketenagakerjaan JHT (Perusahaan)',
-    type: 'income',
-    category: 'bpjs',
-    percentage: 3.7,
-    amount: 0,
-    is_active: true,
-    description: 'Jaminan Hari Tua dari perusahaan'
-  },
-  {
-    id: 3,
-    name: 'BPJS Ketenagakerjaan JHT (Karyawan)',
-    type: 'deduction',
-    category: 'bpjs',
-    percentage: 2,
-    amount: 0,
-    is_active: true,
-    description: 'Jaminan Hari Tua dari karyawan'
-  },
-  {
-    id: 4,
-    name: 'Tunjangan Makan',
-    type: 'income',
-    category: 'allowance',
-    percentage: 0,
-    amount: 50000,
-    is_active: true,
-    description: 'Tunjangan makan harian'
-  },
-  {
-    id: 5,
-    name: 'Kasbon',
-    type: 'deduction',
-    category: 'variable',
-    percentage: 0,
-    amount: 0,
-    is_active: true,
-    description: 'Pinjaman karyawan'
-  }
-];
+interface PayrollStats {
+  total: number;
+  income_count: number;
+  deduction_count: number;
+  bpjs_count: number;
+  active_count: number;
+}
+
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 const PayrollConfiguration = () => {
   const navigate = useNavigate();
@@ -95,8 +51,16 @@ const PayrollConfiguration = () => {
   
   console.log('PayrollConfiguration component rendered'); // Debug log
   
-  const [components, setComponents] = useState<PayrollComponent[]>(mockComponents);
-  const [filteredComponents, setFilteredComponents] = useState<PayrollComponent[]>(mockComponents);
+  const [components, setComponents] = useState<PayrollComponent[]>([]);
+  const [filteredComponents, setFilteredComponents] = useState<PayrollComponent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<PayrollStats>({
+    total: 0,
+    income_count: 0,
+    deduction_count: 0,
+    bpjs_count: 0,
+    active_count: 0
+  });
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
@@ -113,6 +77,40 @@ const PayrollConfiguration = () => {
     description: ''
   });
 
+  // Fetch components from backend
+  const fetchComponents = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/payroll-components`);
+      if (!res.ok) throw new Error('Failed to fetch components');
+      const data = await res.json();
+      setComponents(data);
+      console.log('Components fetched from backend:', data);
+    } catch (error) {
+      console.error('Error fetching components:', error);
+      toast({
+        title: 'Error',
+        description: 'Gagal mengambil data komponen payroll',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch stats from backend
+  const fetchStats = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/payroll-components/stats`);
+      if (!res.ok) throw new Error('Failed to fetch stats');
+      const data = await res.json();
+      setStats(data);
+      console.log('Stats fetched from backend:', data);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  };
+
   // Debug log when component mounts
   useEffect(() => {
     console.log('PayrollConfiguration component mounted');
@@ -121,6 +119,10 @@ const PayrollConfiguration = () => {
     
     // Log untuk debugging navigation
     console.log('PayrollConfiguration: Component successfully mounted and rendered');
+    
+    // Fetch data from backend
+    fetchComponents();
+    fetchStats();
   }, []);
 
   // Filter components
@@ -155,7 +157,7 @@ const PayrollConfiguration = () => {
     filterComponents();
   }, [searchTerm, typeFilter, categoryFilter, statusFilter, components]);
 
-  const handleAddComponent = () => {
+  const handleAddComponent = async () => {
     if (!newComponent.name.trim()) {
       toast({
         title: 'Error',
@@ -165,27 +167,45 @@ const PayrollConfiguration = () => {
       return;
     }
 
-    const component: PayrollComponent = {
-      ...newComponent,
-      id: Math.max(...components.map(c => c.id)) + 1
-    };
+    try {
+      const res = await fetch(`${API_URL}/api/payroll-components`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newComponent),
+      });
 
-    setComponents(prev => [...prev, component]);
-    setNewComponent({
-      name: '',
-      type: 'income',
-      category: 'fixed',
-      percentage: 0,
-      amount: 0,
-      is_active: true,
-      description: ''
-    });
-    setShowAddDialog(false);
-    
-    toast({
-      title: 'Berhasil',
-      description: 'Komponen payroll berhasil ditambahkan',
-    });
+      if (!res.ok) throw new Error('Failed to add component');
+      
+      const addedComponent = await res.json();
+      setComponents(prev => [...prev, addedComponent]);
+      setNewComponent({
+        name: '',
+        type: 'income',
+        category: 'fixed',
+        percentage: 0,
+        amount: 0,
+        is_active: true,
+        description: ''
+      });
+      setShowAddDialog(false);
+      
+      toast({
+        title: 'Berhasil',
+        description: 'Komponen payroll berhasil ditambahkan',
+      });
+      
+      // Refresh stats
+      fetchStats();
+    } catch (error) {
+      console.error('Error adding component:', error);
+      toast({
+        title: 'Error',
+        description: 'Gagal menambahkan komponen payroll',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleEdit = (component: PayrollComponent) => {
@@ -193,32 +213,97 @@ const PayrollConfiguration = () => {
   };
 
   const handleSave = async (component: PayrollComponent) => {
-    setComponents(prev => 
-      prev.map(c => c.id === component.id ? component : c)
-    );
-    setEditingComponent(null);
-    toast({
-      title: 'Berhasil',
-      description: 'Komponen payroll berhasil diupdate',
-    });
+    try {
+      const res = await fetch(`${API_URL}/api/payroll-components/${component.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(component),
+      });
+
+      if (!res.ok) throw new Error('Failed to update component');
+      
+      const updatedComponent = await res.json();
+      setComponents(prev => 
+        prev.map(c => c.id === component.id ? updatedComponent : c)
+      );
+      setEditingComponent(null);
+      
+      toast({
+        title: 'Berhasil',
+        description: 'Komponen payroll berhasil diupdate',
+      });
+      
+      // Refresh stats
+      fetchStats();
+    } catch (error) {
+      console.error('Error updating component:', error);
+      toast({
+        title: 'Error',
+        description: 'Gagal mengupdate komponen payroll',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleToggleActive = async (id: number) => {
-    setComponents(prev => 
-      prev.map(c => c.id === id ? { ...c, is_active: !c.is_active } : c)
-    );
-    toast({
-      title: 'Berhasil',
-      description: 'Status komponen berhasil diubah',
-    });
+    try {
+      const res = await fetch(`${API_URL}/api/payroll-components/${id}/toggle`, {
+        method: 'PATCH',
+      });
+
+      if (!res.ok) throw new Error('Failed to toggle component');
+      
+      const updatedComponent = await res.json();
+      setComponents(prev => 
+        prev.map(c => c.id === id ? updatedComponent : c)
+      );
+      
+      toast({
+        title: 'Berhasil',
+        description: 'Status komponen berhasil diubah',
+      });
+      
+      // Refresh stats
+      fetchStats();
+    } catch (error) {
+      console.error('Error toggling component:', error);
+      toast({
+        title: 'Error',
+        description: 'Gagal mengubah status komponen',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleDelete = async (id: number) => {
-    setComponents(prev => prev.filter(c => c.id !== id));
-    toast({
-      title: 'Berhasil',
-      description: 'Komponen payroll berhasil dihapus',
-    });
+    if (!window.confirm('Yakin hapus komponen ini?')) return;
+    
+    try {
+      const res = await fetch(`${API_URL}/api/payroll-components/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) throw new Error('Failed to delete component');
+      
+      setComponents(prev => prev.filter(c => c.id !== id));
+      
+      toast({
+        title: 'Berhasil',
+        description: 'Komponen payroll berhasil dihapus',
+      });
+      
+      // Refresh stats
+      fetchStats();
+    } catch (error) {
+      console.error('Error deleting component:', error);
+      toast({
+        title: 'Error',
+        description: 'Gagal menghapus komponen payroll',
+        variant: 'destructive',
+      });
+    }
   };
 
   const getCategoryIcon = (category: string) => {
@@ -243,14 +328,6 @@ const PayrollConfiguration = () => {
       case 'variable': return 'bg-orange-100 text-orange-800';
       default: return 'bg-gray-100 text-gray-800';
     }
-  };
-
-  const stats = {
-    total: components.length,
-    income_count: components.filter(c => c.type === 'income').length,
-    deduction_count: components.filter(c => c.type === 'deduction').length,
-    bpjs_count: components.filter(c => c.category === 'bpjs').length,
-    active_count: components.filter(c => c.is_active).length
   };
 
   console.log('PayrollConfiguration rendering with stats:', stats); // Debug log
@@ -413,7 +490,15 @@ const PayrollConfiguration = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {filteredComponents.length === 0 ? (
+              {loading ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                    <Settings className="w-8 h-8 text-gray-400 animate-spin" />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Loading...</h3>
+                  <p className="text-gray-500">Mengambil data komponen payroll</p>
+                </div>
+              ) : filteredComponents.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
                     <FileText className="w-8 h-8 text-gray-400" />
@@ -662,6 +747,40 @@ const PayrollConfiguration = () => {
                       description: e.target.value
                     })}
                   />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Tipe</Label>
+                    <Select value={editingComponent.type} onValueChange={(value: 'income' | 'deduction') => setEditingComponent({
+                      ...editingComponent,
+                      type: value
+                    })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="income">Pendapatan</SelectItem>
+                        <SelectItem value="deduction">Pemotongan</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Kategori</Label>
+                    <Select value={editingComponent.category} onValueChange={(value: 'fixed' | 'variable' | 'bpjs' | 'allowance') => setEditingComponent({
+                      ...editingComponent,
+                      category: value
+                    })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="fixed">Tetap</SelectItem>
+                        <SelectItem value="bpjs">BPJS</SelectItem>
+                        <SelectItem value="allowance">Tunjangan</SelectItem>
+                        <SelectItem value="variable">Variabel</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
