@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, UserPlus, Clock, Calendar, FileText, LogOut, Bell } from "lucide-react";
+import { Users, UserPlus, Clock, Calendar, FileText, LogOut, Bell, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEmployees } from '@/hooks/useEmployees';
 import { useDepartments } from '@/hooks/useDepartments';
@@ -386,6 +386,19 @@ const HRDDashboard = () => {
               <CardContent>
                 <Button variant="default" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg" onClick={e => { e.stopPropagation(); window.location.href = '/hrd-izin-sakit-management'; }}>
                   Kelola Izin/Sakit
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border-2 border-green-100 rounded-xl cursor-pointer" onClick={() => navigate('/payroll-configuration')}>
+              <CardHeader className="flex flex-col items-center">
+                <Settings className="h-10 w-10 text-green-600 mb-2" />
+                <CardTitle className="text-lg font-bold text-center">Konfigurasi Payroll</CardTitle>
+                <CardDescription className="text-gray-500 text-center">Kelola komponen perhitungan gaji otomatis</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="default" className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg" onClick={e => { e.stopPropagation(); navigate('/payroll-configuration'); }}>
+                  Konfigurasi Payroll
                 </Button>
               </CardContent>
             </Card>
