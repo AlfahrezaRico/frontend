@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Trash2, Settings, Plus, Search } from "lucide-react";
+import { ArrowLeft, Trash2, Settings, Plus, Search, Calculator } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,25 @@ import { useToast } from '@/hooks/use-toast';
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 
+interface PayrollComponent {
+  id: number;
+  name: string;
+  type: 'income' | 'deduction';
+  category: 'fixed' | 'variable' | 'bpjs' | 'allowance';
+  percentage: number;
+  amount: number;
+  is_active: boolean;
+  description: string;
+}
+
+interface CalculatedComponent {
+  name: string;
+  type: 'income' | 'deduction';
+  amount: number;
+  percentage: number;
+  is_percentage: boolean;
+}
+
 export default function PayrollManagement() {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -19,6 +38,8 @@ export default function PayrollManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [payrollComponents, setPayrollComponents] = useState<PayrollComponent[]>([]);
+  const [calculatedComponents, setCalculatedComponents] = useState<CalculatedComponent[]>([]);
   const [form, setForm] = useState({
     employee_id: "",
     pay_period_start: "",
@@ -59,10 +80,76 @@ export default function PayrollManagement() {
     } catch {}
   };
 
+  const fetchPayrollComponents = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/payroll-components`);
+      if (!res.ok) throw new Error("Gagal mengambil konfigurasi payroll");
+      const data = await res.json();
+      setPayrollComponents(data);
+    } catch (error) {
+      console.error('Error fetching payroll components:', error);
+    }
+  };
+
   useEffect(() => {
     fetchPayrolls();
     fetchEmployees();
+    fetchPayrollComponents();
   }, []);
+
+  // Calculate payroll components based on basic salary
+  const calculatePayrollComponents = (basicSalary: number) => {
+    if (basicSalary <= 0) {
+      setCalculatedComponents([]);
+      return;
+    }
+
+    const activeComponents = payrollComponents.filter(comp => comp.is_active);
+    const calculated: CalculatedComponent[] = [];
+
+    activeComponents.forEach(component => {
+      let amount = 0;
+      let isPercentage = false;
+
+      if (component.percentage > 0) {
+        // Calculate based on percentage
+        amount = (basicSalary * component.percentage) / 100;
+        isPercentage = true;
+      } else if (component.amount > 0) {
+        // Use fixed amount
+        amount = component.amount;
+        isPercentage = false;
+      }
+
+      calculated.push({
+        name: component.name,
+        type: component.type,
+        amount: amount,
+        percentage: component.percentage,
+        is_percentage: isPercentage
+      });
+    });
+
+    setCalculatedComponents(calculated);
+    
+    // Calculate totals
+    const totalIncome = calculated
+      .filter(c => c.type === 'income')
+      .reduce((sum, c) => sum + c.amount, 0);
+    
+    const totalDeduction = calculated
+      .filter(c => c.type === 'deduction')
+      .reduce((sum, c) => sum + c.amount, 0);
+    
+    const netSalary = basicSalary + totalIncome - totalDeduction;
+    
+    setForm(prev => ({
+      ...prev,
+      gross_salary: basicSalary,
+      deductions: totalDeduction,
+      net_salary: netSalary
+    }));
+  };
 
   const handleDelete = async (id: string) => {
     if (!window.confirm("Yakin hapus payroll ini?")) return;
@@ -85,6 +172,11 @@ export default function PayrollManagement() {
 
   const handleFormChange = (field: string, value: any) => {
     setForm(f => ({ ...f, [field]: value }));
+    
+    // If basic salary changes, recalculate components
+    if (field === 'gross_salary') {
+      calculatePayrollComponents(Number(value));
+    }
   };
 
   const handleAddPayroll = async (e: React.FormEvent) => {
@@ -99,6 +191,7 @@ export default function PayrollManagement() {
       if (!res.ok) throw new Error("Gagal tambah payroll");
       setModalOpen(false);
       setForm({ employee_id: "", pay_period_start: "", pay_period_end: "", gross_salary: 0, deductions: 0, net_salary: 0, payment_date: "", status: "PAID" });
+      setCalculatedComponents([]);
       fetchPayrolls();
       toast({
         title: 'Berhasil',
@@ -157,7 +250,7 @@ export default function PayrollManagement() {
                     Tambah Payroll
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl">
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Tambah Payroll Baru</DialogTitle>
                   </DialogHeader>
@@ -199,25 +292,66 @@ export default function PayrollManagement() {
                         />
                       </div>
                     </div>
+                    
+                    {/* Gaji Pokok Input */}
+                    <div>
+                      <Label htmlFor="gross_salary">Gaji Pokok</Label>
+                      <Input 
+                        id="gross_salary"
+                        type="number" 
+                        value={form.gross_salary} 
+                        onChange={(e) => handleFormChange('gross_salary', Number(e.target.value))} 
+                        required 
+                        placeholder="Masukkan gaji pokok"
+                      />
+                    </div>
+
+                    {/* Calculated Components Display */}
+                    {calculatedComponents.length > 0 && (
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                          <Calculator className="w-5 h-5 text-blue-600" />
+                          <h3 className="font-semibold text-gray-900">Komponen Perhitungan Otomatis</h3>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {calculatedComponents.map((component, index) => (
+                            <div key={index} className="p-3 border rounded-lg">
+                              <div className="flex justify-between items-center">
+                                <span className="font-medium text-sm">{component.name}</span>
+                                <span className={`text-sm font-semibold ${component.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                                  {component.type === 'income' ? '+' : '-'} Rp {component.amount.toLocaleString('id-ID')}
+                                </span>
+                              </div>
+                              {component.is_percentage && (
+                                <span className="text-xs text-gray-500">
+                                  {component.percentage}% dari gaji pokok
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-3 gap-4">
                       <div>
-                        <Label htmlFor="gross_salary">Gaji Pokok</Label>
+                        <Label htmlFor="gross_salary_display">Gaji Pokok</Label>
                         <Input 
-                          id="gross_salary"
+                          id="gross_salary_display"
                           type="number" 
                           value={form.gross_salary} 
-                          onChange={(e) => handleFormChange('gross_salary', Number(e.target.value))} 
-                          required 
+                          readOnly
+                          className="bg-gray-50"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="deductions">Potongan</Label>
+                        <Label htmlFor="deductions">Total Potongan</Label>
                         <Input 
                           id="deductions"
                           type="number" 
                           value={form.deductions} 
-                          onChange={(e) => handleFormChange('deductions', Number(e.target.value))} 
-                          required 
+                          readOnly
+                          className="bg-gray-50"
                         />
                       </div>
                       <div>
@@ -226,8 +360,8 @@ export default function PayrollManagement() {
                           id="net_salary"
                           type="number" 
                           value={form.net_salary} 
-                          onChange={(e) => handleFormChange('net_salary', Number(e.target.value))} 
-                          required 
+                          readOnly
+                          className="bg-gray-50 font-semibold"
                         />
                       </div>
                     </div>
