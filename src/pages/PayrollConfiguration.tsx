@@ -314,7 +314,6 @@ const PayrollConfiguration = () => {
             </Table>
           </CardContent>
         </Card>
-      </div>
             </>
           )}
 
