@@ -13,12 +13,9 @@ import {
   Save, 
   Calculator,
   DollarSign,
-  Percent,
   Settings,
   FileText,
-  CreditCard,
-  Shield,
-  Heart
+  Shield
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from '@/hooks/use-toast';
@@ -38,9 +35,7 @@ const PayrollConfiguration = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // State untuk komponen payroll
   const [components, setComponents] = useState<PayrollComponent[]>([
-    // Pendapatan Tetap
     {
       id: 'basic_salary',
       name: 'Gaji Pokok',
@@ -51,7 +46,6 @@ const PayrollConfiguration = () => {
       is_active: true,
       description: 'Gaji pokok karyawan'
     },
-    // BPJS Ketenagakerjaan
     {
       id: 'bpjs_jht_company',
       name: 'BPJS Ketenagakerjaan JHT (Perusahaan)',
@@ -102,7 +96,6 @@ const PayrollConfiguration = () => {
       is_active: true,
       description: 'BPJS Kesehatan dari perusahaan'
     },
-    // Pendapatan Tidak Tetap
     {
       id: 'position_allowance',
       name: 'Tunjangan Jabatan',
@@ -153,7 +146,6 @@ const PayrollConfiguration = () => {
       is_active: true,
       description: 'Tunjangan lembur'
     },
-    // Pemotongan Karyawan
     {
       id: 'bpjs_health_employee',
       name: 'BPJS Kesehatan (Karyawan)',
@@ -227,7 +219,6 @@ const PayrollConfiguration = () => {
   ]);
 
   const [editingComponent, setEditingComponent] = useState<PayrollComponent | null>(null);
-  const [showAddDialog, setShowAddDialog] = useState(false);
 
   const handleEdit = (component: PayrollComponent) => {
     setEditingComponent(component);
@@ -284,7 +275,6 @@ const PayrollConfiguration = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -298,7 +288,7 @@ const PayrollConfiguration = () => {
                 <p className="text-gray-600">Kelola komponen perhitungan gaji otomatis</p>
               </div>
             </div>
-            <Button onClick={() => setShowAddDialog(true)}>
+            <Button>
               <Plus className="w-4 h-4 mr-2" />
               Tambah Komponen
             </Button>
@@ -306,9 +296,7 @@ const PayrollConfiguration = () => {
         </div>
       </div>
 
-      {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardContent className="p-6">
@@ -364,7 +352,6 @@ const PayrollConfiguration = () => {
           </Card>
         </div>
 
-        {/* Components Table */}
         <Card>
           <CardHeader>
             <CardTitle>Komponen Payroll</CardTitle>
@@ -461,7 +448,6 @@ const PayrollConfiguration = () => {
         </Card>
       </div>
 
-      {/* Edit Dialog */}
       {editingComponent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
