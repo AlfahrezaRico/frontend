@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,6 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from '@/hooks/use-toast';
-import React from "react"; // Added missing import
 
 interface PayrollComponent {
   id: number;
@@ -94,6 +93,8 @@ const PayrollConfiguration = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
+  console.log('PayrollConfiguration component rendered'); // Debug log
+  
   const [components, setComponents] = useState<PayrollComponent[]>(mockComponents);
   const [filteredComponents, setFilteredComponents] = useState<PayrollComponent[]>(mockComponents);
   const [searchTerm, setSearchTerm] = useState('');
@@ -111,6 +112,12 @@ const PayrollConfiguration = () => {
     is_active: true,
     description: ''
   });
+
+  // Debug log when component mounts
+  useEffect(() => {
+    console.log('PayrollConfiguration component mounted');
+    console.log('Current components:', components);
+  }, []);
 
   // Filter components
   const filterComponents = () => {
@@ -140,7 +147,7 @@ const PayrollConfiguration = () => {
   };
 
   // Apply filters when any filter changes
-  React.useEffect(() => {
+  useEffect(() => {
     filterComponents();
   }, [searchTerm, typeFilter, categoryFilter, statusFilter, components]);
 
@@ -241,6 +248,8 @@ const PayrollConfiguration = () => {
     bpjs_count: components.filter(c => c.category === 'bpjs').length,
     active_count: components.filter(c => c.is_active).length
   };
+
+  console.log('PayrollConfiguration rendering with stats:', stats); // Debug log
 
   return (
     <div className="min-h-screen bg-gray-50">

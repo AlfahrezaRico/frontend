@@ -129,7 +129,11 @@ export default function PayrollManagement() {
             <div className="flex gap-2">
               <Button
                 variant="outline"
-                onClick={() => navigate('/payroll-configuration')}
+                onClick={() => {
+                  console.log('Konfigurasi Payroll button clicked');
+                  console.log('Navigating to /payroll-configuration');
+                  navigate('/payroll-configuration');
+                }}
               >
                 <Settings className="h-4 w-4 mr-2" />
                 Konfigurasi Payroll
