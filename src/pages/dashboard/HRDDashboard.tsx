@@ -17,6 +17,7 @@ import { AttendanceContent } from '@/components/hrd-content/AttendanceContent';
 import { LeaveContent } from '@/components/hrd-content/LeaveContent';
 import { LeaveQuotaContent } from '@/components/hrd-content/LeaveQuotaContent';
 import { IzinSakitContent } from '@/components/hrd-content/IzinSakitContent';
+import PayrollConfigContent from '@/components/hrd-content/PayrollConfigContent';
 
 const HRDDashboard = () => {
   const navigate = useNavigate();
@@ -443,27 +444,7 @@ const HRDDashboard = () => {
       case 'izin-sakit':
         return <IzinSakitContent />;
       case 'payroll-config':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">Konfigurasi Payroll</h2>
-              <p className="text-gray-600">Kelola komponen perhitungan otomatis</p>
-            </div>
-            <Card>
-              <CardContent className="text-center py-12">
-                <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-muted-foreground">Fitur Konfigurasi Payroll akan segera hadir</p>
-                <Button 
-                  variant="outline" 
-                  className="mt-4"
-                  onClick={() => window.location.href = '/payroll-configuration'}
-                >
-                  Buka Halaman Lengkap
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        );
+        return <PayrollConfigContent />;
       case 'reports':
         return (
           <div className="space-y-6">
