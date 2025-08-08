@@ -237,12 +237,21 @@ export default function PayrollManagement() {
     e.preventDefault();
     setSubmitting(true);
     try {
+      console.log('Submitting payroll data:', form);
       const res = await fetch(`${API_URL}/api/payrolls`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form)
       });
-      if (!res.ok) throw new Error("Gagal tambah payroll");
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Gagal tambah payroll");
+      }
+      
+      const result = await res.json();
+      console.log('Payroll created successfully:', result);
+      
       setModalOpen(false);
       setForm({ employee_id: "", pay_period_start: "", pay_period_end: "", gross_salary: 0, deductions: 0, net_salary: 0, payment_date: "", status: "PAID" });
       setCalculatedComponents([]);
@@ -252,10 +261,11 @@ export default function PayrollManagement() {
         title: 'Berhasil',
         description: 'Payroll berhasil ditambahkan',
       });
-    } catch (err) {
+    } catch (err: any) {
+      console.error('Error adding payroll:', err);
       toast({
         title: 'Error',
-        description: 'Gagal tambah payroll',
+        description: err.message || 'Gagal tambah payroll',
         variant: 'destructive',
       });
     } finally {
