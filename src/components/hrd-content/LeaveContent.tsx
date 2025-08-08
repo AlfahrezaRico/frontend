@@ -4,12 +4,25 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Calendar, Clock, CheckCircle, XCircle, AlertCircle, Search, Eye, Check, X } from "lucide-react";
 import { useLeaveRequests } from '@/hooks/useLeaveRequests';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 export const LeaveContent = () => {
-  const { data: leaveRequests = [], isLoading } = useLeaveRequests();
+  const { data: leaveRequests = [], isLoading, refetch } = useLeaveRequests();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [processing, setProcessing] = useState(false);
+  
+  const API_URL = import.meta.env.VITE_API_URL || '';
   
   const filteredRequests = leaveRequests.filter(request =>
     `${request.employee?.first_name} ${request.employee?.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -25,6 +38,12 @@ export const LeaveContent = () => {
         return <Badge variant="outline" className="text-green-600 border-green-300"><CheckCircle className="w-3 h-3 mr-1" />Disetujui</Badge>;
       case 'rejected':
         return <Badge variant="outline" className="text-red-600 border-red-300"><XCircle className="w-3 h-3 mr-1" />Ditolak</Badge>;
+      case 'APPROVED':
+        return <Badge variant="outline" className="text-green-600 border-green-300"><CheckCircle className="w-3 h-3 mr-1" />Disetujui</Badge>;
+      case 'REJECTED':
+        return <Badge variant="outline" className="text-red-600 border-red-300"><XCircle className="w-3 h-3 mr-1" />Ditolak</Badge>;
+      case 'PENDING':
+        return <Badge variant="outline" className="text-orange-600 border-orange-300"><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -34,9 +53,108 @@ export const LeaveContent = () => {
     if (!dateString) return '-';
     return new Date(dateString).toLocaleDateString('id-ID', {
       day: '2-digit',
-      month: 'short',
+      month: '2-digit',
       year: 'numeric'
     });
+  };
+
+  const handleApproveLeave = async (id: string) => {
+    try {
+      setProcessing(true);
+      const response = await fetch(`${API_URL}/api/leave-requests/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          status: 'APPROVED',
+          approved_by: user?.id
+        })
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Berhasil",
+          description: "Pengajuan cuti telah disetujui"
+        });
+        refetch();
+      } else {
+        const error = await response.json();
+        toast({
+          title: "Error",
+          description: error.error || "Gagal menyetujui pengajuan cuti",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Terjadi kesalahan saat menyetujui pengajuan",
+        variant: "destructive"
+      });
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleRejectLeave = async () => {
+    if (!rejectingId || !rejectReason.trim()) {
+      toast({
+        title: "Error",
+        description: "Alasan penolakan harus diisi",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setProcessing(true);
+      const response = await fetch(`${API_URL}/api/leave-requests/${rejectingId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          status: 'REJECTED',
+          rejected_by: user?.id,
+          rejection_reason: rejectReason.trim()
+        })
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Berhasil",
+          description: "Pengajuan cuti telah ditolak"
+        });
+        setRejectDialogOpen(false);
+        setRejectingId(null);
+        setRejectReason('');
+        refetch();
+      } else {
+        const error = await response.json();
+        toast({
+          title: "Error",
+          description: error.error || "Gagal menolak pengajuan cuti",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Terjadi kesalahan saat menolak pengajuan",
+        variant: "destructive"
+      });
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const openRejectDialog = (id: string) => {
+    setRejectingId(id);
+    setRejectReason('');
+    setRejectDialogOpen(true);
   };
 
   const calculateDays = (startDate: string, endDate: string) => {
@@ -120,7 +238,7 @@ export const LeaveContent = () => {
                         </TableCell>
                         <TableCell className="max-w-xs truncate">{request.reason || '-'}</TableCell>
                         <TableCell>{getStatusBadge(request.status)}</TableCell>
-                        <TableCell>{formatDate(request.request_date)}</TableCell>
+                        <TableCell>{formatDate(request.created_at)}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Button variant="outline" size="sm">
@@ -128,10 +246,22 @@ export const LeaveContent = () => {
                             </Button>
                             {request.status?.toLowerCase() === 'pending' && (
                               <>
-                                <Button variant="outline" size="sm" className="text-green-600 hover:text-green-700 hover:bg-green-50">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                                  onClick={() => handleApproveLeave(request.id)}
+                                  disabled={processing}
+                                >
                                   <Check className="h-4 w-4" />
                                 </Button>
-                                <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  onClick={() => openRejectDialog(request.id)}
+                                  disabled={processing}
+                                >
                                   <X className="h-4 w-4" />
                                 </Button>
                               </>
@@ -147,6 +277,44 @@ export const LeaveContent = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Reject Dialog */}
+      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Tolak Pengajuan Cuti</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="reject_reason">Alasan Penolakan</Label>
+              <Textarea
+                id="reject_reason"
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="Masukkan alasan penolakan..."
+                className="mt-1"
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setRejectDialogOpen(false)}
+              disabled={processing}
+            >
+              Batal
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleRejectLeave}
+              disabled={processing || !rejectReason.trim()}
+            >
+              {processing ? 'Memproses...' : 'Tolak'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
