@@ -403,17 +403,141 @@ const HRDDashboard = () => {
               <h2 className="text-2xl font-bold text-gray-900">Laporan HR</h2>
               <p className="text-gray-600">Generate laporan untuk keperluan HR</p>
             </div>
+
+            {/* Quick Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-500">Total Karyawan</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-blue-600">{totalEmployees}</div>
+                  <p className="text-xs text-gray-500">Active employees</p>
+                </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-500">Total Departemen</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-indigo-600">
+                    {departmentsLoading ? "..." : new Set(departments.map(dep => dep.id).filter(Boolean)).size}
+                  </div>
+                  <p className="text-xs text-gray-500">Active departments</p>
+                </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-500">Pending Requests</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-orange-600">{rejectedRequests.length}</div>
+                  <p className="text-xs text-gray-500">Awaiting approval</p>
+                </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-500">Leave Quota</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">-</div>
+                  <p className="text-xs text-gray-500">Average usage</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Detailed Reports */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Employee Distribution */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5 text-blue-600" />
+                    Distribusi Karyawan per Departemen
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {departments.map((dept) => {
+                      const deptEmployees = employees.filter(emp => emp.departemen_id === dept.id).length;
+                      return (
+                        <div key={dept.id} className="flex items-center justify-between">
+                          <span className="text-sm font-medium">{dept.nama}</span>
+                          <div className="flex items-center gap-2">
+                            <div className="w-32 bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-blue-600 h-2 rounded-full" 
+                                style={{ width: `${(deptEmployees / totalEmployees) * 100}%` }}
+                              ></div>
+                            </div>
+                            <span className="text-sm text-gray-600 w-8 text-right">{deptEmployees}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Recent Activities */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-green-600" />
+                    Aktivitas Terbaru
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {rejectedRequests.slice(0, 5).map((request) => (
+                      <div key={request.id} className="flex items-start gap-3 p-2 rounded-lg bg-gray-50">
+                        <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {request.employee?.first_name} {request.employee?.last_name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {request.request_type === 'izin_sakit' ? 'Izin/Sakit' : 'Cuti'} • {formatActivityDate(request.start_date)}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    {rejectedRequests.length === 0 && (
+                      <p className="text-sm text-gray-500 text-center py-4">
+                        Tidak ada aktivitas terbaru
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Export Options */}
             <Card>
-              <CardContent className="text-center py-12">
-                <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-muted-foreground">Fitur Laporan HR akan segera hadir</p>
-                <Button 
-                  variant="outline" 
-                  className="mt-4"
-                  onClick={() => window.location.href = '/hr-reports'}
-                >
-                  Buka Halaman Lengkap
-                </Button>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-purple-600" />
+                  Export Laporan
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Button variant="outline" className="w-full">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Export Data Karyawan
+                  </Button>
+                  <Button variant="outline" className="w-full">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Export Laporan Cuti
+                  </Button>
+                  <Button variant="outline" className="w-full">
+                    <Users className="h-4 w-4 mr-2" />
+                    Export Laporan Absensi
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
