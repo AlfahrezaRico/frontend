@@ -164,11 +164,11 @@ const HRDDashboard = () => {
       // Save to localStorage
       localStorage.setItem(`readNotifications_${user?.id}`, JSON.stringify([...newReadNotifications]));
       
-      // Navigate based on request type
+      // Navigate based on request type using sidebar content
       if (request.request_type === 'izin_sakit') {
-        navigate("/hrd-izin-sakit-management");
+        setCurrentPage('izin-sakit');
       } else {
-        navigate("/leave-management");
+        setCurrentPage('leave');
       }
       
       // Close notification dialog
@@ -182,9 +182,9 @@ const HRDDashboard = () => {
       console.error('Error marking notification as read:', error);
       // Still navigate even if marking as read fails
       if (request.request_type === 'izin_sakit') {
-        navigate("/hrd-izin-sakit-management");
+        setCurrentPage('izin-sakit');
       } else {
-        navigate("/leave-management");
+        setCurrentPage('leave');
       }
       setNotificationOpen(false);
     }
