@@ -1,21 +1,27 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, UserPlus, Eye, Edit, Trash2, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Users, UserPlus, Eye, Edit, Trash2, Search, ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useEmployees } from '@/hooks/useEmployees';
+import { useEmployees, useDeleteEmployee } from '@/hooks/useEmployees';
 import { AddEmployeeDialog } from "@/components/AddEmployeeDialog";
 import { EmployeeDetailDialog } from "@/components/EmployeeDetailDialog";
 import { EditEmployeeDialog } from "@/components/EditEmployeeDialog";
 import { TambahDepartemenDialog } from "@/components/TambahDepartemenDialog";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useToast } from '@/hooks/use-toast';
 import { useState } from "react";
 
 export const EmployeesContent = () => {
   const navigate = useNavigate();
   const { data: employees = [], isLoading, refetch } = useEmployees();
+  const deleteEmployee = useDeleteEmployee();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
   const itemsPerPage = 10;
 
   const filteredEmployees = employees.filter(employee =>
@@ -45,10 +51,30 @@ export const EmployeesContent = () => {
     setCurrentPage(1);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Yakin hapus karyawan ini?")) return;
-    // Add delete logic here
-    refetch();
+  const handleDeleteClick = (employee: any) => {
+    setSelectedEmployee(employee);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedEmployee) return;
+    
+    try {
+      await deleteEmployee.mutateAsync(selectedEmployee.id);
+      toast({
+        title: "Berhasil",
+        description: "Karyawan berhasil dihapus",
+      });
+      setDeleteDialogOpen(false);
+      setSelectedEmployee(null);
+      refetch();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Gagal menghapus karyawan",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -170,8 +196,8 @@ export const EmployeesContent = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleDelete(employee.id)}
-                            className="text-red-600 hover:text-red-700"
+                            onClick={() => handleDeleteClick(employee)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -219,6 +245,61 @@ export const EmployeesContent = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="h-5 w-5" />
+              Konfirmasi Hapus Karyawan
+            </DialogTitle>
+            <DialogDescription>
+              Tindakan ini akan menghapus karyawan secara permanen beserta seluruh data terkait (absensi, cuti, payroll, dll).
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-sm text-red-800">
+                Apakah Anda yakin ingin menghapus karyawan:
+              </p>
+              <p className="font-semibold text-red-900 mt-1">
+                {selectedEmployee?.first_name} {selectedEmployee?.last_name}
+              </p>
+              <p className="text-xs text-red-600 mt-1">
+                NIK: {selectedEmployee?.nik || 'Tidak ada'} • {selectedEmployee?.position || 'Posisi tidak diketahui'}
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={deleteEmployee.isPending}
+            >
+              Batal
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleConfirmDelete} 
+              disabled={deleteEmployee.isPending}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deleteEmployee.isPending ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Menghapus...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Hapus Karyawan
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
