@@ -4,7 +4,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FileText, Search, Eye, Check, X, AlertCircle, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { FileText, Search, Eye, Check, X, AlertTriangle, Clock, CheckCircle, XCircle } from "lucide-react";
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 interface IzinSakitRecord {
   id: string;
@@ -19,6 +22,7 @@ interface IzinSakitRecord {
   rejected_by?: string;
   rejected_at?: string;
   keterangan?: string;
+  created_at?: string;
   employee?: {
     first_name: string;
     last_name: string;
@@ -29,9 +33,13 @@ interface IzinSakitRecord {
 }
 
 export const IzinSakitContent = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [izinSakitData, setIzinSakitData] = useState<IzinSakitRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<IzinSakitRecord | null>(null);
   
   const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -80,9 +88,14 @@ export const IzinSakitContent = () => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('id-ID', {
       day: '2-digit',
-      month: 'short',
+      month: '2-digit',
       year: 'numeric'
     });
+  };
+
+  const openViewDialog = (record: IzinSakitRecord) => {
+    setSelectedRecord(record);
+    setViewDialogOpen(true);
   };
 
   return (
@@ -203,7 +216,11 @@ export const IzinSakitContent = () => {
                         <TableCell>{item.employee?.departemen?.nama || '-'}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => openViewDialog(item)}
+                            >
                               <Eye className="h-4 w-4" />
                             </Button>
                             {item.status === 'PENDING' && (
@@ -227,6 +244,111 @@ export const IzinSakitContent = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* View Detail Dialog */}
+      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Detail Izin/Sakit</DialogTitle>
+          </DialogHeader>
+          {selectedRecord && (
+            <div className="space-y-6">
+              {/* Employee Info */}
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-blue-900 mb-2">Informasi Karyawan</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium">Nama:</span> {selectedRecord.employee?.first_name} {selectedRecord.employee?.last_name}
+                  </div>
+                  <div>
+                    <span className="font-medium">Departemen:</span> {selectedRecord.employee?.departemen?.nama || '-'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Izin/Sakit Details */}
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-gray-900">Detail Izin/Sakit</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="font-medium">Tanggal:</span>
+                      <span>{formatDate(selectedRecord.tanggal)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">Jenis:</span>
+                      <Badge variant="secondary">{selectedRecord.jenis}</Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">Status:</span>
+                      {getStatusBadge(selectedRecord.status)}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-gray-900">Tanggal & Approval</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="font-medium">Tanggal Pengajuan:</span>
+                      <span>{formatDate(selectedRecord.created_at || selectedRecord.tanggal)}</span>
+                    </div>
+                    {selectedRecord.status === 'APPROVED' && selectedRecord.approved_at && (
+                      <div className="flex justify-between">
+                        <span className="font-medium">Disetujui pada:</span>
+                        <span>{formatDate(selectedRecord.approved_at)}</span>
+                      </div>
+                    )}
+                    {selectedRecord.status === 'REJECTED' && selectedRecord.rejected_at && (
+                      <div className="flex justify-between">
+                        <span className="font-medium">Ditolak pada:</span>
+                        <span>{formatDate(selectedRecord.rejected_at)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Reason */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-gray-900">Alasan</h3>
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="text-sm text-gray-700">{selectedRecord.alasan || 'Tidak ada alasan yang diberikan'}</p>
+                </div>
+              </div>
+
+              {/* File attachment if available */}
+              {selectedRecord.file_path && !selectedRecord.file_path.startsWith('no-file-') && (
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-gray-900">Lampiran</h3>
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <p className="text-sm text-gray-600 mb-2">File lampiran tersedia</p>
+                    <Button variant="outline" size="sm">
+                      <Eye className="h-4 w-4 mr-2" />
+                      Lihat File
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Rejection Reason if rejected */}
+              {selectedRecord.status === 'REJECTED' && selectedRecord.keterangan && (
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-red-900">Alasan Penolakan</h3>
+                  <div className="bg-red-50 border border-red-200 p-3 rounded-lg">
+                    <p className="text-sm text-red-700">{selectedRecord.keterangan}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewDialogOpen(false)}>
+              Tutup
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
