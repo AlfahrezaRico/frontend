@@ -165,16 +165,28 @@ const KaryawanDashboard = () => {
   useEffect(() => {
     const unreadCount = rejectedRequests.filter(req => !readNotifications.has(req.id)).length;
     if (unreadCount > 0 && !readNotifications.size) {
-      // Cek apakah ada request yang ditolak
-      const rejectedCount = rejectedRequests.filter(req => 
-        !readNotifications.has(req.id) && req.status === 'REJECTED'
-      ).length;
+      // Cek request yang belum dibaca
+      const unreadRequests = rejectedRequests.filter(req => !readNotifications.has(req.id));
       
+      // Hitung berdasarkan status
+      const rejectedCount = unreadRequests.filter(req => req.status === 'REJECTED').length;
+      const approvedCount = unreadRequests.filter(req => req.status === 'APPROVED').length;
+      
+      // Tampilkan notifikasi untuk REJECTED
       if (rejectedCount > 0) {
         toast({
           title: 'Pengajuan Ditolak',
           description: `Ada ${rejectedCount} pengajuan yang ditolak. Silakan cek notifikasi.`,
           variant: 'destructive',
+        });
+      }
+      
+      // Tampilkan notifikasi untuk APPROVED
+      if (approvedCount > 0) {
+        toast({
+          title: 'Pengajuan Disetujui',
+          description: `Ada ${approvedCount} pengajuan yang disetujui. Silakan cek notifikasi.`,
+          variant: 'default',
         });
       }
     }
