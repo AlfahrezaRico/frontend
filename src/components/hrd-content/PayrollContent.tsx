@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogT
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import { DollarSign, Plus, TrendingUp, Users } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useToast } from '@/hooks/use-toast';
@@ -19,7 +19,6 @@ export const PayrollContent = () => {
   const [employees, setEmployees] = useState<any[]>([]);
   const [payrollComponents, setPayrollComponents] = useState<any[]>([]);
   const [calculatedComponents, setCalculatedComponents] = useState<any[]>([]);
-  const [autoCalculation, setAutoCalculation] = useState(true);
   const [manualDeductions, setManualDeductions] = useState({
     kasbon: 0,
     telat: 0,
@@ -103,12 +102,6 @@ export const PayrollContent = () => {
       return;
     }
 
-    if (!autoCalculation) {
-      setCalculatedComponents([]);
-      updateTotals(basicSalary, [], manualDeductions);
-      return;
-    }
-
     const activeComponents = payrollComponents.filter(comp => comp.is_active);
     const calculated: any[] = [];
 
@@ -137,28 +130,12 @@ export const PayrollContent = () => {
     updateTotals(basicSalary, calculated, manualDeductions);
   };
 
-  // Force recalculate when autoCalculation changes
-  const handleAutoCalculationChange = (checked: boolean) => {
-    setAutoCalculation(checked);
-    
-    // If enabling auto calculation and we have a basic salary, recalculate
-    if (checked && form.gross_salary > 0) {
-      // Use setTimeout to ensure state is updated before calculation
-      setTimeout(() => {
-        calculatePayrollComponents(form.gross_salary);
-      }, 0);
-    } else {
-      setCalculatedComponents([]);
-      updateTotals(form.gross_salary, [], manualDeductions);
-    }
-  };
-
   // Recalculate when payrollComponents are loaded
   useEffect(() => {
-    if (autoCalculation && form.gross_salary > 0 && payrollComponents.length > 0) {
+    if (form.gross_salary > 0 && payrollComponents.length > 0) {
       calculatePayrollComponents(form.gross_salary);
     }
-  }, [payrollComponents, autoCalculation]);
+  }, [payrollComponents]);
 
   // Update totals calculation
   const updateTotals = (basicSalary: number, calculated: any[], manual: any) => {
@@ -244,11 +221,7 @@ export const PayrollContent = () => {
   }, []);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(amount).replace('IDR', 'Rp').trim();
+    return `Rp ${Math.round(amount).toLocaleString('id-ID')}`;
   };
 
   return (
@@ -326,20 +299,8 @@ export const PayrollContent = () => {
                   />
                 </div>
 
-                {/* Auto Calculation Toggle */}
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="auto_calculation" 
-                    checked={autoCalculation}
-                    onCheckedChange={(checked) => handleAutoCalculationChange(checked as boolean)}
-                  />
-                  <Label htmlFor="auto_calculation" className="text-sm font-medium">
-                    Komponen Perhitungan Otomatik
-                  </Label>
-                </div>
-
                 {/* Calculated Components Display */}
-                {calculatedComponents.length > 0 && autoCalculation && (
+                {calculatedComponents.length > 0 && (
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-6">
                       {/* Left Column - Employee Deductions */}
