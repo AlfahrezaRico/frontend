@@ -258,17 +258,28 @@ const PayrollConfigContent = () => {
     }
   };
 
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [componentToDelete, setComponentToDelete] = useState<PayrollComponent | null>(null);
+
   const handleDelete = async (id: number) => {
-    if (!window.confirm('Yakin hapus komponen ini?')) return;
+    const component = components.find(c => c.id === id);
+    if (component) {
+      setComponentToDelete(component);
+      setDeleteDialogOpen(true);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!componentToDelete) return;
     
     try {
-      const res = await fetch(`${API_URL}/api/payroll-components/${id}`, {
+      const res = await fetch(`${API_URL}/api/payroll-components/${componentToDelete.id}`, {
         method: 'DELETE',
       });
 
       if (!res.ok) throw new Error('Failed to delete component');
       
-      setComponents(prev => prev.filter(c => c.id !== id));
+      setComponents(prev => prev.filter(c => c.id !== componentToDelete.id));
       
       toast({
         title: 'Berhasil',
@@ -283,6 +294,9 @@ const PayrollConfigContent = () => {
         description: 'Gagal menghapus komponen payroll',
         variant: 'destructive',
       });
+    } finally {
+      setDeleteDialogOpen(false);
+      setComponentToDelete(null);
     }
   };
 
@@ -585,7 +599,7 @@ const PayrollConfigContent = () => {
       {/* Add Component Dialog */}
       {showAddDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-semibold mb-4">Tambah Komponen Payroll</h3>
             <div className="space-y-4">
               <div>
@@ -688,7 +702,7 @@ const PayrollConfigContent = () => {
       {/* Edit Component Dialog */}
       {editingComponent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-semibold mb-4">Edit Komponen Payroll</h3>
             <div className="space-y-4">
               <div>
@@ -780,6 +794,43 @@ const PayrollConfigContent = () => {
                   Simpan
                 </Button>
                 <Button variant="outline" onClick={() => setEditingComponent(null)}>
+                  Batal
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {deleteDialogOpen && componentToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-4 text-red-600">Konfirmasi Hapus</h3>
+            <div className="space-y-4">
+              <p className="text-gray-700">
+                Apakah Anda yakin ingin menghapus komponen <strong>"{componentToDelete.name}"</strong>?
+              </p>
+              <p className="text-sm text-gray-500">
+                Tindakan ini tidak dapat dibatalkan dan akan menghapus komponen secara permanen.
+              </p>
+              <div className="flex gap-2 pt-4">
+                <Button 
+                  variant="destructive" 
+                  onClick={confirmDelete}
+                  className="flex-1"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Hapus
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setDeleteDialogOpen(false);
+                    setComponentToDelete(null);
+                  }}
+                  className="flex-1"
+                >
                   Batal
                 </Button>
               </div>
