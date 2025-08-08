@@ -37,6 +37,18 @@ const HRDDashboard = () => {
     window.location.href = '/login';
   };
 
+  const formatActivityDate = (dateString: string) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   // Load read notifications from localStorage
   useEffect(() => {
     if (user?.id) {
@@ -336,7 +348,7 @@ const HRDDashboard = () => {
                             {request.employee?.first_name} {request.employee?.last_name}
                           </p>
                           <p className="text-xs text-gray-500">
-                            {request.request_type === 'izin_sakit' ? 'Izin/Sakit' : 'Cuti'} • {request.start_date}
+                            {request.request_type === 'izin_sakit' ? 'Izin/Sakit' : 'Cuti'} • {formatActivityDate(request.start_date || request.created_at)}
                           </p>
                         </div>
                       </div>
