@@ -15,6 +15,7 @@ import { EmployeesContent } from '@/components/hrd-content/EmployeesContent';
 import { PayrollContent } from '@/components/hrd-content/PayrollContent';
 import { AttendanceContent } from '@/components/hrd-content/AttendanceContent';
 import { LeaveContent } from '@/components/hrd-content/LeaveContent';
+import { LeaveQuotaContent } from '@/components/hrd-content/LeaveQuotaContent';
 import { IzinSakitContent } from '@/components/hrd-content/IzinSakitContent';
 
 const HRDDashboard = () => {
@@ -359,6 +360,8 @@ const HRDDashboard = () => {
         return <AttendanceContent />;
       case 'leave':
         return <LeaveContent />;
+      case 'leave-quota':
+        return <LeaveQuotaContent />;
       case 'izin-sakit':
         return <IzinSakitContent />;
       case 'payroll-config':

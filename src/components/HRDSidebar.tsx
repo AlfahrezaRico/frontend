@@ -61,6 +61,12 @@ export const HRDSidebar = ({ currentPage = 'dashboard', onPageChange }: HRDSideb
           onClick: () => handleNavigation('leave')
         },
         {
+          id: 'leave-quota',
+          label: 'Management Quota Cuti',
+          icon: Calendar,
+          onClick: () => handleNavigation('leave-quota')
+        },
+        {
           id: 'izin-sakit',
           label: 'Manajemen Izin/Sakit',
           icon: FileText,
