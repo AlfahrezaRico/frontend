@@ -409,18 +409,19 @@ export const IzinSakitContent = () => {
           setFileUrl(null);
         }
       }}>
-        <DialogContent className="max-w-4xl max-h-[80vh]">
-          <DialogHeader>
+        <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>Preview File Lampiran</DialogTitle>
           </DialogHeader>
-          <div className="flex-1 overflow-auto p-4">
+          
+          <div className="flex-1 overflow-auto p-4 min-h-0">
             {fileUrl && (
-              <div className="w-full h-full min-h-[500px] flex items-center justify-center">
+              <div className="w-full h-full flex items-center justify-center">
                 {!imageLoadError ? (
                   <img 
                     src={fileUrl} 
                     alt="File lampiran" 
-                    className="max-w-full max-h-[60vh] object-contain rounded-lg border shadow-lg"
+                    className="max-w-full max-h-[calc(90vh-200px)] object-contain rounded-lg border shadow-lg"
                     onError={() => setImageLoadError(true)}
                   />
                 ) : (
@@ -438,13 +439,15 @@ export const IzinSakitContent = () => {
               </div>
             )}
           </div>
-          <DialogFooter className="flex justify-between">
+          
+          <DialogFooter className="flex-shrink-0 flex justify-between bg-white border-t pt-4">
             <Button variant="outline" onClick={() => setFileDialogOpen(false)}>
               Tutup
             </Button>
             {fileUrl && (
               <Button asChild>
                 <a href={fileUrl} target="_blank" rel="noopener noreferrer" download>
+                  <Download className="h-4 w-4 mr-2" />
                   Download File
                 </a>
               </Button>
