@@ -137,6 +137,29 @@ export const PayrollContent = () => {
     updateTotals(basicSalary, calculated, manualDeductions);
   };
 
+  // Force recalculate when autoCalculation changes
+  const handleAutoCalculationChange = (checked: boolean) => {
+    setAutoCalculation(checked);
+    
+    // If enabling auto calculation and we have a basic salary, recalculate
+    if (checked && form.gross_salary > 0) {
+      // Use setTimeout to ensure state is updated before calculation
+      setTimeout(() => {
+        calculatePayrollComponents(form.gross_salary);
+      }, 0);
+    } else {
+      setCalculatedComponents([]);
+      updateTotals(form.gross_salary, [], manualDeductions);
+    }
+  };
+
+  // Recalculate when payrollComponents are loaded
+  useEffect(() => {
+    if (autoCalculation && form.gross_salary > 0 && payrollComponents.length > 0) {
+      calculatePayrollComponents(form.gross_salary);
+    }
+  }, [payrollComponents, autoCalculation]);
+
   // Update totals calculation
   const updateTotals = (basicSalary: number, calculated: any[], manual: any) => {
     const totalIncome = calculated
@@ -308,15 +331,7 @@ export const PayrollContent = () => {
                   <Checkbox 
                     id="auto_calculation" 
                     checked={autoCalculation}
-                    onCheckedChange={(checked) => {
-                      setAutoCalculation(checked as boolean);
-                      if (checked && form.gross_salary > 0) {
-                        calculatePayrollComponents(form.gross_salary);
-                      } else {
-                        setCalculatedComponents([]);
-                        updateTotals(form.gross_salary, [], manualDeductions);
-                      }
-                    }}
+                    onCheckedChange={(checked) => handleAutoCalculationChange(checked as boolean)}
                   />
                   <Label htmlFor="auto_calculation" className="text-sm font-medium">
                     Komponen Perhitungan Otomatik
