@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { FileText, Search, Eye, Check, X, AlertTriangle, Clock, CheckCircle, XCircle } from "lucide-react";
+import { FileText, Search, Eye, Check, X, AlertTriangle, Clock, CheckCircle, XCircle, Download } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -40,6 +40,10 @@ export const IzinSakitContent = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<IzinSakitRecord | null>(null);
+  const [fileDialogOpen, setFileDialogOpen] = useState(false);
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const [loadingFile, setLoadingFile] = useState(false);
+  const [imageLoadError, setImageLoadError] = useState(false);
   
   const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -96,6 +100,34 @@ export const IzinSakitContent = () => {
   const openViewDialog = (record: IzinSakitRecord) => {
     setSelectedRecord(record);
     setViewDialogOpen(true);
+  };
+
+  const handleViewFile = async (filePath: string) => {
+    try {
+      setLoadingFile(true);
+      setImageLoadError(false);
+      // Get signed URL for file
+      const response = await fetch(`${API_URL}/api/izin-sakit-signed-url?path=${encodeURIComponent(filePath)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setFileUrl(data.signedUrl);
+        setFileDialogOpen(true);
+      } else {
+        toast({
+          title: "Error",
+          description: "Gagal mengambil file",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Gagal mengambil file",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingFile(false);
+    }
   };
 
   return (
@@ -189,6 +221,7 @@ export const IzinSakitContent = () => {
                     <TableHead>Tanggal</TableHead>
                     <TableHead>Jenis</TableHead>
                     <TableHead>Alasan</TableHead>
+                    <TableHead>File</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Departemen</TableHead>
                     <TableHead>Aksi</TableHead>
@@ -197,7 +230,7 @@ export const IzinSakitContent = () => {
                 <TableBody>
                   {filteredData.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                         {searchTerm ? 'Tidak ada data yang sesuai dengan pencarian' : 'Tidak ada data izin/sakit'}
                       </TableCell>
                     </TableRow>
@@ -212,6 +245,19 @@ export const IzinSakitContent = () => {
                           <Badge variant="secondary">{item.jenis}</Badge>
                         </TableCell>
                         <TableCell className="max-w-xs truncate">{item.alasan}</TableCell>
+                        <TableCell>
+                          {item.file_path && !item.file_path.startsWith('no-file-') ? (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleViewFile(item.file_path!)}
+                              disabled={loadingFile}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              VIEW
+                            </Button>
+                          ) : '-'}
+                        </TableCell>
                         <TableCell>{getStatusBadge(item.status)}</TableCell>
                         <TableCell>{item.employee?.departemen?.nama || '-'}</TableCell>
                         <TableCell>
@@ -323,9 +369,14 @@ export const IzinSakitContent = () => {
                   <h3 className="font-semibold text-gray-900">Lampiran</h3>
                   <div className="bg-gray-50 p-3 rounded-lg">
                     <p className="text-sm text-gray-600 mb-2">File lampiran tersedia</p>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleViewFile(selectedRecord.file_path!)}
+                      disabled={loadingFile}
+                    >
                       <Eye className="h-4 w-4 mr-2" />
-                      Lihat File
+                      {loadingFile ? 'Loading...' : 'Lihat File'}
                     </Button>
                   </div>
                 </div>
@@ -346,6 +397,58 @@ export const IzinSakitContent = () => {
             <Button variant="outline" onClick={() => setViewDialogOpen(false)}>
               Tutup
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* File Preview Dialog */}
+      <Dialog open={fileDialogOpen} onOpenChange={(open) => {
+        setFileDialogOpen(open);
+        if (!open) {
+          setImageLoadError(false);
+          setFileUrl(null);
+        }
+      }}>
+        <DialogContent className="max-w-4xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Preview File Lampiran</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-auto">
+            {fileUrl && (
+              <div className="w-full h-full min-h-[500px]">
+                {!imageLoadError ? (
+                  <img 
+                    src={fileUrl} 
+                    alt="File lampiran" 
+                    className="w-full h-auto object-contain rounded-lg border"
+                    onError={() => setImageLoadError(true)}
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-64 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                    <FileText className="h-12 w-12 text-gray-400 mb-4" />
+                    <p className="text-gray-600 mb-4">Preview tidak tersedia</p>
+                    <Button asChild>
+                      <a href={fileUrl} target="_blank" rel="noopener noreferrer" download>
+                        <Download className="h-4 w-4 mr-2" />
+                        Download File
+                      </a>
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          <DialogFooter className="flex justify-between">
+            <Button variant="outline" onClick={() => setFileDialogOpen(false)}>
+              Tutup
+            </Button>
+            {fileUrl && (
+              <Button asChild>
+                <a href={fileUrl} target="_blank" rel="noopener noreferrer" download>
+                  Download File
+                </a>
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
