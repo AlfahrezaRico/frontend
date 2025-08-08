@@ -413,14 +413,14 @@ export const IzinSakitContent = () => {
           <DialogHeader>
             <DialogTitle>Preview File Lampiran</DialogTitle>
           </DialogHeader>
-          <div className="flex-1 overflow-auto">
+          <div className="flex-1 overflow-auto p-4">
             {fileUrl && (
-              <div className="w-full h-full min-h-[500px]">
+              <div className="w-full h-full min-h-[500px] flex items-center justify-center">
                 {!imageLoadError ? (
                   <img 
                     src={fileUrl} 
                     alt="File lampiran" 
-                    className="w-full h-auto object-contain rounded-lg border"
+                    className="max-w-full max-h-[60vh] object-contain rounded-lg border shadow-lg"
                     onError={() => setImageLoadError(true)}
                   />
                 ) : (
