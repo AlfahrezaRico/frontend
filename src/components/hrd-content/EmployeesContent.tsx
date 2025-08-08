@@ -1,11 +1,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, UserPlus, Eye, Edit, Trash2, Search } from "lucide-react";
+import { Users, UserPlus, Eye, Edit, Trash2, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEmployees } from '@/hooks/useEmployees';
 import { AddEmployeeDialog } from "@/components/AddEmployeeDialog";
 import { EmployeeDetailDialog } from "@/components/EmployeeDetailDialog";
 import { EditEmployeeDialog } from "@/components/EditEmployeeDialog";
+import { TambahDepartemenDialog } from "@/components/TambahDepartemenDialog";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useState } from "react";
@@ -14,12 +15,35 @@ export const EmployeesContent = () => {
   const navigate = useNavigate();
   const { data: employees = [], isLoading, refetch } = useEmployees();
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const filteredEmployees = employees.filter(employee =>
     `${employee.first_name} ${employee.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     employee.position?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    employee.departemen?.nama?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     employee.department?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedEmployees = filteredEmployees.slice(startIndex, endIndex);
+
+  const handlePreviousPage = () => {
+    setCurrentPage(prev => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage(prev => Math.min(prev + 1, totalPages));
+  };
+
+  // Reset to first page when search changes
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
 
   const handleDelete = async (id: string) => {
     if (!window.confirm("Yakin hapus karyawan ini?")) return;
@@ -35,7 +59,10 @@ export const EmployeesContent = () => {
           <h2 className="text-2xl font-bold text-gray-900">Data Karyawan</h2>
           <p className="text-gray-600">Kelola data dan informasi karyawan</p>
         </div>
-        <AddEmployeeDialog onEmployeeAdded={() => refetch()} />
+        <div className="flex items-center gap-2">
+          <TambahDepartemenDialog onDepartmentAdded={() => refetch()} />
+          <AddEmployeeDialog onEmployeeAdded={() => refetch()} />
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -58,7 +85,7 @@ export const EmployeesContent = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {new Set(employees.map(emp => emp.department)).size}
+              {new Set(employees.map(emp => emp.departemen?.nama || emp.department).filter(Boolean)).size}
             </div>
             <p className="text-xs text-muted-foreground">Departemen aktif</p>
           </CardContent>
@@ -71,7 +98,7 @@ export const EmployeesContent = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {new Set(employees.map(emp => emp.position)).size}
+              {new Set(employees.map(emp => emp.position).filter(Boolean)).size}
             </div>
             <p className="text-xs text-muted-foreground">Posisi berbeda</p>
           </CardContent>
@@ -91,7 +118,7 @@ export const EmployeesContent = () => {
               <Input
                 placeholder="Cari karyawan..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="pl-8"
               />
             </div>
@@ -117,21 +144,21 @@ export const EmployeesContent = () => {
                       Loading...
                     </TableCell>
                   </TableRow>
-                ) : filteredEmployees.length === 0 ? (
+                ) : paginatedEmployees.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                      Tidak ada data karyawan
+                      {searchTerm ? 'Tidak ada karyawan yang sesuai dengan pencarian' : 'Tidak ada data karyawan'}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredEmployees.map((employee) => (
+                  paginatedEmployees.map((employee) => (
                     <TableRow key={employee.id}>
                       <TableCell className="font-medium">
                         {employee.first_name} {employee.last_name}
                       </TableCell>
                       <TableCell>{employee.nik || '-'}</TableCell>
                       <TableCell>{employee.position || '-'}</TableCell>
-                      <TableCell>{employee.department || '-'}</TableCell>
+                      <TableCell>{employee.departemen?.nama || employee.department || '-'}</TableCell>
                       <TableCell>{employee.email || '-'}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -156,6 +183,40 @@ export const EmployeesContent = () => {
               </TableBody>
             </Table>
           </div>
+          
+          {/* Pagination */}
+          {filteredEmployees.length > itemsPerPage && (
+            <div className="flex items-center justify-between mt-4">
+              <div className="text-sm text-muted-foreground">
+                Menampilkan {startIndex + 1}-{Math.min(endIndex, filteredEmployees.length)} dari {filteredEmployees.length} karyawan
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1}
+                  className="flex items-center gap-2"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Halaman {currentPage} dari {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center gap-2"
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
