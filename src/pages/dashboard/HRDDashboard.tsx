@@ -415,14 +415,14 @@ const HRDDashboard = () => {
   };
 
   return (
-    <div key={`hrd-dashboard-${user?.id}`} className="min-h-screen bg-gray-50 flex">
+    <div key={`hrd-dashboard-${user?.id}`} className="h-screen bg-gray-50 flex overflow-hidden">
       {/* Sidebar */}
       <HRDSidebar currentPage={currentPage} onPageChange={setCurrentPage} />
       
       {/* Main Content */}
-      <div className="flex-1">
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Header Bar */}
-        <div className="bg-white shadow-sm border-b px-6 py-4">
+        <div className="bg-white shadow-sm border-b px-6 py-4 flex-shrink-0">
           <div className="flex justify-between items-center">
             <div className="lg:hidden"></div> {/* Spacer for mobile menu button */}
             <div className="flex items-center gap-4 ml-auto">
@@ -446,8 +446,8 @@ const HRDDashboard = () => {
           </div>
         </div>
 
-        {/* Main Content Area */}
-        <div className="p-6">
+        {/* Main Content Area - Scrollable */}
+        <div className="flex-1 overflow-y-auto p-6">
           {renderContent()}
         </div>
       </div>
