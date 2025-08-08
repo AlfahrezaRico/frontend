@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { 
   Plus, 
   Edit, 
@@ -597,113 +598,115 @@ const PayrollConfigContent = () => {
       </Card>
 
       {/* Add Component Dialog */}
-      {showAddDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl">
-            <h3 className="text-lg font-semibold mb-4">Tambah Komponen Payroll</h3>
-            <div className="space-y-4">
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Tambah Komponen Payroll</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="new-name">Nama Komponen</Label>
+              <Input
+                id="new-name"
+                value={newComponent.name}
+                onChange={(e) => setNewComponent({
+                  ...newComponent,
+                  name: e.target.value
+                })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="new-description">Deskripsi</Label>
+              <Input
+                id="new-description"
+                value={newComponent.description}
+                onChange={(e) => setNewComponent({
+                  ...newComponent,
+                  description: e.target.value
+                })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="new-name">Nama Komponen</Label>
+                <Label>Tipe</Label>
+                <Select value={newComponent.type} onValueChange={(value: 'income' | 'deduction') => setNewComponent({
+                  ...newComponent,
+                  type: value
+                })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="income">Pendapatan</SelectItem>
+                    <SelectItem value="deduction">Pemotongan</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Kategori</Label>
+                <Select value={newComponent.category} onValueChange={(value: 'fixed' | 'variable' | 'bpjs' | 'allowance') => setNewComponent({
+                  ...newComponent,
+                  category: value
+                })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="fixed">Tetap</SelectItem>
+                    <SelectItem value="bpjs">BPJS</SelectItem>
+                    <SelectItem value="allowance">Tunjangan</SelectItem>
+                    <SelectItem value="variable">Variabel</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="new-percentage">Persentase (%)</Label>
                 <Input
-                  id="new-name"
-                  value={newComponent.name}
+                  id="new-percentage"
+                  type="number"
+                  step="0.01"
+                  value={newComponent.percentage}
                   onChange={(e) => setNewComponent({
                     ...newComponent,
-                    name: e.target.value
+                    percentage: parseFloat(e.target.value) || 0
                   })}
                 />
               </div>
               <div>
-                <Label htmlFor="new-description">Deskripsi</Label>
+                <Label htmlFor="new-amount">Jumlah Tetap</Label>
                 <Input
-                  id="new-description"
-                  value={newComponent.description}
+                  id="new-amount"
+                  type="number"
+                  value={newComponent.amount}
                   onChange={(e) => setNewComponent({
                     ...newComponent,
-                    description: e.target.value
+                    amount: parseFloat(e.target.value) || 0
                   })}
                 />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Tipe</Label>
-                  <Select value={newComponent.type} onValueChange={(value: 'income' | 'deduction') => setNewComponent({
-                    ...newComponent,
-                    type: value
-                  })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="income">Pendapatan</SelectItem>
-                      <SelectItem value="deduction">Pemotongan</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Kategori</Label>
-                  <Select value={newComponent.category} onValueChange={(value: 'fixed' | 'variable' | 'bpjs' | 'allowance') => setNewComponent({
-                    ...newComponent,
-                    category: value
-                  })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="fixed">Tetap</SelectItem>
-                      <SelectItem value="bpjs">BPJS</SelectItem>
-                      <SelectItem value="allowance">Tunjangan</SelectItem>
-                      <SelectItem value="variable">Variabel</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="new-percentage">Persentase (%)</Label>
-                  <Input
-                    id="new-percentage"
-                    type="number"
-                    step="0.01"
-                    value={newComponent.percentage}
-                    onChange={(e) => setNewComponent({
-                      ...newComponent,
-                      percentage: parseFloat(e.target.value) || 0
-                    })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="new-amount">Jumlah Tetap</Label>
-                  <Input
-                    id="new-amount"
-                    type="number"
-                    value={newComponent.amount}
-                    onChange={(e) => setNewComponent({
-                      ...newComponent,
-                      amount: parseFloat(e.target.value) || 0
-                    })}
-                  />
-                </div>
-              </div>
-              <div className="flex gap-2 pt-4">
-                <Button onClick={handleAddComponent}>
-                  <Save className="w-4 h-4 mr-2" />
-                  Tambah
-                </Button>
-                <Button variant="outline" onClick={() => setShowAddDialog(false)}>
-                  Batal
-                </Button>
               </div>
             </div>
           </div>
-        </div>
-      )}
+          <DialogFooter>
+            <Button onClick={handleAddComponent}>
+              <Save className="w-4 h-4 mr-2" />
+              Tambah
+            </Button>
+            <Button variant="outline" onClick={() => setShowAddDialog(false)}>
+              Batal
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Component Dialog */}
-      {editingComponent && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl">
-            <h3 className="text-lg font-semibold mb-4">Edit Komponen Payroll</h3>
+      <Dialog open={!!editingComponent} onOpenChange={(open) => !open && setEditingComponent(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Komponen Payroll</DialogTitle>
+          </DialogHeader>
+          {editingComponent && (
             <div className="space-y-4">
               <div>
                 <Label htmlFor="edit-name">Nama Komponen</Label>
@@ -788,25 +791,27 @@ const PayrollConfigContent = () => {
                   />
                 </div>
               </div>
-              <div className="flex gap-2 pt-4">
-                <Button onClick={() => handleSave(editingComponent)}>
-                  <Save className="w-4 h-4 mr-2" />
-                  Simpan
-                </Button>
-                <Button variant="outline" onClick={() => setEditingComponent(null)}>
-                  Batal
-                </Button>
-              </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
+          <DialogFooter>
+            <Button onClick={() => editingComponent && handleSave(editingComponent)}>
+              <Save className="w-4 h-4 mr-2" />
+              Simpan
+            </Button>
+            <Button variant="outline" onClick={() => setEditingComponent(null)}>
+              Batal
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      {deleteDialogOpen && componentToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-2xl">
-            <h3 className="text-lg font-semibold mb-4 text-red-600">Konfirmasi Hapus</h3>
+      <Dialog open={deleteDialogOpen} onOpenChange={(open) => !open && setDeleteDialogOpen(false)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-red-600">Konfirmasi Hapus</DialogTitle>
+          </DialogHeader>
+          {componentToDelete && (
             <div className="space-y-4">
               <p className="text-gray-700">
                 Apakah Anda yakin ingin menghapus komponen <strong>"{componentToDelete.name}"</strong>?
@@ -814,30 +819,30 @@ const PayrollConfigContent = () => {
               <p className="text-sm text-gray-500">
                 Tindakan ini tidak dapat dibatalkan dan akan menghapus komponen secara permanen.
               </p>
-              <div className="flex gap-2 pt-4">
-                <Button 
-                  variant="destructive" 
-                  onClick={confirmDelete}
-                  className="flex-1"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Hapus
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setDeleteDialogOpen(false);
-                    setComponentToDelete(null);
-                  }}
-                  className="flex-1"
-                >
-                  Batal
-                </Button>
-              </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
+          <DialogFooter>
+            <Button 
+              variant="destructive" 
+              onClick={confirmDelete}
+              className="flex-1"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Hapus
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setDeleteDialogOpen(false);
+                setComponentToDelete(null);
+              }}
+              className="flex-1"
+            >
+              Batal
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
