@@ -298,10 +298,6 @@ export default function PayrollManagement() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <Button variant="outline" onClick={() => navigate('/payroll-configuration')}>
-                <Settings className="w-4 h-4 mr-2" />
-                Konfigurasi Payroll
-              </Button>
               <Dialog open={modalOpen} onOpenChange={setModalOpen}>
                 <DialogTrigger asChild>
                   <Button>
