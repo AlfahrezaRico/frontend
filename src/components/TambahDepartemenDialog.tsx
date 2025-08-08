@@ -106,4 +106,7 @@ export function TambahDepartemenDialog({ onDepartmentAdded }: { onDepartmentAdde
       </DialogContent>
     </Dialog>
   );
-} 
+}
+
+// Export alias for backward compatibility
+export { TambahDepartemenDialog as DepartemenDialog }; 
