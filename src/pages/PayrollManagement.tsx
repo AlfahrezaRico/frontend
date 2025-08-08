@@ -32,6 +32,12 @@ interface CalculatedComponent {
   is_percentage: boolean;
 }
 
+interface ManualDeduction {
+  kasbon: number;
+  telat: number;
+  angsuran_kredit: number;
+}
+
 // Format currency to Indonesian format
 const formatCurrency = (amount: number | null | undefined): string => {
   // Handle null, undefined, or non-number values
@@ -62,6 +68,11 @@ export default function PayrollManagement() {
   const [payrollComponents, setPayrollComponents] = useState<PayrollComponent[]>([]);
   const [calculatedComponents, setCalculatedComponents] = useState<CalculatedComponent[]>([]);
   const [autoCalculation, setAutoCalculation] = useState(true);
+  const [manualDeductions, setManualDeductions] = useState<ManualDeduction>({
+    kasbon: 0,
+    telat: 0,
+    angsuran_kredit: 0
+  });
   const [form, setForm] = useState({
     employee_id: "",
     pay_period_start: "",
@@ -121,8 +132,15 @@ export default function PayrollManagement() {
 
   // Calculate payroll components based on basic salary
   const calculatePayrollComponents = (basicSalary: number) => {
-    if (basicSalary <= 0 || !autoCalculation) {
+    if (basicSalary <= 0) {
       setCalculatedComponents([]);
+      updateTotals(basicSalary, [], manualDeductions);
+      return;
+    }
+
+    if (!autoCalculation) {
+      setCalculatedComponents([]);
+      updateTotals(basicSalary, [], manualDeductions);
       return;
     }
 
@@ -153,15 +171,21 @@ export default function PayrollManagement() {
     });
 
     setCalculatedComponents(calculated);
-    
-    // Calculate totals
+    updateTotals(basicSalary, calculated, manualDeductions);
+  };
+
+  // Update totals calculation
+  const updateTotals = (basicSalary: number, calculated: CalculatedComponent[], manual: ManualDeduction) => {
     const totalIncome = calculated
       .filter(c => c.type === 'income')
       .reduce((sum, c) => sum + c.amount, 0);
     
-    const totalDeduction = calculated
+    const totalAutoDeduction = calculated
       .filter(c => c.type === 'deduction')
       .reduce((sum, c) => sum + c.amount, 0);
+
+    const totalManualDeduction = manual.kasbon + manual.telat + manual.angsuran_kredit;
+    const totalDeduction = totalAutoDeduction + totalManualDeduction;
     
     const netSalary = basicSalary + totalIncome - totalDeduction;
     
@@ -196,9 +220,17 @@ export default function PayrollManagement() {
     setForm(f => ({ ...f, [field]: value }));
     
     // If basic salary changes, recalculate components
-    if (field === 'gross_salary' && autoCalculation) {
+    if (field === 'gross_salary') {
       calculatePayrollComponents(Number(value));
     }
+  };
+
+  const handleManualDeductionChange = (field: keyof ManualDeduction, value: number) => {
+    const newManualDeductions = { ...manualDeductions, [field]: value };
+    setManualDeductions(newManualDeductions);
+    
+    // Recalculate totals with new manual deductions
+    updateTotals(form.gross_salary, calculatedComponents, newManualDeductions);
   };
 
   const handleAddPayroll = async (e: React.FormEvent) => {
@@ -214,6 +246,7 @@ export default function PayrollManagement() {
       setModalOpen(false);
       setForm({ employee_id: "", pay_period_start: "", pay_period_end: "", gross_salary: 0, deductions: 0, net_salary: 0, payment_date: "", status: "PAID" });
       setCalculatedComponents([]);
+      setManualDeductions({ kasbon: 0, telat: 0, angsuran_kredit: 0 });
       fetchPayrolls();
       toast({
         title: 'Berhasil',
@@ -346,6 +379,7 @@ export default function PayrollManagement() {
                             calculatePayrollComponents(form.gross_salary);
                           } else {
                             setCalculatedComponents([]);
+                            updateTotals(form.gross_salary, [], manualDeductions);
                           }
                         }}
                       />
@@ -400,6 +434,65 @@ export default function PayrollManagement() {
                         </div>
                       </div>
                     )}
+
+                    {/* Manual Deductions */}
+                    <div className="space-y-4">
+                      <h3 className="font-semibold text-gray-900 border-b pb-2">Potongan Manual</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <Label htmlFor="kasbon">KASBON</Label>
+                          <Input 
+                            id="kasbon"
+                            type="number" 
+                            value={manualDeductions.kasbon} 
+                            onChange={(e) => handleManualDeductionChange('kasbon', Number(e.target.value))} 
+                            placeholder="0"
+                            min="0"
+                          />
+                          <div className="text-xs text-gray-500 mt-1">
+                            {formatCurrency(manualDeductions.kasbon)}
+                          </div>
+                        </div>
+                        <div>
+                          <Label htmlFor="telat">Telat</Label>
+                          <Input 
+                            id="telat"
+                            type="number" 
+                            value={manualDeductions.telat} 
+                            onChange={(e) => handleManualDeductionChange('telat', Number(e.target.value))} 
+                            placeholder="0"
+                            min="0"
+                          />
+                          <div className="text-xs text-gray-500 mt-1">
+                            {formatCurrency(manualDeductions.telat)}
+                          </div>
+                        </div>
+                        <div>
+                          <Label htmlFor="angsuran_kredit">Angsuran Kredit</Label>
+                          <Input 
+                            id="angsuran_kredit"
+                            type="number" 
+                            value={manualDeductions.angsuran_kredit} 
+                            onChange={(e) => handleManualDeductionChange('angsuran_kredit', Number(e.target.value))} 
+                            placeholder="0"
+                            min="0"
+                          />
+                          <div className="text-xs text-gray-500 mt-1">
+                            {formatCurrency(manualDeductions.angsuran_kredit)}
+                          </div>
+                        </div>
+                      </div>
+                      {(manualDeductions.kasbon > 0 || manualDeductions.telat > 0 || manualDeductions.angsuran_kredit > 0) && (
+                        <div className="bg-red-50 p-3 rounded-lg">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium text-sm text-red-800">Total Potongan Manual</span>
+                            <span className="text-sm font-semibold text-red-600">
+                              - {formatCurrency(manualDeductions.kasbon + manualDeductions.telat + manualDeductions.angsuran_kredit)}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
 
                     {/* Summary Section */}
                     <div className="grid grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg">
