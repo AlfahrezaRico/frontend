@@ -147,8 +147,8 @@ export const HRDSidebar = ({ currentPage = 'dashboard', onPageChange }: HRDSideb
       <div className={`
         fixed top-0 left-0 h-full bg-white border-r border-gray-200 z-40 transform transition-transform duration-300 ease-in-out
         ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:translate-x-0 lg:static
-        w-64 flex flex-col
+        lg:translate-x-0 lg:static lg:z-auto
+        w-64 flex flex-col flex-shrink-0
       `}>
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200">

@@ -439,7 +439,7 @@ const HRDDashboard = () => {
       <HRDSidebar currentPage={currentPage} onPageChange={setCurrentPage} />
       
       {/* Main Content */}
-      <div className="flex-1 lg:ml-64">
+      <div className="flex-1">
         {/* Top Header Bar */}
         <div className="bg-white shadow-sm border-b px-6 py-4">
           <div className="flex justify-between items-center">
