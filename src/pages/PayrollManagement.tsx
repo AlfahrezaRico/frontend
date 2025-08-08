@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogT
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 
 const API_URL = import.meta.env.VITE_API_URL || "";
@@ -31,6 +32,16 @@ interface CalculatedComponent {
   is_percentage: boolean;
 }
 
+// Format currency to Indonesian format
+const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).replace('IDR', 'Rp ').trim();
+};
+
 export default function PayrollManagement() {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -40,6 +51,7 @@ export default function PayrollManagement() {
   const [modalOpen, setModalOpen] = useState(false);
   const [payrollComponents, setPayrollComponents] = useState<PayrollComponent[]>([]);
   const [calculatedComponents, setCalculatedComponents] = useState<CalculatedComponent[]>([]);
+  const [autoCalculation, setAutoCalculation] = useState(true);
   const [form, setForm] = useState({
     employee_id: "",
     pay_period_start: "",
@@ -99,7 +111,7 @@ export default function PayrollManagement() {
 
   // Calculate payroll components based on basic salary
   const calculatePayrollComponents = (basicSalary: number) => {
-    if (basicSalary <= 0) {
+    if (basicSalary <= 0 || !autoCalculation) {
       setCalculatedComponents([]);
       return;
     }
@@ -174,7 +186,7 @@ export default function PayrollManagement() {
     setForm(f => ({ ...f, [field]: value }));
     
     // If basic salary changes, recalculate components
-    if (field === 'gross_salary') {
+    if (field === 'gross_salary' && autoCalculation) {
       calculatePayrollComponents(Number(value));
     }
   };
@@ -223,6 +235,10 @@ export default function PayrollManagement() {
   const totalPages = Math.ceil(filteredPayrolls.length / pageSize);
   const pagedPayrolls = filteredPayrolls.slice((page - 1) * pageSize, page * pageSize);
 
+  // Group components by type for better display
+  const incomeComponents = calculatedComponents.filter(c => c.type === 'income');
+  const deductionComponents = calculatedComponents.filter(c => c.type === 'deduction');
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow-sm border-b">
@@ -250,11 +266,12 @@ export default function PayrollManagement() {
                     Tambah Payroll
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Tambah Payroll Baru</DialogTitle>
                   </DialogHeader>
                   <form onSubmit={handleAddPayroll} className="space-y-6">
+                    {/* Employee Selection */}
                     <div>
                       <Label htmlFor="employee_id">Pilih Karyawan</Label>
                       <Select value={form.employee_id} onValueChange={(value) => handleFormChange('employee_id', value)}>
@@ -270,6 +287,8 @@ export default function PayrollManagement() {
                         </SelectContent>
                       </Select>
                     </div>
+
+                    {/* Period */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="pay_period_start">Periode Mulai</Label>
@@ -293,7 +312,7 @@ export default function PayrollManagement() {
                       </div>
                     </div>
                     
-                    {/* Gaji Pokok Input */}
+                    {/* Basic Salary */}
                     <div>
                       <Label htmlFor="gross_salary">Gaji Pokok</Label>
                       <Input 
@@ -306,65 +325,107 @@ export default function PayrollManagement() {
                       />
                     </div>
 
+                    {/* Auto Calculation Toggle */}
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id="auto_calculation" 
+                        checked={autoCalculation}
+                        onCheckedChange={(checked) => {
+                          setAutoCalculation(checked as boolean);
+                          if (checked && form.gross_salary > 0) {
+                            calculatePayrollComponents(form.gross_salary);
+                          } else {
+                            setCalculatedComponents([]);
+                          }
+                        }}
+                      />
+                      <Label htmlFor="auto_calculation" className="text-sm font-medium">
+                        Komponen Perhitungan Otomatik
+                      </Label>
+                    </div>
+
                     {/* Calculated Components Display */}
-                    {calculatedComponents.length > 0 && (
+                    {calculatedComponents.length > 0 && autoCalculation && (
                       <div className="space-y-4">
-                        <div className="flex items-center gap-2">
-                          <Calculator className="w-5 h-5 text-blue-600" />
-                          <h3 className="font-semibold text-gray-900">Komponen Perhitungan Otomatis</h3>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {calculatedComponents.map((component, index) => (
-                            <div key={index} className="p-3 border rounded-lg">
-                              <div className="flex justify-between items-center">
-                                <span className="font-medium text-sm">{component.name}</span>
-                                <span className={`text-sm font-semibold ${component.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                                  {component.type === 'income' ? '+' : '-'} Rp {component.amount.toLocaleString('id-ID')}
+                        <div className="grid grid-cols-2 gap-6">
+                          {/* Left Column - Employee Deductions */}
+                          <div className="space-y-3">
+                            <h3 className="font-semibold text-gray-900 border-b pb-2">Karyawan</h3>
+                            {deductionComponents.map((component, index) => (
+                              <div key={index} className="flex justify-between items-center p-2 border rounded">
+                                <div>
+                                  <span className="font-medium text-sm">{component.name}</span>
+                                  {component.is_percentage && (
+                                    <div className="text-xs text-gray-500">
+                                      {component.percentage}% dari gaji pokok
+                                    </div>
+                                  )}
+                                </div>
+                                <span className="text-sm font-semibold text-red-600">
+                                  - {formatCurrency(component.amount)}
                                 </span>
                               </div>
-                              {component.is_percentage && (
-                                <span className="text-xs text-gray-500">
-                                  {component.percentage}% dari gaji pokok
+                            ))}
+                          </div>
+
+                          {/* Right Column - Company Contributions */}
+                          <div className="space-y-3">
+                            <h3 className="font-semibold text-gray-900 border-b pb-2">Perusahaan</h3>
+                            {incomeComponents.map((component, index) => (
+                              <div key={index} className="flex justify-between items-center p-2 border rounded">
+                                <div>
+                                  <span className="font-medium text-sm">{component.name}</span>
+                                  {component.is_percentage && (
+                                    <div className="text-xs text-gray-500">
+                                      {component.percentage}% dari gaji pokok
+                                    </div>
+                                  )}
+                                </div>
+                                <span className="text-sm font-semibold text-green-600">
+                                  + {formatCurrency(component.amount)}
                                 </span>
-                              )}
-                            </div>
-                          ))}
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     )}
 
-                    <div className="grid grid-cols-3 gap-4">
+                    {/* Summary Section */}
+                    <div className="grid grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg">
                       <div>
                         <Label htmlFor="gross_salary_display">Gaji Pokok</Label>
                         <Input 
                           id="gross_salary_display"
-                          type="number" 
-                          value={form.gross_salary} 
+                          type="text" 
+                          value={formatCurrency(form.gross_salary)} 
                           readOnly
-                          className="bg-gray-50"
+                          className="bg-white font-semibold"
                         />
                       </div>
                       <div>
                         <Label htmlFor="deductions">Total Potongan</Label>
                         <Input 
                           id="deductions"
-                          type="number" 
-                          value={form.deductions} 
+                          type="text" 
+                          value={formatCurrency(form.deductions)} 
                           readOnly
-                          className="bg-gray-50"
+                          className="bg-white font-semibold text-red-600"
                         />
                       </div>
                       <div>
                         <Label htmlFor="net_salary">Total Diterima</Label>
                         <Input 
                           id="net_salary"
-                          type="number" 
-                          value={form.net_salary} 
+                          type="text" 
+                          value={formatCurrency(form.net_salary)} 
                           readOnly
-                          className="bg-gray-50 font-semibold"
+                          className="bg-white font-semibold text-green-600"
                         />
                       </div>
                     </div>
+
+                    {/* Payment Info */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="payment_date">Tanggal Bayar</Label>
@@ -454,9 +515,9 @@ export default function PayrollManagement() {
                       <TableCell>{p.employee?.first_name || '-'} {p.employee?.last_name || ''}</TableCell>
                       <TableCell>{p.employee?.position || '-'}</TableCell>
                       <TableCell>{p.pay_period_start} s/d {p.pay_period_end}</TableCell>
-                      <TableCell>Rp {Number(p.gross_salary).toLocaleString('id-ID')}</TableCell>
-                      <TableCell>Rp {Number(p.deductions).toLocaleString('id-ID')}</TableCell>
-                      <TableCell>Rp {Number(p.net_salary).toLocaleString('id-ID')}</TableCell>
+                      <TableCell>{formatCurrency(Number(p.gross_salary))}</TableCell>
+                      <TableCell>{formatCurrency(Number(p.deductions))}</TableCell>
+                      <TableCell>{formatCurrency(Number(p.net_salary))}</TableCell>
                       <TableCell>{p.payment_date}</TableCell>
                       <TableCell>{p.status}</TableCell>
                       <TableCell>
