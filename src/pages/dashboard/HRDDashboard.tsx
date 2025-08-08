@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, UserPlus, Clock, Calendar, FileText, LogOut, Bell, Settings } from "lucide-react";
+import { Users, UserPlus, Clock, Calendar, FileText, LogOut, Bell, Settings, BarChart3, TrendingUp, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEmployees } from '@/hooks/useEmployees';
 import { useDepartments } from '@/hooks/useDepartments';
@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useContext, useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from '@/hooks/use-toast';
+import { HRDSidebar } from '@/components/HRDSidebar';
 
 const HRDDashboard = () => {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ const HRDDashboard = () => {
   const [rejectedRequests, setRejectedRequests] = useState<any[]>([]);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [readNotifications, setReadNotifications] = useState<Set<string>>(new Set());
+  const [currentPage, setCurrentPage] = useState('dashboard');
 
   const handleLogout = async () => {
     await logout();
@@ -173,46 +175,39 @@ const HRDDashboard = () => {
   };
 
   return (
-    <div key={`hrd-dashboard-${user?.id}`} className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-900 shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-4">
-            <div className="flex items-center">
-              <Users className="h-8 w-8 text-blue-600 mr-3" />
-              <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">HRIS KSP Mekarsari</h1>
-                <p className="text-sm text-gray-500">HRD Dashboard</p>
+    <div key={`hrd-dashboard-${user?.id}`} className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar */}
+      <HRDSidebar currentPage={currentPage} onPageChange={setCurrentPage} />
+      
+      {/* Main Content */}
+      <div className="flex-1 lg:ml-80">
+        {/* Top Header Bar */}
+        <div className="bg-white shadow-sm border-b px-6 py-4">
+          <div className="flex justify-between items-center">
+            <div className="lg:hidden"></div> {/* Spacer for mobile menu button */}
+            <div className="flex items-center gap-4 ml-auto">
+              {/* Notifikasi Bell */}
+              <div className="relative">
+                <Button 
+                  onClick={() => setNotificationOpen(true)} 
+                  variant="outline" 
+                  size="sm"
+                  className="relative"
+                >
+                  <Bell className={`h-4 w-4 ${unreadCount > 0 ? 'animate-bell-ring text-red-500' : ''}`} />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse-red">
+                      {unreadCount}
+                    </span>
+                  )}
+                </Button>
               </div>
             </div>
-          <div className="flex items-center gap-2">
-            {/* Notifikasi Bell */}
-            <div className="relative">
-              <Button 
-                onClick={() => setNotificationOpen(true)} 
-                variant="outline" 
-                size="sm"
-                className="relative"
-              >
-                <Bell className={`h-4 w-4 mr-2 ${unreadCount > 0 ? 'animate-bell-ring text-red-500' : ''}`} />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse-red">
-                    {unreadCount}
-                  </span>
-                )}
-                Notifikasi
-              </Button>
-            </div>
-            <Button onClick={handleLogout} variant="outline" size="sm">
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
           </div>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
+        {/* Dashboard Content */}
+        <div className="p-6">
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
               Dashboard HRD
@@ -253,158 +248,132 @@ const HRDDashboard = () => {
             </Card>
           </div>
 
-          {/* Main Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardHeader>
-                <UserPlus className="h-8 w-8 text-blue-600 mb-2" />
-                <CardTitle>Tambah Karyawan</CardTitle>
-                <CardDescription>
-                  Daftarkan karyawan baru ke dalam sistem
-                </CardDescription>
+          {/* Quick Actions */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-blue-500">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg">Tambah Karyawan</CardTitle>
+                    <CardDescription className="text-sm text-gray-600">
+                      Daftarkan karyawan baru
+                    </CardDescription>
+                  </div>
+                  <UserPlus className="h-8 w-8 text-blue-500" />
+                </div>
               </CardHeader>
               <CardContent>
                 <AddEmployeeDialog onEmployeeAdded={() => {}} />
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardHeader>
-                <Users className="h-8 w-8 text-green-600 mb-2" />
-                <CardTitle>Data Karyawan</CardTitle>
-                <CardDescription>
-                  Lihat dan kelola data semua karyawan
-                </CardDescription>
+            <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-green-500">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg">Pending Requests</CardTitle>
+                    <CardDescription className="text-sm text-gray-600">
+                      {rejectedRequests.length} menunggu persetujuan
+                    </CardDescription>
+                  </div>
+                  <AlertCircle className="h-8 w-8 text-orange-500" />
+                </div>
               </CardHeader>
               <CardContent>
                 <Button 
-                  className="w-full bg-green-600 hover:bg-green-700"
-                  onClick={() => navigate('/employee-management')}
-                >
-                  Kelola Karyawan
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardHeader>
-                <Clock className="h-8 w-8 text-purple-600 mb-2" />
-                <CardTitle>Data Absensi</CardTitle>
-                <CardDescription>
-                  Monitor kehadiran dan jam kerja karyawan
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  className="w-full bg-purple-600 hover:bg-purple-700"
-                  onClick={() => navigate('/attendance-management')}
-                >
-                  Lihat Absensi
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardHeader>
-                <Calendar className="h-8 w-8 text-orange-600 mb-2" />
-                <CardTitle>Manajemen Cuti</CardTitle>
-                <CardDescription>
-                  Kelola pengajuan cuti dan izin karyawan
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  className="w-full bg-orange-600 hover:bg-orange-700"
+                  variant="outline"
+                  className="w-full"
                   onClick={() => navigate('/leave-management')}
                 >
-                  Kelola Cuti
+                  Lihat Semua
                 </Button>
               </CardContent>
             </Card>
 
-            {/* Management Payroll */}
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/payroll-management')}>
-              <CardHeader>
-                <FileText className="h-8 w-8 text-indigo-600 mb-2" />
-                <CardTitle>Management Payroll</CardTitle>
-                <CardDescription>
-                  Kelola data gaji, slip gaji, dan histori pembayaran karyawan
-                </CardDescription>
+            <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-purple-500">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg">Performance</CardTitle>
+                    <CardDescription className="text-sm text-gray-600">
+                      Overview sistem HR
+                    </CardDescription>
+                  </div>
+                  <BarChart3 className="h-8 w-8 text-purple-500" />
+                </div>
               </CardHeader>
               <CardContent>
                 <Button 
-                  className="w-full bg-indigo-600 hover:bg-indigo-700"
-                  onClick={e => { e.stopPropagation(); navigate('/payroll-management'); }}
-                >
-                  Kelola Payroll
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardHeader>
-                <FileText className="h-8 w-8 text-red-600 mb-2" />
-                <CardTitle>Laporan HR</CardTitle>
-                <CardDescription>
-                  Generate laporan untuk keperluan HR
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  className="w-full bg-red-600 hover:bg-red-700"
+                  variant="outline"
+                  className="w-full"
                   onClick={() => navigate('/hr-reports')}
                 >
-                  Buat Laporan
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardHeader>
-                <Calendar className="h-8 w-8 text-cyan-600 mb-2" />
-                <CardTitle>Pengaturan Kuota Cuti</CardTitle>
-                <CardDescription>
-                  Atur dan update kuota cuti karyawan per tahun
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  className="w-full bg-cyan-600 hover:bg-cyan-700"
-                  onClick={() => navigate('/dashboard/hrd/leave-quotas')}
-                >
-                  Atur Kuota Cuti
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border-2 border-blue-100 rounded-xl cursor-pointer" onClick={() => window.location.href = '/hrd-izin-sakit-management'}>
-              <CardHeader className="flex flex-col items-center">
-                <Calendar className="h-10 w-10 text-blue-600 mb-2" />
-                <CardTitle className="text-lg font-bold text-center">Manajemen Izin/Sakit</CardTitle>
-                <CardDescription className="text-gray-500 text-center">Lihat & kelola pengajuan izin/sakit karyawan</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button variant="default" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg" onClick={e => { e.stopPropagation(); window.location.href = '/hrd-izin-sakit-management'; }}>
-                  Kelola Izin/Sakit
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border-2 border-green-100 rounded-xl cursor-pointer" onClick={() => window.location.href = '/payroll-configuration'}>
-              <CardHeader className="flex flex-col items-center">
-                <Settings className="h-10 w-10 text-green-600 mb-2" />
-                <CardTitle className="text-lg font-bold text-center">Konfigurasi Payroll</CardTitle>
-                <CardDescription className="text-gray-500 text-center">Kelola komponen perhitungan gaji otomatis</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button variant="default" className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg" onClick={e => { e.stopPropagation(); window.location.href = '/payroll-configuration'; }}>
-                  Konfigurasi Payroll
+                  Lihat Reports
                 </Button>
               </CardContent>
             </Card>
           </div>
+
+          {/* Recent Activity */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-blue-600" />
+                  Statistik Karyawan
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Total Karyawan Aktif</span>
+                    <span className="font-semibold text-lg">{totalEmployees}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Total Departemen</span>
+                    <span className="font-semibold text-lg">{new Set(departments.map(dep => dep.id).filter(Boolean)).size}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Pending Leave Requests</span>
+                    <span className="font-semibold text-lg text-orange-600">{rejectedRequests.length}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-green-600" />
+                  Aktivitas Terbaru
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {rejectedRequests.slice(0, 3).map((request) => (
+                    <div key={request.id} className="flex items-start gap-3 p-2 rounded-lg bg-gray-50">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {request.employee?.first_name} {request.employee?.last_name}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {request.request_type === 'izin_sakit' ? 'Izin/Sakit' : 'Cuti'} • {request.start_date}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                  {rejectedRequests.length === 0 && (
+                    <p className="text-sm text-gray-500 text-center py-4">
+                      Tidak ada aktivitas terbaru
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </main>
+      </div>
 
       {/* Dialog Notifikasi */}
       <Dialog open={notificationOpen} onOpenChange={setNotificationOpen}>
