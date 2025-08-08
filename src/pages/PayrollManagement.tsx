@@ -33,13 +33,23 @@ interface CalculatedComponent {
 }
 
 // Format currency to Indonesian format
-const formatCurrency = (amount: number): string => {
+const formatCurrency = (amount: number | null | undefined): string => {
+  // Handle null, undefined, or non-number values
+  if (amount === null || amount === undefined || isNaN(Number(amount))) {
+    return 'Rp 0';
+  }
+  
+  const numAmount = Number(amount);
+  if (numAmount === 0) {
+    return 'Rp 0';
+  }
+  
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).replace('IDR', 'Rp ').trim();
+  }).format(numAmount).replace('IDR', 'Rp ').trim();
 };
 
 export default function PayrollManagement() {
