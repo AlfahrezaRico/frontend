@@ -15,6 +15,7 @@ import { EmployeesContent } from '@/components/hrd-content/EmployeesContent';
 import { PayrollContent } from '@/components/hrd-content/PayrollContent';
 import { AttendanceContent } from '@/components/hrd-content/AttendanceContent';
 import { LeaveContent } from '@/components/hrd-content/LeaveContent';
+import { IzinSakitContent } from '@/components/hrd-content/IzinSakitContent';
 
 const HRDDashboard = () => {
   const navigate = useNavigate();
@@ -359,27 +360,7 @@ const HRDDashboard = () => {
       case 'leave':
         return <LeaveContent />;
       case 'izin-sakit':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">Manajemen Izin/Sakit</h2>
-              <p className="text-gray-600">Urus izin sakit dan persetujuan karyawan</p>
-            </div>
-            <Card>
-              <CardContent className="text-center py-12">
-                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-muted-foreground">Fitur Manajemen Izin/Sakit akan segera hadir</p>
-                <Button 
-                  variant="outline" 
-                  className="mt-4"
-                  onClick={() => window.location.href = '/hrd-izin-sakit-management'}
-                >
-                  Buka Halaman Lengkap
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        );
+        return <IzinSakitContent />;
       case 'payroll-config':
         return (
           <div className="space-y-6">
