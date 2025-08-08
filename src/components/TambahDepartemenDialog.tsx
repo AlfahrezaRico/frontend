@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 
-export function DepartemenDialog() {
+export function TambahDepartemenDialog({ onDepartmentAdded }: { onDepartmentAdded?: () => void }) {
   const [open, setOpen] = useState(false);
   const [nama, setNama] = useState('');
   const [loading, setLoading] = useState(false);
@@ -46,6 +46,7 @@ export function DepartemenDialog() {
         toast({ title: 'Berhasil', description: 'Departemen berhasil ditambah' });
       }
       setNama(''); setEditId(null); fetchDepartemen();
+      if (onDepartmentAdded) onDepartmentAdded();
     } catch (err: any) {
       toast({ title: 'Error', description: err.message || 'Gagal simpan departemen', variant: 'destructive' });
     }
