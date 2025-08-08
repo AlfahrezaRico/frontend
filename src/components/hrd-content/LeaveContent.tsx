@@ -21,6 +21,8 @@ export const LeaveContent = () => {
   const [rejectReason, setRejectReason] = useState('');
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<any>(null);
   
   const API_URL = import.meta.env.VITE_API_URL || '';
   
@@ -157,6 +159,11 @@ export const LeaveContent = () => {
     setRejectDialogOpen(true);
   };
 
+  const openViewDialog = (request: any) => {
+    setSelectedRequest(request);
+    setViewDialogOpen(true);
+  };
+
   const calculateDays = (startDate: string, endDate: string) => {
     if (!startDate || !endDate) return 0;
     const start = new Date(startDate);
@@ -241,7 +248,11 @@ export const LeaveContent = () => {
                         <TableCell>{formatDate(request.created_at)}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => openViewDialog(request)}
+                            >
                               <Eye className="h-4 w-4" />
                             </Button>
                             {request.status?.toLowerCase() === 'pending' && (
@@ -277,6 +288,105 @@ export const LeaveContent = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* View Detail Dialog */}
+      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Detail Pengajuan Cuti</DialogTitle>
+          </DialogHeader>
+          {selectedRequest && (
+            <div className="space-y-6">
+              {/* Employee Info */}
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-blue-900 mb-2">Informasi Karyawan</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium">Nama:</span> {selectedRequest.employee?.first_name} {selectedRequest.employee?.last_name}
+                  </div>
+                  <div>
+                    <span className="font-medium">Departemen:</span> {selectedRequest.employee?.departemen?.nama || selectedRequest.employee?.department || '-'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Leave Details */}
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-gray-900">Detail Cuti</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="font-medium">Jenis Cuti:</span>
+                      <Badge variant="secondary">{selectedRequest.leave_type}</Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">Tanggal Mulai:</span>
+                      <span>{formatDate(selectedRequest.start_date)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">Tanggal Selesai:</span>
+                      <span>{formatDate(selectedRequest.end_date)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">Durasi:</span>
+                      <Badge variant="outline">{calculateDays(selectedRequest.start_date, selectedRequest.end_date)} hari</Badge>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-gray-900">Status & Tanggal</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="font-medium">Status:</span>
+                      {getStatusBadge(selectedRequest.status)}
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">Tanggal Pengajuan:</span>
+                      <span>{formatDate(selectedRequest.created_at)}</span>
+                    </div>
+                    {selectedRequest.status === 'APPROVED' && selectedRequest.approved_by && (
+                      <div className="flex justify-between">
+                        <span className="font-medium">Disetujui pada:</span>
+                        <span>{formatDate(selectedRequest.updated_at)}</span>
+                      </div>
+                    )}
+                    {selectedRequest.status === 'REJECTED' && selectedRequest.rejected_by && (
+                      <div className="flex justify-between">
+                        <span className="font-medium">Ditolak pada:</span>
+                        <span>{formatDate(selectedRequest.rejected_at || selectedRequest.updated_at)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Reason */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-gray-900">Alasan Cuti</h3>
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="text-sm text-gray-700">{selectedRequest.reason || 'Tidak ada alasan yang diberikan'}</p>
+                </div>
+              </div>
+
+              {/* Rejection Reason if rejected */}
+              {selectedRequest.status === 'REJECTED' && selectedRequest.rejection_reason && (
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-red-900">Alasan Penolakan</h3>
+                  <div className="bg-red-50 border border-red-200 p-3 rounded-lg">
+                    <p className="text-sm text-red-700">{selectedRequest.rejection_reason}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewDialogOpen(false)}>
+              Tutup
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Reject Dialog */}
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
