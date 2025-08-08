@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import {
   Users,
   Calendar,
@@ -29,62 +27,74 @@ export const HRDSidebar = ({ currentPage = 'dashboard', onPageChange }: HRDSideb
   const { logout } = useAuth();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-  const menuItems = [
+  const menuSections = [
     {
-      id: 'dashboard',
-      label: 'Dashboard',
-      icon: Home,
-      description: 'Overview dan statistik',
-      onClick: () => handleNavigation('dashboard')
+      title: 'MAIN',
+      items: [
+        {
+          id: 'dashboard',
+          label: 'Dashboard',
+          icon: Home,
+          onClick: () => handleNavigation('dashboard')
+        }
+      ]
     },
     {
-      id: 'employees',
-      label: 'Data Karyawan',
-      icon: Users,
-      description: 'Kelola data dan informasi karyawan',
-      onClick: () => handleNavigation('employees')
+      title: 'MANAGEMENT',
+      items: [
+        {
+          id: 'employees',
+          label: 'Data Karyawan',
+          icon: Users,
+          onClick: () => handleNavigation('employees')
+        },
+        {
+          id: 'attendance',
+          label: 'Data Absensi',
+          icon: Clock,
+          onClick: () => handleNavigation('attendance')
+        },
+        {
+          id: 'leave',
+          label: 'Manajemen Cuti',
+          icon: Calendar,
+          onClick: () => handleNavigation('leave')
+        },
+        {
+          id: 'izin-sakit',
+          label: 'Manajemen Izin/Sakit',
+          icon: FileText,
+          onClick: () => handleNavigation('izin-sakit')
+        }
+      ]
     },
     {
-      id: 'attendance',
-      label: 'Data Absensi',
-      icon: Clock,
-      description: 'Monitor kehadiran dan jam kerja karyawan',
-      onClick: () => handleNavigation('attendance')
+      title: 'PAYROLL',
+      items: [
+        {
+          id: 'payroll',
+          label: 'Management Payroll',
+          icon: DollarSign,
+          onClick: () => handleNavigation('payroll')
+        },
+        {
+          id: 'payroll-config',
+          label: 'Konfigurasi Payroll',
+          icon: Settings,
+          onClick: () => handleNavigation('payroll-config')
+        }
+      ]
     },
     {
-      id: 'leave',
-      label: 'Manajemen Cuti',
-      icon: Calendar,
-      description: 'Kelola pengajuan dan persetujuan cuti',
-      onClick: () => handleNavigation('leave')
-    },
-    {
-      id: 'izin-sakit',
-      label: 'Manajemen Izin/Sakit',
-      icon: FileText,
-      description: 'Urus izin sakit dan persetujuan karyawan',
-      onClick: () => handleNavigation('izin-sakit')
-    },
-    {
-      id: 'payroll',
-      label: 'Management Payroll',
-      icon: DollarSign,
-      description: 'Kelola data gaji dan pembayaran',
-      onClick: () => handleNavigation('payroll')
-    },
-    {
-      id: 'payroll-config',
-      label: 'Konfigurasi Payroll',
-      icon: Settings,
-      description: 'Kelola komponen perhitungan otomatis',
-      onClick: () => handleNavigation('payroll-config')
-    },
-    {
-      id: 'reports',
-      label: 'Laporan HR',
-      icon: BarChart3,
-      description: 'Generate laporan untuk keperluan HR',
-      onClick: () => handleNavigation('reports')
+      title: 'REPORTS',
+      items: [
+        {
+          id: 'reports',
+          label: 'Laporan HR',
+          icon: BarChart3,
+          onClick: () => handleNavigation('reports')
+        }
+      ]
     }
   ];
 
@@ -135,97 +145,79 @@ export const HRDSidebar = ({ currentPage = 'dashboard', onPageChange }: HRDSideb
 
       {/* Sidebar */}
       <div className={`
-        fixed top-0 left-0 h-full bg-white shadow-lg z-40 transform transition-transform duration-300 ease-in-out
+        fixed top-0 left-0 h-full bg-white border-r border-gray-200 z-40 transform transition-transform duration-300 ease-in-out
         ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:translate-x-0 lg:static lg:shadow-none
-        w-80 flex flex-col
+        lg:translate-x-0 lg:static
+        w-64 flex flex-col
       `}>
         {/* Header */}
-        <div className="p-6 border-b bg-gradient-to-r from-blue-600 to-blue-700">
+        <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-              <Users className="w-6 h-6 text-blue-600" />
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <Users className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-white font-bold text-lg">HRIS KSP</h1>
-              <p className="text-blue-100 text-sm">Dashboard HRD</p>
+              <h1 className="text-gray-900 font-semibold text-base">HRIS KSP</h1>
+              <p className="text-gray-500 text-xs">Dashboard HRD</p>
             </div>
           </div>
         </div>
 
         {/* Navigation Menu */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-2">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = currentPage === item.id;
-            
-            return (
-              <Card 
-                key={item.id} 
-                className={`
-                  cursor-pointer transition-all duration-200 hover:shadow-md
-                  ${isActive ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-gray-50'}
-                `}
-                onClick={item.onClick}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`
-                      w-10 h-10 rounded-lg flex items-center justify-center
-                      ${isActive ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}
-                    `}>
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className={`font-medium text-sm ${isActive ? 'text-blue-700' : 'text-gray-900'}`}>
-                          {item.label}
-                        </h3>
-                        {isActive && (
-                          <Badge variant="secondary" className="text-xs">
-                            Active
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                        {item.description}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+        <div className="flex-1 overflow-y-auto py-4">
+          {menuSections.map((section) => (
+            <div key={section.title} className="mb-6">
+              <div className="px-6 mb-2">
+                <h3 className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  {section.title}
+                </h3>
+              </div>
+              <div className="space-y-1 px-3">
+                {section.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = currentPage === item.id;
+                  
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={item.onClick}
+                      className={`
+                        w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors
+                        ${isActive 
+                          ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600' 
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        }
+                      `}
+                    >
+                      <Icon className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t bg-gray-50">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-medium">H</span>
+        <div className="border-t border-gray-200 p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+              <span className="text-gray-600 text-sm font-medium">H</span>
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-900">HRD Admin</p>
-              <p className="text-xs text-gray-500">Human Resources</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">HRD Admin</p>
+              <p className="text-xs text-gray-500">ricoaula25@gmail.com</p>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <Bell className="w-4 h-4" />
-            </Button>
           </div>
           
-          <Button
-            variant="outline"
-            size="sm"
+          <button
             onClick={handleLogout}
-            className="w-full text-red-600 border-red-200 hover:bg-red-50"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors"
           >
-            <LogOut className="w-4 h-4 mr-2" />
-            Logout
-          </Button>
+            <LogOut className="w-4 h-4" />
+            <span>Logout</span>
+          </button>
         </div>
       </div>
     </>
