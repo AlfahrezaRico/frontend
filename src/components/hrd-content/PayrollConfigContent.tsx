@@ -598,8 +598,8 @@ const PayrollConfigContent = () => {
 
       {/* Add Component Dialog */}
       {showAddDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl">
             <h3 className="text-lg font-semibold mb-4">Tambah Komponen Payroll</h3>
             <div className="space-y-4">
               <div>
@@ -701,8 +701,8 @@ const PayrollConfigContent = () => {
 
       {/* Edit Component Dialog */}
       {editingComponent && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl">
             <h3 className="text-lg font-semibold mb-4">Edit Komponen Payroll</h3>
             <div className="space-y-4">
               <div>
@@ -804,8 +804,8 @@ const PayrollConfigContent = () => {
 
       {/* Delete Confirmation Dialog */}
       {deleteDialogOpen && componentToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-2xl">
             <h3 className="text-lg font-semibold mb-4 text-red-600">Konfirmasi Hapus</h3>
             <div className="space-y-4">
               <p className="text-gray-700">
