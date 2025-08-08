@@ -165,11 +165,18 @@ const KaryawanDashboard = () => {
   useEffect(() => {
     const unreadCount = rejectedRequests.filter(req => !readNotifications.has(req.id)).length;
     if (unreadCount > 0 && !readNotifications.size) {
-      toast({
-        title: 'Pengajuan Cuti Ditolak',
-        description: `Ada ${unreadCount} pengajuan cuti yang ditolak. Silakan cek notifikasi.`,
-        variant: 'destructive',
-      });
+      // Cek apakah ada request yang ditolak
+      const rejectedCount = rejectedRequests.filter(req => 
+        !readNotifications.has(req.id) && req.status === 'REJECTED'
+      ).length;
+      
+      if (rejectedCount > 0) {
+        toast({
+          title: 'Pengajuan Ditolak',
+          description: `Ada ${rejectedCount} pengajuan yang ditolak. Silakan cek notifikasi.`,
+          variant: 'destructive',
+        });
+      }
     }
   }, [rejectedRequests.length, readNotifications.size, toast]);
 
