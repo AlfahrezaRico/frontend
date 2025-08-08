@@ -42,49 +42,49 @@ export const HRDSidebar = ({ currentPage = 'dashboard', onPageChange }: HRDSideb
       label: 'Data Karyawan',
       icon: Users,
       description: 'Kelola data dan informasi karyawan',
-      onClick: () => navigate('/employee-management')
+      onClick: () => handleNavigation('employees')
     },
     {
       id: 'attendance',
       label: 'Data Absensi',
       icon: Clock,
       description: 'Monitor kehadiran dan jam kerja karyawan',
-      onClick: () => navigate('/attendance-management')
+      onClick: () => handleNavigation('attendance')
     },
     {
       id: 'leave',
       label: 'Manajemen Cuti',
       icon: Calendar,
       description: 'Kelola pengajuan dan persetujuan cuti',
-      onClick: () => navigate('/leave-management')
+      onClick: () => handleNavigation('leave')
     },
     {
       id: 'izin-sakit',
       label: 'Manajemen Izin/Sakit',
       icon: FileText,
       description: 'Urus izin sakit dan persetujuan karyawan',
-      onClick: () => navigate('/hrd-izin-sakit-management')
+      onClick: () => handleNavigation('izin-sakit')
     },
     {
       id: 'payroll',
       label: 'Management Payroll',
       icon: DollarSign,
       description: 'Kelola data gaji dan pembayaran',
-      onClick: () => navigate('/payroll-management')
+      onClick: () => handleNavigation('payroll')
     },
     {
       id: 'payroll-config',
       label: 'Konfigurasi Payroll',
       icon: Settings,
       description: 'Kelola komponen perhitungan otomatis',
-      onClick: () => navigate('/payroll-configuration')
+      onClick: () => handleNavigation('payroll-config')
     },
     {
       id: 'reports',
       label: 'Laporan HR',
       icon: BarChart3,
       description: 'Generate laporan untuk keperluan HR',
-      onClick: () => navigate('/hr-reports')
+      onClick: () => handleNavigation('reports')
     }
   ];
 
@@ -95,9 +95,16 @@ export const HRDSidebar = ({ currentPage = 'dashboard', onPageChange }: HRDSideb
     setIsMobileOpen(false);
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await logout();
+      // Force redirect to login page
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Force redirect even if logout fails
+      window.location.href = '/login';
+    }
   };
 
   const toggleMobile = () => {

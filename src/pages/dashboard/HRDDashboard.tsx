@@ -11,6 +11,10 @@ import { useContext, useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from '@/hooks/use-toast';
 import { HRDSidebar } from '@/components/HRDSidebar';
+import { EmployeesContent } from '@/components/hrd-content/EmployeesContent';
+import { PayrollContent } from '@/components/hrd-content/PayrollContent';
+import { AttendanceContent } from '@/components/hrd-content/AttendanceContent';
+import { LeaveContent } from '@/components/hrd-content/LeaveContent';
 
 const HRDDashboard = () => {
   const navigate = useNavigate();
@@ -174,6 +178,261 @@ const HRDDashboard = () => {
     }
   };
 
+  // Render content based on current page
+  const renderContent = () => {
+    switch (currentPage) {
+      case 'dashboard':
+        return (
+          <div className="space-y-6">
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Dashboard HRD
+              </h2>
+              <p className="text-gray-600">
+                Kelola karyawan, absensi, dan data HR lainnya
+              </p>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-2 gap-6 mb-8">
+              <Card className="rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-200">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-500">
+                    Total Karyawan
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {employeesLoading ? "..." : totalEmployees}
+                  </div>
+                  <p className="text-xs text-gray-500">Active employees</p>
+                </CardContent>
+              </Card>
+
+              <Card className="rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-200">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-500">
+                    Total Departemen
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-indigo-600">
+                    {departmentsLoading ? "..." : new Set(departments.map(dep => dep.id).filter(Boolean)).size}
+                  </div>
+                  <p className="text-xs text-gray-500">Jumlah departemen aktif</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-blue-500">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-lg">Tambah Karyawan</CardTitle>
+                      <CardDescription className="text-sm text-gray-600">
+                        Daftarkan karyawan baru
+                      </CardDescription>
+                    </div>
+                    <UserPlus className="h-8 w-8 text-blue-500" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <AddEmployeeDialog onEmployeeAdded={() => {}} />
+                </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-green-500">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-lg">Pending Requests</CardTitle>
+                      <CardDescription className="text-sm text-gray-600">
+                        {rejectedRequests.length} menunggu persetujuan
+                      </CardDescription>
+                    </div>
+                    <AlertCircle className="h-8 w-8 text-orange-500" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => setCurrentPage('leave')}
+                  >
+                    Lihat Semua
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-purple-500">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-lg">Performance</CardTitle>
+                      <CardDescription className="text-sm text-gray-600">
+                        Overview sistem HR
+                      </CardDescription>
+                    </div>
+                    <BarChart3 className="h-8 w-8 text-purple-500" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => setCurrentPage('reports')}
+                  >
+                    Lihat Reports
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Recent Activity */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-blue-600" />
+                    Statistik Karyawan
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Total Karyawan Aktif</span>
+                      <span className="font-semibold text-lg">{totalEmployees}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Total Departemen</span>
+                      <span className="font-semibold text-lg">{new Set(departments.map(dep => dep.id).filter(Boolean)).size}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Pending Leave Requests</span>
+                      <span className="font-semibold text-lg text-orange-600">{rejectedRequests.length}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-green-600" />
+                    Aktivitas Terbaru
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {rejectedRequests.slice(0, 3).map((request) => (
+                      <div key={request.id} className="flex items-start gap-3 p-2 rounded-lg bg-gray-50">
+                        <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {request.employee?.first_name} {request.employee?.last_name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {request.request_type === 'izin_sakit' ? 'Izin/Sakit' : 'Cuti'} • {request.start_date}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    {rejectedRequests.length === 0 && (
+                      <p className="text-sm text-gray-500 text-center py-4">
+                        Tidak ada aktivitas terbaru
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        );
+      case 'employees':
+        return <EmployeesContent />;
+      case 'payroll':
+        return <PayrollContent />;
+      case 'attendance':
+        return <AttendanceContent />;
+      case 'leave':
+        return <LeaveContent />;
+      case 'izin-sakit':
+        return (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Manajemen Izin/Sakit</h2>
+              <p className="text-gray-600">Urus izin sakit dan persetujuan karyawan</p>
+            </div>
+            <Card>
+              <CardContent className="text-center py-12">
+                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-muted-foreground">Fitur Manajemen Izin/Sakit akan segera hadir</p>
+                <Button 
+                  variant="outline" 
+                  className="mt-4"
+                  onClick={() => window.location.href = '/hrd-izin-sakit-management'}
+                >
+                  Buka Halaman Lengkap
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      case 'payroll-config':
+        return (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Konfigurasi Payroll</h2>
+              <p className="text-gray-600">Kelola komponen perhitungan otomatis</p>
+            </div>
+            <Card>
+              <CardContent className="text-center py-12">
+                <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-muted-foreground">Fitur Konfigurasi Payroll akan segera hadir</p>
+                <Button 
+                  variant="outline" 
+                  className="mt-4"
+                  onClick={() => window.location.href = '/payroll-configuration'}
+                >
+                  Buka Halaman Lengkap
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      case 'reports':
+        return (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Laporan HR</h2>
+              <p className="text-gray-600">Generate laporan untuk keperluan HR</p>
+            </div>
+            <Card>
+              <CardContent className="text-center py-12">
+                <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-muted-foreground">Fitur Laporan HR akan segera hadir</p>
+                <Button 
+                  variant="outline" 
+                  className="mt-4"
+                  onClick={() => window.location.href = '/hr-reports'}
+                >
+                  Buka Halaman Lengkap
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      default:
+        return (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">Halaman tidak ditemukan</p>
+          </div>
+        );
+    }
+  };
+
   return (
     <div key={`hrd-dashboard-${user?.id}`} className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
@@ -206,172 +465,9 @@ const HRDDashboard = () => {
           </div>
         </div>
 
-        {/* Dashboard Content */}
+        {/* Main Content Area */}
         <div className="p-6">
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Dashboard HRD
-            </h2>
-            <p className="text-gray-600">
-              Kelola karyawan, absensi, dan data HR lainnya
-            </p>
-          </div>
-
-          {/* Quick Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-2 gap-6 mb-8">
-            <Card className="rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-200 bg-white dark:bg-[#18181b] border border-gray-200 dark:border-gray-800">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-500">
-                  Total Karyawan
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-blue-600">
-                  {employeesLoading ? "..." : totalEmployees}
-                </div>
-                <p className="text-xs text-gray-500">Active employees</p>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-200 bg-white dark:bg-[#18181b] border border-gray-200 dark:border-gray-800">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-500">
-                  Total Departemen
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-indigo-600">
-                  {departmentsLoading ? "..." : new Set(departments.map(dep => dep.id).filter(Boolean)).size}
-                </div>
-                <p className="text-xs text-gray-500">Jumlah departemen aktif</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-blue-500">
-              <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-lg">Tambah Karyawan</CardTitle>
-                    <CardDescription className="text-sm text-gray-600">
-                      Daftarkan karyawan baru
-                    </CardDescription>
-                  </div>
-                  <UserPlus className="h-8 w-8 text-blue-500" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <AddEmployeeDialog onEmployeeAdded={() => {}} />
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-green-500">
-              <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-lg">Pending Requests</CardTitle>
-                    <CardDescription className="text-sm text-gray-600">
-                      {rejectedRequests.length} menunggu persetujuan
-                    </CardDescription>
-                  </div>
-                  <AlertCircle className="h-8 w-8 text-orange-500" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => navigate('/leave-management')}
-                >
-                  Lihat Semua
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-purple-500">
-              <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-lg">Performance</CardTitle>
-                    <CardDescription className="text-sm text-gray-600">
-                      Overview sistem HR
-                    </CardDescription>
-                  </div>
-                  <BarChart3 className="h-8 w-8 text-purple-500" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => navigate('/hr-reports')}
-                >
-                  Lihat Reports
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Recent Activity */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-blue-600" />
-                  Statistik Karyawan
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Total Karyawan Aktif</span>
-                    <span className="font-semibold text-lg">{totalEmployees}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Total Departemen</span>
-                    <span className="font-semibold text-lg">{new Set(departments.map(dep => dep.id).filter(Boolean)).size}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Pending Leave Requests</span>
-                    <span className="font-semibold text-lg text-orange-600">{rejectedRequests.length}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-green-600" />
-                  Aktivitas Terbaru
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {rejectedRequests.slice(0, 3).map((request) => (
-                    <div key={request.id} className="flex items-start gap-3 p-2 rounded-lg bg-gray-50">
-                      <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {request.employee?.first_name} {request.employee?.last_name}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {request.request_type === 'izin_sakit' ? 'Izin/Sakit' : 'Cuti'} • {request.start_date}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                  {rejectedRequests.length === 0 && (
-                    <p className="text-sm text-gray-500 text-center py-4">
-                      Tidak ada aktivitas terbaru
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          {renderContent()}
         </div>
       </div>
 
