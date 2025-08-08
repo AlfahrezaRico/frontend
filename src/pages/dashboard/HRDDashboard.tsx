@@ -32,6 +32,12 @@ const HRDDashboard = () => {
   const [readNotifications, setReadNotifications] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState('dashboard');
 
+  // State untuk export
+  const [exportFilter, setExportFilter] = useState('current');
+  const [customMonth, setCustomMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [exportLoading, setExportLoading] = useState(false);
+  const [exportType, setExportType] = useState<string | null>(null);
+
   const handleLogout = async () => {
     await logout();
     window.location.href = '/login';
@@ -45,6 +51,68 @@ const HRDDashboard = () => {
       month: 'short',
       year: 'numeric'
     });
+  };
+
+  const handleExport = async (type: string) => {
+    try {
+      setExportLoading(true);
+      setExportType(type);
+      
+      // Tentukan bulan berdasarkan filter
+      let targetMonth: string;
+      if (exportFilter === 'current') {
+        targetMonth = new Date().toISOString().slice(0, 7);
+      } else if (exportFilter === 'last') {
+        const lastMonth = new Date();
+        lastMonth.setMonth(lastMonth.getMonth() - 1);
+        targetMonth = lastMonth.toISOString().slice(0, 7);
+      } else {
+        targetMonth = customMonth;
+      }
+
+      const API_URL = import.meta.env.VITE_API_URL || '';
+      
+      // Panggil endpoint export sesuai tipe
+      const response = await fetch(`${API_URL}/api/export/${type}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          month: targetMonth,
+          filter: exportFilter
+        })
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${type}_report_${targetMonth}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        toast({
+          title: 'Export Berhasil',
+          description: `Laporan ${type} berhasil di-export`,
+        });
+      } else {
+        throw new Error('Export gagal');
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      toast({
+        title: 'Export Gagal',
+        description: 'Terjadi kesalahan saat export laporan',
+        variant: 'destructive',
+      });
+    } finally {
+      setExportLoading(false);
+      setExportType(null);
+    }
   };
 
   // Load read notifications from localStorage
@@ -524,19 +592,61 @@ const HRDDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Button variant="outline" className="w-full">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Export Data Karyawan
-                  </Button>
-                  <Button variant="outline" className="w-full">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Export Laporan Cuti
-                  </Button>
-                  <Button variant="outline" className="w-full">
-                    <Users className="h-4 w-4 mr-2" />
-                    Export Laporan Absensi
-                  </Button>
+                <div className="space-y-4">
+                  {/* Filter Section */}
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">Filter Bulan:</span>
+                      <select 
+                        value={exportFilter} 
+                        onChange={(e) => setExportFilter(e.target.value)}
+                        className="border rounded px-3 py-1 text-sm"
+                      >
+                        <option value="current">Bulan Berjalan</option>
+                        <option value="last">Bulan Lalu</option>
+                        <option value="custom">Pilih Bulan</option>
+                      </select>
+                    </div>
+                    {exportFilter === 'custom' && (
+                      <input 
+                        type="month" 
+                        value={customMonth} 
+                        onChange={(e) => setCustomMonth(e.target.value)}
+                        className="border rounded px-3 py-1 text-sm"
+                      />
+                    )}
+                  </div>
+                  
+                  {/* Export Buttons */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => handleExport('employees')}
+                      disabled={exportLoading}
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      {exportLoading && exportType === 'employees' ? 'Exporting...' : 'Export Data Karyawan'}
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => handleExport('leave')}
+                      disabled={exportLoading}
+                    >
+                      <Calendar className="h-4 w-4 mr-2" />
+                      {exportLoading && exportType === 'leave' ? 'Exporting...' : 'Export Laporan Cuti'}
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => handleExport('attendance')}
+                      disabled={exportLoading}
+                    >
+                      <Users className="h-4 w-4 mr-2" />
+                      {exportLoading && exportType === 'attendance' ? 'Exporting...' : 'Export Laporan Absensi'}
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
