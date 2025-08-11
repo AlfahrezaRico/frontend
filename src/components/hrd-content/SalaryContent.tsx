@@ -155,6 +155,62 @@ export const SalaryContent = () => {
       return;
     }
 
+    // Validasi nilai tidak boleh minus atau 0 untuk gaji pokok
+    if (parseFloat(formData.basic_salary) <= 0) {
+      toast({
+        title: "Error",
+        description: "Gaji Pokok harus lebih dari 0",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validasi nilai tidak boleh minus untuk tunjangan (jika diisi)
+    if (formData.position_allowance && parseFloat(formData.position_allowance) < 0) {
+      toast({
+        title: "Error",
+        description: "Tunjangan Jabatan tidak boleh minus",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (formData.management_allowance && parseFloat(formData.management_allowance) < 0) {
+      toast({
+        title: "Error",
+        description: "Tunjangan Manajemen tidak boleh minus",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (formData.phone_allowance && parseFloat(formData.phone_allowance) < 0) {
+      toast({
+        title: "Error",
+        description: "Tunjangan Telepon tidak boleh minus",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (formData.incentive_allowance && parseFloat(formData.incentive_allowance) < 0) {
+      toast({
+        title: "Error",
+        description: "Tunjangan Insentif tidak boleh minus",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (formData.overtime_allowance && parseFloat(formData.overtime_allowance) < 0) {
+      toast({
+        title: "Error",
+        description: "Tunjangan Lembur tidak boleh minus",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       setProcessing(true);
       const response = await fetch(`${API_URL}/api/salary`, {
@@ -198,6 +254,62 @@ export const SalaryContent = () => {
       toast({
         title: "Error",
         description: "Basic Salary wajib diisi",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validasi nilai tidak boleh minus atau 0 untuk gaji pokok
+    if (parseFloat(formData.basic_salary) <= 0) {
+      toast({
+        title: "Error",
+        description: "Gaji Pokok harus lebih dari 0",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validasi nilai tidak boleh minus untuk tunjangan (jika diisi)
+    if (formData.position_allowance && parseFloat(formData.position_allowance) < 0) {
+      toast({
+        title: "Error",
+        description: "Tunjangan Jabatan tidak boleh minus",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (formData.management_allowance && parseFloat(formData.management_allowance) < 0) {
+      toast({
+        title: "Error",
+        description: "Tunjangan Manajemen tidak boleh minus",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (formData.phone_allowance && parseFloat(formData.phone_allowance) < 0) {
+      toast({
+        title: "Error",
+        description: "Tunjangan Telepon tidak boleh minus",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (formData.incentive_allowance && parseFloat(formData.incentive_allowance) < 0) {
+      toast({
+        title: "Error",
+        description: "Tunjangan Insentif tidak boleh minus",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (formData.overtime_allowance && parseFloat(formData.overtime_allowance) < 0) {
+      toast({
+        title: "Error",
+        description: "Tunjangan Lembur tidak boleh minus",
         variant: "destructive"
       });
       return;
@@ -572,6 +684,8 @@ export const SalaryContent = () => {
               <Input
                 id="basic_salary"
                 type="number"
+                min="0"
+                step="0.01"
                 value={formData.basic_salary}
                 onChange={(e) => setFormData(prev => ({ ...prev, basic_salary: e.target.value }))}
                 placeholder="0"
@@ -583,6 +697,8 @@ export const SalaryContent = () => {
               <Input
                 id="position_allowance"
                 type="number"
+                min="0"
+                step="0.01"
                 value={formData.position_allowance}
                 onChange={(e) => setFormData(prev => ({ ...prev, position_allowance: e.target.value }))}
                 placeholder="0"
@@ -594,6 +710,8 @@ export const SalaryContent = () => {
               <Input
                 id="management_allowance"
                 type="number"
+                min="0"
+                step="0.01"
                 value={formData.management_allowance}
                 onChange={(e) => setFormData(prev => ({ ...prev, management_allowance: e.target.value }))}
                 placeholder="0"
@@ -605,6 +723,8 @@ export const SalaryContent = () => {
               <Input
                 id="phone_allowance"
                 type="number"
+                min="0"
+                step="0.01"
                 value={formData.phone_allowance}
                 onChange={(e) => setFormData(prev => ({ ...prev, phone_allowance: e.target.value }))}
                 placeholder="0"
@@ -616,6 +736,8 @@ export const SalaryContent = () => {
               <Input
                 id="incentive_allowance"
                 type="number"
+                min="0"
+                step="0.01"
                 value={formData.incentive_allowance}
                 onChange={(e) => setFormData(prev => ({ ...prev, incentive_allowance: e.target.value }))}
                 placeholder="0"
@@ -627,6 +749,8 @@ export const SalaryContent = () => {
               <Input
                 id="overtime_allowance"
                 type="number"
+                min="0"
+                step="0.01"
                 value={formData.overtime_allowance}
                 onChange={(e) => setFormData(prev => ({ ...prev, overtime_allowance: e.target.value }))}
                 placeholder="0"
@@ -666,6 +790,8 @@ export const SalaryContent = () => {
               <Input
                 id="edit_basic_salary"
                 type="number"
+                min="0"
+                step="0.01"
                 value={formData.basic_salary}
                 onChange={(e) => setFormData(prev => ({ ...prev, basic_salary: e.target.value }))}
                 placeholder="0"
@@ -677,6 +803,8 @@ export const SalaryContent = () => {
               <Input
                 id="edit_position_allowance"
                 type="number"
+                min="0"
+                step="0.01"
                 value={formData.position_allowance}
                 onChange={(e) => setFormData(prev => ({ ...prev, position_allowance: e.target.value }))}
                 placeholder="0"
@@ -688,6 +816,8 @@ export const SalaryContent = () => {
               <Input
                 id="edit_management_allowance"
                 type="number"
+                min="0"
+                step="0.01"
                 value={formData.management_allowance}
                 onChange={(e) => setFormData(prev => ({ ...prev, management_allowance: e.target.value }))}
                 placeholder="0"
@@ -699,6 +829,8 @@ export const SalaryContent = () => {
               <Input
                 id="edit_phone_allowance"
                 type="number"
+                min="0"
+                step="0.01"
                 value={formData.phone_allowance}
                 onChange={(e) => setFormData(prev => ({ ...prev, phone_allowance: e.target.value }))}
                 placeholder="0"
@@ -710,6 +842,8 @@ export const SalaryContent = () => {
               <Input
                 id="edit_incentive_allowance"
                 type="number"
+                min="0"
+                step="0.01"
                 value={formData.incentive_allowance}
                 onChange={(e) => setFormData(prev => ({ ...prev, incentive_allowance: e.target.value }))}
                 placeholder="0"
@@ -721,6 +855,8 @@ export const SalaryContent = () => {
               <Input
                 id="edit_overtime_allowance"
                 type="number"
+                min="0"
+                step="0.01"
                 value={formData.overtime_allowance}
                 onChange={(e) => setFormData(prev => ({ ...prev, overtime_allowance: e.target.value }))}
                 placeholder="0"
