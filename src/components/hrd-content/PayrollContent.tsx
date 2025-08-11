@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 
-export const PayrollContent = () => {
+const PayrollContent = () => {
   const { toast } = useToast();
   const [payrolls, setPayrolls] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -965,3 +965,5 @@ export const PayrollContent = () => {
     </div>
   );
 };
+
+export default PayrollContent;
