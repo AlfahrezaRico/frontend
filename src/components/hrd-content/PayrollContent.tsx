@@ -354,6 +354,88 @@ export const PayrollContent = () => {
                   )}
                 </div>
 
+                {/* Salary Details from Salary Data */}
+                {form.employee_id && (() => {
+                  const selectedSalary = salaryData.find(salary => salary.employee_id === form.employee_id);
+                  if (selectedSalary) {
+                    const basicSalary = typeof selectedSalary.basic_salary === 'string' ? 
+                      parseFloat(selectedSalary.basic_salary) || 0 : selectedSalary.basic_salary || 0;
+                    const posAllowance = typeof selectedSalary.position_allowance === 'string' ? 
+                      parseFloat(selectedSalary.position_allowance) || 0 : selectedSalary.position_allowance || 0;
+                    const mgmtAllowance = typeof selectedSalary.management_allowance === 'string' ? 
+                      parseFloat(selectedSalary.management_allowance) || 0 : selectedSalary.management_allowance || 0;
+                    const phoneAllowance = typeof selectedSalary.phone_allowance === 'string' ? 
+                      parseFloat(selectedSalary.phone_allowance) || 0 : selectedSalary.phone_allowance || 0;
+                    const incentiveAllowance = typeof selectedSalary.incentive_allowance === 'string' ? 
+                      parseFloat(selectedSalary.incentive_allowance) || 0 : selectedSalary.incentive_allowance || 0;
+                    const overtimeAllowance = typeof selectedSalary.overtime_allowance === 'string' ? 
+                      parseFloat(selectedSalary.overtime_allowance) || 0 : selectedSalary.overtime_allowance || 0;
+                    
+                    const totalAllowances = posAllowance + mgmtAllowance + phoneAllowance + incentiveAllowance + overtimeAllowance;
+                    
+                    return (
+                      <div className="space-y-4">
+                        <h3 className="font-semibold text-gray-900 border-b pb-2">Detail Gaji dari Data Salary</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-3">
+                            <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border">
+                              <span className="font-medium text-gray-700">Gaji Pokok</span>
+                              <span className="font-bold text-green-600">
+                                {formatCurrency(basicSalary)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg border">
+                              <span className="font-medium text-gray-700">Tunjangan Jabatan</span>
+                              <span className="font-semibold text-blue-600">
+                                {formatCurrency(posAllowance)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg border">
+                              <span className="font-medium text-gray-700">Tunjangan Manajemen</span>
+                              <span className="font-semibold text-purple-600">
+                                {formatCurrency(mgmtAllowance)}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="space-y-3">
+                            <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg border">
+                              <span className="font-medium text-gray-700">Tunjangan Telepon</span>
+                              <span className="font-semibold text-orange-600">
+                                {formatCurrency(phoneAllowance)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg border">
+                              <span className="font-medium text-gray-700">Tunjangan Insentif</span>
+                              <span className="font-semibold text-yellow-600">
+                                {formatCurrency(incentiveAllowance)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg border">
+                              <span className="font-medium text-gray-700">Tunjangan Lembur</span>
+                              <span className="font-semibold text-red-600">
+                                {formatCurrency(overtimeAllowance)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-center p-4 bg-blue-50 rounded-lg border">
+                          <span className="text-lg font-medium text-gray-700">Total Tunjangan</span>
+                          <span className="text-xl font-bold text-blue-600">
+                            {formatCurrency(totalAllowances)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center p-4 bg-green-100 rounded-lg border">
+                          <span className="text-xl font-bold text-gray-800">Total Pendapatan (Gaji + Tunjangan)</span>
+                          <span className="text-2xl font-bold text-green-600">
+                            {formatCurrency(basicSalary + totalAllowances)}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+
                 {/* Auto Calculation Toggle */}
                 <div className="flex items-center space-x-2">
                   <Checkbox 
