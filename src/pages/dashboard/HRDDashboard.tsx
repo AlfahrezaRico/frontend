@@ -11,6 +11,7 @@ import { useContext, useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from '@/hooks/use-toast';
 import { HRDSidebar } from '@/components/HRDSidebar';
+import { UserProfileDropdown } from '@/components/UserProfileDropdown';
 import { EmployeesContent } from '@/components/hrd-content/EmployeesContent';
 import { PayrollContent } from '@/components/hrd-content/PayrollContent';
 import { AttendanceContent } from '@/components/hrd-content/AttendanceContent';
@@ -22,7 +23,7 @@ import { SalaryContent } from '@/components/hrd-content/SalaryContent';
 
 const HRDDashboard = () => {
   const navigate = useNavigate();
-  const { logout, user } = useAuth();
+  const { user } = useAuth();
   const { data: employees = [], isLoading: employeesLoading } = useEmployees();
   const { data: departments = [], isLoading: departmentsLoading } = useDepartments();
   const { data: pendingLeaveRequests = [], isLoading: leaveLoading } = useLeaveRequests();
@@ -40,10 +41,7 @@ const HRDDashboard = () => {
   const [exportLoading, setExportLoading] = useState(false);
   const [exportType, setExportType] = useState<string | null>(null);
 
-  const handleLogout = async () => {
-    await logout();
-    window.location.href = '/login';
-  };
+
 
   const formatActivityDate = (dateString: string) => {
     if (!dateString) return '-';
@@ -169,7 +167,6 @@ const HRDDashboard = () => {
     if (!user?.id) return;
     const fetchPendingRequests = async () => {
       const API_URL = import.meta.env.VITE_API_URL || '';
-      console.log('Fetching from URL:', `${API_URL}/api/leave-requests`);
       
       try {
         // Fetch pengajuan PENDING khusus untuk HRD
@@ -673,6 +670,9 @@ const HRDDashboard = () => {
                   )}
                 </Button>
               </div>
+              
+              {/* User Profile Dropdown */}
+              <UserProfileDropdown />
             </div>
           </div>
         </div>

@@ -5,9 +5,7 @@ export function useEmployees() {
   return useQuery({
     queryKey: ['employees'],
     queryFn: async () => {
-      console.log('Fetching employees from:', `${API_URL}/api/employees?include_departemen=1`);
       const res = await fetch(`${API_URL}/api/employees?include_departemen=1`);
-      console.log('Response status:', res.status);
       
       // Jika response 404 atau 500, kembalikan array kosong alih-alih error
       if (!res.ok) {
@@ -16,7 +14,6 @@ export function useEmployees() {
         
         // Jika error karena tidak ada data atau masalah database, kembalikan array kosong
         if (res.status === 404 || res.status === 500) {
-          console.log('Returning empty array due to server error');
           return [];
         }
         
@@ -24,7 +21,6 @@ export function useEmployees() {
       }
       
       const data = await res.json();
-      console.log('Employees data received:', data.length, 'employees');
       return data;
     },
     retry: 1, // Kurangi retry

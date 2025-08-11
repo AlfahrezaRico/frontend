@@ -57,7 +57,6 @@ export const useNIKFormat = (departmentName: string) => {
             // Simpan hasil API ke cache
             setCachedFormat(departmentName, newFormat);
             setFormat(newFormat);
-            console.log(`Fetched and cached NIK format for ${departmentName}:`, newFormat);
           } else {
             // Fallback jika tidak ada config
             const fallbackFormats: { [key: string]: string } = {
@@ -74,7 +73,6 @@ export const useNIKFormat = (departmentName: string) => {
           }
         } else {
           // 2. Jika API gagal, coba cache
-          console.log('API failed, trying cache...');
           const cachedFormat = getFormatFromCache(departmentName);
           if (cachedFormat) {
             setFormat(cachedFormat);

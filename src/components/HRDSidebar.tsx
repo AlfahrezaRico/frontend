@@ -27,6 +27,7 @@ export const HRDSidebar = ({ currentPage = 'dashboard', onPageChange }: HRDSideb
   const { logout } = useAuth();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
+
   const menuSections = [
     {
       title: 'MAIN',
@@ -133,6 +134,8 @@ export const HRDSidebar = ({ currentPage = 'dashboard', onPageChange }: HRDSideb
     setIsMobileOpen(!isMobileOpen);
   };
 
+
+
   return (
     <>
       {/* Mobile Menu Button */}
@@ -162,7 +165,7 @@ export const HRDSidebar = ({ currentPage = 'dashboard', onPageChange }: HRDSideb
         lg:translate-x-0 lg:relative lg:z-auto
         w-64 flex flex-col flex-shrink-0
       `}>
-        {/* Header */}
+                {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -211,26 +214,7 @@ export const HRDSidebar = ({ currentPage = 'dashboard', onPageChange }: HRDSideb
           ))}
         </div>
 
-        {/* Footer */}
-        <div className="border-t border-gray-200 p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-              <span className="text-gray-600 text-sm font-medium">H</span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">HRD Admin</p>
-              <p className="text-xs text-gray-500">ricoaula25@gmail.com</p>
-            </div>
-          </div>
-          
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>Logout</span>
-          </button>
-        </div>
+
       </div>
     </>
   );

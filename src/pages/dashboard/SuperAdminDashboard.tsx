@@ -59,8 +59,6 @@ const SuperAdminDashboard = () => {
         body: JSON.stringify(csvEmployees),
       });
       
-      console.log('Response status:', res.status);
-      
       if (!res.ok) {
         const errorText = await res.text();
         console.error('Upload error:', errorText);
@@ -68,7 +66,6 @@ const SuperAdminDashboard = () => {
       }
       
       const data = await res.json();
-      console.log('Upload result:', data);
       setCsvResult(data);
       
       if (data.success) {

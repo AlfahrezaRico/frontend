@@ -61,7 +61,6 @@ export const useNIKValidation = () => {
         };
       } else {
         // 2. Jika API gagal, coba cache
-        console.log('API failed, trying cache...');
         const cachedValidation = getValidationFromCache(nikInput, departmentName);
         if (cachedValidation) {
           setValidating(false);
@@ -124,7 +123,6 @@ export const useNIKValidation = () => {
             // Hapus cache untuk departemen tertentu
             if (key.includes(departmentName)) {
               localStorage.removeItem(key);
-              console.log(`Cleared validation cache for ${departmentName}`);
             }
           } else {
             // Hapus semua cache validasi
