@@ -20,8 +20,7 @@ export const PayrollContent = () => {
   const [employees, setEmployees] = useState<any[]>([]);
   const [payrollComponents, setPayrollComponents] = useState<any[]>([]);
   const [calculatedComponents, setCalculatedComponents] = useState<any[]>([]);
-  const [autoCalculation, setAutoCalculation] = useState(true);
-  const [isCalculating, setIsCalculating] = useState(false); // Flag to prevent infinite loops
+
   const [salaryData, setSalaryData] = useState<any[]>([]);
   const [manualDeductions, setManualDeductions] = useState({
     kasbon: 0,
@@ -116,20 +115,6 @@ export const PayrollContent = () => {
       updateTotals(basicSalary, [], manualDeductions);
       return;
     }
-
-    if (!autoCalculation) {
-      setCalculatedComponents([]);
-      updateTotals(basicSalary, [], manualDeductions);
-      return;
-    }
-
-    // Prevent infinite loops
-    if (isCalculating) {
-      console.log('Calculation already in progress, skipping...');
-      return;
-    }
-
-    setIsCalculating(true);
     
     try {
       const response = await fetch(`${API_URL}/api/payrolls/calculate`, {
@@ -173,34 +158,19 @@ export const PayrollContent = () => {
       // Fallback to empty calculation
       setCalculatedComponents([]);
       updateTotals(basicSalary, [], manualDeductions);
-    } finally {
-      setIsCalculating(false);
-    }
+
   };
 
-  // Handle checkbox change
-  const handleAutoCalculationChange = (checked: boolean) => {
-    setAutoCalculation(checked);
-    
-    if (checked && form.gross_salary > 0 && !isCalculating) {
-      // Reset first to prevent accumulation
-      setCalculatedComponents([]);
-      // Call async calculation
-      calculatePayrollComponents(form.gross_salary);
-    } else {
-      setCalculatedComponents([]);
-      updateTotals(form.gross_salary, [], manualDeductions);
-    }
-  };
+
 
   // Recalculate when payrollComponents are loaded
   useEffect(() => {
-    if (autoCalculation && form.gross_salary > 0 && payrollComponents.length > 0) {
+    if (form.gross_salary > 0 && payrollComponents.length > 0) {
       // Reset calculated components first to prevent accumulation
       setCalculatedComponents([]);
       calculatePayrollComponents(form.gross_salary);
     }
-  }, [payrollComponents, autoCalculation]); // Removed form.gross_salary to prevent infinite loop
+  }, [payrollComponents]); // Only depend on payrollComponents
 
   // Update totals calculation (simplified - backend handles main calculations)
   const updateTotals = (basicSalary: number, calculated: any[], manual: any) => {
@@ -263,14 +233,10 @@ export const PayrollContent = () => {
         }));
         
         // Calculate payroll components with the total pendapatan (async)
-        if (autoCalculation && !isCalculating) {
-          calculatePayrollComponents(totalPendapatan);
-        }
+        calculatePayrollComponents(totalPendapatan);
       }
     } else if (field === 'gross_salary') {
-      if (autoCalculation) {
-        calculatePayrollComponents(Number(value));
-      }
+      calculatePayrollComponents(Number(value));
     }
   };
 
@@ -278,8 +244,8 @@ export const PayrollContent = () => {
     const newManualDeductions = { ...manualDeductions, [field]: value };
     setManualDeductions(newManualDeductions);
     
-    // Recalculate with backend if auto-calculation is enabled
-    if (autoCalculation && form.employee_id && !isCalculating) {
+    // Recalculate with backend automatically
+    if (form.employee_id) {
       calculatePayrollComponents(form.gross_salary);
     } else {
       // Fallback to local calculation
@@ -502,20 +468,10 @@ export const PayrollContent = () => {
                   return null;
                 })()}
 
-                {/* Auto Calculation Toggle */}
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="auto_calculation" 
-                    checked={autoCalculation}
-                    onCheckedChange={handleAutoCalculationChange}
-                  />
-                  <Label htmlFor="auto_calculation" className="text-sm font-medium">
-                    Komponen Perhitungan Otomatik
-                  </Label>
-                </div>
+                
 
-                                 {/* Calculated Components Display */}
-                 {calculatedComponents.length > 0 && autoCalculation && (
+                                                                   {/* Calculated Components Display */}
+                  {calculatedComponents.length > 0 && (
                    <div className="space-y-6">
                      {/* PENDAPATAN Section */}
                      <div className="space-y-4">
