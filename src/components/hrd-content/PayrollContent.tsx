@@ -109,73 +109,62 @@ export const PayrollContent = () => {
   };
 
   // Calculate payroll components based on basic salary
-  const calculatePayrollComponents = (basicSalary: number) => {
-    // Always reset calculated components first to prevent accumulation
-    setCalculatedComponents([]);
-    
+  const calculatePayrollComponents = async (basicSalary: number) => {
     if (basicSalary <= 0) {
+      setCalculatedComponents([]);
       updateTotals(basicSalary, [], manualDeductions);
       return;
     }
 
     if (!autoCalculation) {
+      setCalculatedComponents([]);
       updateTotals(basicSalary, [], manualDeductions);
       return;
     }
 
-    const activeComponents = payrollComponents.filter(comp => comp.is_active);
-    const calculated: any[] = [];
+    try {
+      const response = await fetch(`${API_URL}/api/payrolls/calculate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          employee_id: form.employee_id,
+          basic_salary: basicSalary,
+          manual_deductions: manualDeductions
+        })
+      });
 
-    // Ambil gaji pokok murni (tanpa tunjangan) untuk perhitungan komponen
-    const selectedSalary = salaryData.find(salary => salary.employee_id === form.employee_id);
-    const pureBasicSalary = selectedSalary ? 
-      (typeof selectedSalary.basic_salary === 'string' ? 
-        parseFloat(selectedSalary.basic_salary) || 0 : selectedSalary.basic_salary || 0) : 0;
-
-    activeComponents.forEach(component => {
-      let amount = 0;
-      let isPercentage = false;
-
-      if (component.percentage > 0) {
-        // Gunakan gaji pokok murni untuk perhitungan persentase, bukan total pendapatan
-        amount = (pureBasicSalary * component.percentage) / 100;
-        isPercentage = true;
-      } else if (component.amount > 0) {
-        amount = component.amount;
-        isPercentage = false;
+      if (!response.ok) {
+        throw new Error('Gagal menghitung komponen payroll');
       }
 
-      // Logika untuk menentukan apakah komponen masuk ke income atau deduction
-      // Berdasarkan konfigurasi payroll components yang sudah ada
-      let effectiveType = component.type;
+      const data = await response.json();
       
-      // Jika komponen dikategorikan sebagai 'income' di database, maka masuk ke pendapatan
-      // Jika komponen dikategorikan sebagai 'deduction' di database, maka masuk ke potongan
-      // Tidak perlu override berdasarkan nama komponen, gunakan konfigurasi yang sudah ada
+      setCalculatedComponents(data.calculated_components);
       
-      calculated.push({
-        name: component.name,
-        type: effectiveType, // Gunakan type dari database
-        amount: amount,
-        percentage: component.percentage,
-        is_percentage: isPercentage,
-        category: component.category, // Tambahkan category untuk debugging
-        pureBasicSalary // Tambahkan untuk debugging
-      });
-    });
+      // Update form with calculated totals
+      setForm(prev => ({
+        ...prev,
+        gross_salary: data.totals.total_pendapatan,
+        deductions: data.totals.total_deduction,
+        net_salary: data.totals.net_salary
+      }));
 
-    setCalculatedComponents(calculated);
-    
-    // Debug: Log perhitungan untuk memastikan logika benar
-    console.log('Payroll Components Calculation:', {
-      basicSalary,
-      pureBasicSalary,
-      calculated,
-      totalDeductions: calculated.filter(c => c.type === 'deduction').reduce((sum, c) => sum + c.amount, 0),
-      totalIncome: calculated.filter(c => c.type === 'income').reduce((sum, c) => sum + c.amount, 0)
-    });
-    
-    updateTotals(basicSalary, calculated, manualDeductions);
+      console.log('Backend calculation result:', data);
+      
+    } catch (error) {
+      console.error('Error calculating payroll:', error);
+      toast({
+        title: "Error",
+        description: "Gagal menghitung komponen payroll",
+        variant: "destructive"
+      });
+      
+      // Fallback to empty calculation
+      setCalculatedComponents([]);
+      updateTotals(basicSalary, [], manualDeductions);
+    }
   };
 
   // Handle checkbox change
@@ -185,10 +174,8 @@ export const PayrollContent = () => {
     if (checked && form.gross_salary > 0) {
       // Reset first to prevent accumulation
       setCalculatedComponents([]);
-      // Use setTimeout to ensure state is reset before calculation
-      setTimeout(() => {
-        calculatePayrollComponents(form.gross_salary);
-      }, 0);
+      // Call async calculation
+      calculatePayrollComponents(form.gross_salary);
     } else {
       setCalculatedComponents([]);
       updateTotals(form.gross_salary, [], manualDeductions);
@@ -204,48 +191,32 @@ export const PayrollContent = () => {
     }
   }, [payrollComponents, autoCalculation, form.gross_salary]);
 
-  // Update totals calculation
+  // Update totals calculation (simplified - backend handles main calculations)
   const updateTotals = (basicSalary: number, calculated: any[], manual: any) => {
-    // Total Income = Semua komponen yang dikategorikan sebagai 'income' di database
-    const totalIncome = calculated
-      .filter(c => c.type === 'income')
-      .reduce((sum, c) => sum + c.amount, 0);
+    // This function is now simplified since backend handles the main calculations
+    // Only used for fallback cases or when auto-calculation is disabled
     
-    // Total Deduction = Semua komponen yang dikategorikan sebagai 'deduction' di database
-    const totalAutoDeduction = calculated
-      .filter(c => c.type === 'deduction')
-      .reduce((sum, c) => sum + c.amount, 0);
-
-    // Total Manual Deduction = Kasbon + Telat + Angsuran Kredit
+    if (calculated.length === 0) {
+      // Simple fallback calculation
+      const totalManualDeduction = manual.kasbon + manual.telat + manual.angsuran_kredit;
+      const netSalary = basicSalary - totalManualDeduction;
+      
+      setForm(prev => ({
+        ...prev,
+        gross_salary: basicSalary,
+        deductions: totalManualDeduction,
+        net_salary: netSalary
+      }));
+      return;
+    }
+    
+    // If we have calculated components, use them (backend already calculated totals)
     const totalManualDeduction = manual.kasbon + manual.telat + manual.angsuran_kredit;
-    
-    // Total Deduction = Auto + Manual
-    const totalDeduction = totalAutoDeduction + totalManualDeduction;
-    
-    // Perhitungan sesuai konfigurasi payroll components:
-    // Total Pendapatan = Gaji Pokok + Tunjangan + Komponen Income (dari konfigurasi)
-    // Total Potongan = Komponen Deduction (dari konfigurasi) + Potongan Manual
-    // Total Diterima = Total Pendapatan - Total Potongan
-    const totalPendapatan = basicSalary + totalIncome;
-    const netSalary = totalPendapatan - totalDeduction;
-    
-    // Debug: Log perhitungan final
-    console.log('Final Payroll Calculation:', {
-      basicSalary,
-      totalIncome,
-      totalAutoDeduction,
-      totalManualDeduction,
-      totalDeduction,
-      totalPendapatan,
-      netSalary,
-      components: calculated.map(c => ({ name: c.name, type: c.type, amount: c.amount, category: c.category }))
-    });
     
     setForm(prev => ({
       ...prev,
-      gross_salary: totalPendapatan, // Set gross_salary ke total pendapatan lengkap
-      deductions: totalDeduction,
-      net_salary: netSalary
+      deductions: prev.deductions + totalManualDeduction,
+      net_salary: prev.net_salary - totalManualDeduction
     }));
   };
 
@@ -280,18 +251,29 @@ export const PayrollContent = () => {
           gross_salary: totalPendapatan
         }));
         
-        // Calculate payroll components with the total pendapatan
-        calculatePayrollComponents(totalPendapatan);
+        // Calculate payroll components with the total pendapatan (async)
+        if (autoCalculation) {
+          calculatePayrollComponents(totalPendapatan);
+        }
       }
     } else if (field === 'gross_salary') {
-      calculatePayrollComponents(Number(value));
+      if (autoCalculation) {
+        calculatePayrollComponents(Number(value));
+      }
     }
   };
 
   const handleManualDeductionChange = (field: string, value: number) => {
     const newManualDeductions = { ...manualDeductions, [field]: value };
     setManualDeductions(newManualDeductions);
-    updateTotals(form.gross_salary, calculatedComponents, newManualDeductions);
+    
+    // Recalculate with backend if auto-calculation is enabled
+    if (autoCalculation && form.employee_id) {
+      calculatePayrollComponents(form.gross_salary);
+    } else {
+      // Fallback to local calculation
+      updateTotals(form.gross_salary, calculatedComponents, newManualDeductions);
+    }
   };
 
   const handleAddPayroll = async (e: React.FormEvent) => {
