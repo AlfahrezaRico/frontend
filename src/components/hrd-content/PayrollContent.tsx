@@ -45,16 +45,20 @@ export const PayrollContent = () => {
     overtime_allowance: 0,
     total_allowances: 0,
     
-    // Komponen Payroll yang Dihitung
-    bpjs_employee: 0,
-    bpjs_company: 0,
+    // Komponen Payroll yang Dihitung - Perusahaan
+    bpjs_health_company: 0,      // BPJS Kesehatan (Perusahaan)
+    jht_company: 0,              // BPJS Ketenagakerjaan JHT (Perusahaan)
+    jkk_company: 0,              // BPJS Ketenagakerjaan JKK (Perusahaan)
+    jkm_company: 0,              // BPJS Ketenagakerjaan JKM (Perusahaan)
+    jp_company: 0,               // BPJS Jaminan Pensiun (Perusahaan)
+    
+    // Komponen Payroll yang Dihitung - Karyawan
+    bpjs_health_employee: 0,     // BPJS Kesehatan (Karyawan)
+    jht_employee: 0,             // BPJS Ketenagakerjaan JHT (Karyawan)
+    jp_employee: 0,              // BPJS Jaminan Pensiun (Karyawan)
+    
+    // Pajak
     pph21: 0,
-    jht_employee: 0,
-    jht_company: 0,
-    jp_employee: 0,
-    jp_company: 0,
-    jkk: 0,
-    jkm: 0,
     
     // Deductions Manual
     kasbon: 0,
@@ -375,16 +379,20 @@ export const PayrollContent = () => {
         overtime_allowance: form.overtime_allowance,
         total_allowances: form.total_allowances,
         
-        // Komponen Payroll yang Dihitung
-        bpjs_employee: form.bpjs_employee,
-        bpjs_company: form.bpjs_company,
-        pph21: form.pph21,
-        jht_employee: form.jht_employee,
+        // Komponen Payroll yang Dihitung - Perusahaan
+        bpjs_health_company: form.bpjs_health_company,
         jht_company: form.jht_company,
-        jp_employee: form.jp_employee,
+        jkk_company: form.jkk_company,
+        jkm_company: form.jkm_company,
         jp_company: form.jp_company,
-        jkk: form.jkk,
-        jkm: form.jkm,
+        
+        // Komponen Payroll yang Dihitung - Karyawan
+        bpjs_health_employee: form.bpjs_health_employee,
+        jht_employee: form.jht_employee,
+        jp_employee: form.jp_employee,
+        
+        // Pajak
+        pph21: form.pph21,
         
         // Deductions Manual
         kasbon: form.kasbon,
@@ -429,15 +437,20 @@ export const PayrollContent = () => {
         incentive_allowance: 0,
         overtime_allowance: 0,
         total_allowances: 0,
-        bpjs_employee: 0,
-        bpjs_company: 0,
-        pph21: 0,
-        jht_employee: 0,
+        // Komponen Payroll yang Dihitung - Perusahaan
+        bpjs_health_company: 0,
         jht_company: 0,
-        jp_employee: 0,
+        jkk_company: 0,
+        jkm_company: 0,
         jp_company: 0,
-        jkk: 0,
-        jkm: 0,
+        
+        // Komponen Payroll yang Dihitung - Karyawan
+        bpjs_health_employee: 0,
+        jht_employee: 0,
+        jp_employee: 0,
+        
+        // Pajak
+        pph21: 0,
         kasbon: 0,
         telat: 0,
         angsuran_kredit: 0
