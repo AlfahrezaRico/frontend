@@ -495,99 +495,99 @@ export const SalaryContent = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Management Salary</h2>
-        <p className="text-gray-600">Kelola data gaji karyawan dan komponen tunjangan</p>
-      </div>
+             {/* Header */}
+       <div className="px-4 sm:px-0">
+         <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Management Salary</h2>
+         <p className="text-sm sm:text-base text-gray-600">Kelola data gaji karyawan dan komponen tunjangan</p>
+       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Karyawan</CardTitle>
-            <Users className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{salaryData.length}</div>
-            <p className="text-xs text-muted-foreground">Karyawan dengan gaji</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Gaji Pokok</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{formatCurrency(totalSalary)}</div>
-            <p className="text-xs text-muted-foreground">Total gaji pokok</p>
-          </CardContent>
-        </Card>
+                    {/* Stats Cards */}
+       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 px-4 sm:px-0">
+         <Card>
+           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+             <CardTitle className="text-xs sm:text-sm font-medium">Total Karyawan</CardTitle>
+             <Users className="h-4 w-4 text-blue-600" />
+           </CardHeader>
+           <CardContent>
+             <div className="text-xl sm:text-2xl font-bold text-blue-600">{salaryData.length}</div>
+             <p className="text-xs text-muted-foreground">Karyawan dengan gaji</p>
+           </CardContent>
+         </Card>
+         
+         <Card>
+           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+             <CardTitle className="text-xs sm:text-sm font-medium">Total Gaji Pokok</CardTitle>
+             <DollarSign className="h-4 w-4 text-green-600" />
+           </CardHeader>
+           <CardContent>
+             <div className="text-xl sm:text-2xl font-bold text-green-600">{formatCurrency(totalSalary)}</div>
+             <p className="text-xs text-muted-foreground">Total gaji pokok</p>
+           </CardContent>
+         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Tunjangan</CardTitle>
-            <TrendingUp className="h-4 w-4 text-orange-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{formatCurrency(totalAllowances)}</div>
-            <p className="text-xs text-muted-foreground">Total tunjangan</p>
-          </CardContent>
-        </Card>
+         <Card>
+           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+             <CardTitle className="text-xs sm:text-sm font-medium">Total Tunjangan</CardTitle>
+             <TrendingUp className="h-4 w-4 text-orange-600" />
+           </CardHeader>
+           <CardContent>
+             <div className="text-xl sm:text-2xl font-bold text-orange-600">{formatCurrency(totalAllowances)}</div>
+             <p className="text-xs text-muted-foreground">Total tunjangan</p>
+           </CardContent>
+         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Gaji</CardTitle>
-            <DollarSign className="h-4 w-4 text-purple-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-600">{formatCurrency(totalSalary + totalAllowances)}</div>
-            <p className="text-xs text-muted-foreground">Gaji + tunjangan</p>
-          </CardContent>
-        </Card>
-      </div>
+         <Card>
+           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+             <CardTitle className="text-xs sm:text-sm font-medium">Total Gaji</CardTitle>
+             <DollarSign className="h-4 w-4 text-purple-600" />
+           </CardHeader>
+           <CardContent>
+             <div className="text-xl sm:text-2xl font-bold text-purple-600">{formatCurrency(totalSalary + totalAllowances)}</div>
+             <p className="text-xs text-muted-foreground">Gaji + tunjangan</p>
+           </CardContent>
+         </Card>
+       </div>
 
-      {/* Action Buttons */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Button onClick={() => setAddDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Tambah Data
-          </Button>
-          <Button variant="outline" onClick={() => setUploadDialogOpen(true)}>
-            <Upload className="h-4 w-4 mr-2" />
-            Upload Data
-          </Button>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Cari karyawan, NIK, atau departemen..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8 w-64"
-            />
-          </div>
-        </div>
-      </div>
+             {/* Action Buttons */}
+       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-4 sm:px-0">
+         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
+           <Button onClick={() => setAddDialogOpen(true)} className="w-full sm:w-auto">
+             <Plus className="h-4 w-4 mr-2" />
+             Tambah Data
+           </Button>
+           <Button variant="outline" onClick={() => setUploadDialogOpen(true)} className="w-full sm:w-auto">
+             <Upload className="h-4 w-4 mr-2" />
+             Upload Data
+           </Button>
+         </div>
+         <div className="flex items-center gap-2 w-full sm:w-auto">
+           <div className="relative w-full sm:w-auto">
+             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+             <Input
+               placeholder="Cari karyawan, NIK, atau departemen..."
+               value={searchTerm}
+               onChange={(e) => setSearchTerm(e.target.value)}
+               className="pl-8 w-full sm:w-64"
+             />
+           </div>
+         </div>
+       </div>
 
-      {/* Data Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Daftar Gaji Karyawan</CardTitle>
-          <CardDescription>Kelola semua data gaji dan tunjangan karyawan</CardDescription>
-        </CardHeader>
-        <CardContent>
+             {/* Data Table */}
+       <Card className="mx-4 sm:mx-0">
+         <CardHeader>
+           <CardTitle className="text-lg sm:text-xl">Daftar Gaji Karyawan</CardTitle>
+           <CardDescription className="text-sm">Kelola semua data gaji dan tunjangan karyawan</CardDescription>
+         </CardHeader>
+         <CardContent>
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
               <p>Loading data gaji...</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
+                         <div className="overflow-x-auto -mx-4 sm:mx-0">
+               <Table className="min-w-full">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Karyawan</TableHead>
@@ -632,11 +632,12 @@ export const SalaryContent = () => {
                           <TableCell className="font-semibold">{formatCurrency(total)}</TableCell>
                           <TableCell>{formatDate(item.updated_at)}</TableCell>
                                                      <TableCell>
-                             <div className="flex items-center gap-2">
+                             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                                <Button 
                                  variant="outline" 
                                  size="sm"
                                  onClick={() => openViewDialog(item)}
+                                 className="w-full sm:w-auto"
                                >
                                  <Eye className="h-4 w-4" />
                                </Button>
@@ -644,13 +645,14 @@ export const SalaryContent = () => {
                                  variant="outline" 
                                  size="sm"
                                  onClick={() => openEditDialog(item)}
+                                 className="w-full sm:w-auto"
                                >
                                  <Edit className="h-4 w-4" />
                                </Button>
                                <Button 
                                  variant="outline" 
                                  size="sm"
-                                 className="text-red-600 hover:text-red-700"
+                                 className="text-red-600 hover:text-red-700 w-full sm:w-auto"
                                  onClick={() => handleDeleteSalary(item.id)}
                                  disabled={processing}
                                >
@@ -669,13 +671,13 @@ export const SalaryContent = () => {
         </CardContent>
       </Card>
 
-      {/* Add Salary Dialog */}
-      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Tambah Data Gaji</DialogTitle>
-          </DialogHeader>
-          <div className="grid grid-cols-2 gap-4 py-4">
+             {/* Add Salary Dialog */}
+       <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+         <DialogContent className="max-w-2xl mx-4">
+           <DialogHeader>
+             <DialogTitle>Tambah Data Gaji</DialogTitle>
+           </DialogHeader>
+           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="employee">Karyawan *</Label>
               <Select value={formData.employee_id} onValueChange={handleEmployeeChange}>
@@ -791,16 +793,16 @@ export const SalaryContent = () => {
         </DialogContent>
       </Dialog>
 
-             {/* View Salary Dialog */}
-       <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
-         <DialogContent className="max-w-2xl">
+                           {/* View Salary Dialog */}
+        <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+          <DialogContent className="max-w-2xl mx-4">
            <DialogHeader>
              <DialogTitle>Detail Data Gaji</DialogTitle>
            </DialogHeader>
            {selectedRecord && (
              <div className="space-y-6 py-4">
-               {/* Employee Info */}
-               <div className="grid grid-cols-2 gap-4">
+                               {/* Employee Info */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                  <div>
                    <Label className="text-sm font-medium text-gray-500">Nama Karyawan</Label>
                    <p className="text-lg font-semibold">
@@ -825,7 +827,7 @@ export const SalaryContent = () => {
                <div className="space-y-4">
                  <h3 className="text-lg font-semibold border-b pb-2">Rincian Gaji</h3>
                  
-                 <div className="grid grid-cols-2 gap-4">
+                                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                    <div className="space-y-3">
                      <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
                        <span className="font-medium">Gaji Pokok</span>
@@ -913,13 +915,13 @@ export const SalaryContent = () => {
          </DialogContent>
        </Dialog>
 
-       {/* Edit Salary Dialog */}
-       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Edit Data Gaji</DialogTitle>
-          </DialogHeader>
-          <div className="grid grid-cols-2 gap-4 py-4">
+               {/* Edit Salary Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+         <DialogContent className="max-w-2xl mx-4">
+           <DialogHeader>
+             <DialogTitle>Edit Data Gaji</DialogTitle>
+           </DialogHeader>
+           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="edit_nik">NIK</Label>
               <Input
@@ -1019,9 +1021,9 @@ export const SalaryContent = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Upload Data Dialog */}
-      <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
-        <DialogContent className="max-w-2xl">
+             {/* Upload Data Dialog */}
+       <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+         <DialogContent className="max-w-2xl mx-4">
           <DialogHeader>
             <DialogTitle>Upload Data Gaji Massal</DialogTitle>
           </DialogHeader>
