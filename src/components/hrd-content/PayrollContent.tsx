@@ -33,7 +33,6 @@ export const PayrollContent = () => {
     pay_period_end: "",
     basic_salary: 0,
     gross_salary: 0,
-    deductions: 0, // Total deductions (auto + manual)
     net_salary: 0,
     payment_date: "",
     status: "PAID",
@@ -202,7 +201,7 @@ export const PayrollContent = () => {
         setForm(prev => ({
           ...prev,
           gross_salary: data.totals.total_pendapatan || basicSalary,
-          deductions: data.totals.total_deduction || 0, // Update field deductions
+          total_deductions: data.totals.total_deduction || 0,
           net_salary: data.totals.net_salary || basicSalary
         }));
       }
@@ -363,7 +362,7 @@ export const PayrollContent = () => {
         pay_period_start: form.pay_period_start,
         pay_period_end: form.pay_period_end,
         gross_salary: form.gross_salary,
-        deductions: form.deductions, // Total deductions (auto + manual)
+        total_deductions: form.total_deductions,
         net_salary: form.net_salary,
         payment_date: form.payment_date,
         status: form.status
@@ -393,7 +392,7 @@ export const PayrollContent = () => {
         pay_period_end: "", 
         basic_salary: 0,
         gross_salary: 0, 
-        deductions: 0,
+        total_deductions: 0,
         net_salary: 0, 
         payment_date: "", 
         status: "PAID",
@@ -414,8 +413,7 @@ export const PayrollContent = () => {
         jkm: 0,
         kasbon: 0,
         telat: 0,
-        angsuran_kredit: 0,
-        total_deductions: 0
+        angsuran_kredit: 0
       });
       setCalculatedComponents([]);
       setManualDeductions({ kasbon: 0, telat: 0, angsuran_kredit: 0 });
@@ -855,7 +853,7 @@ export const PayrollContent = () => {
                         <div className="flex justify-between items-center py-4 px-5 bg-red-200 rounded-lg border-2 border-red-400">
                           <span className="text-xl font-bold text-gray-800">TOTAL PEMOTONGAN</span>
                           <span className="text-2xl font-bold text-red-800">
-                            {formatCurrency(form.deductions)}
+                            {formatCurrency(form.total_deductions)}
                           </span>
                         </div>
                         
@@ -961,11 +959,11 @@ export const PayrollContent = () => {
                       <p className="text-xs text-gray-500 mt-1">Gaji + Tunjangan + Komponen Income</p>
                     </div>
                     <div>
-                      <Label htmlFor="deductions">Total Potongan</Label>
+                      <Label htmlFor="total_deductions">Total Potongan</Label>
                       <Input 
-                        id="deductions"
+                        id="total_deductions"
                         type="text" 
-                        value={formatCurrency(form.deductions)} 
+                        value={formatCurrency(form.total_deductions)} 
                         readOnly
                         className="bg-white font-semibold text-red-600"
                       />
