@@ -356,16 +356,43 @@ export const PayrollContent = () => {
     setSubmitting(true);
     
     try {
-      // Siapkan data yang akan dikirim ke backend (sesuai schema)
+      // Siapkan data yang akan dikirim ke backend (sesuai schema database)
       const payrollData = {
         employee_id: form.employee_id,
         pay_period_start: form.pay_period_start,
         pay_period_end: form.pay_period_end,
+        basic_salary: form.basic_salary,
         gross_salary: form.gross_salary,
-        total_deductions: form.total_deductions,
         net_salary: form.net_salary,
         payment_date: form.payment_date,
-        status: form.status
+        status: form.status,
+        
+        // Tunjangan dari Data Salary
+        position_allowance: form.position_allowance,
+        management_allowance: form.management_allowance,
+        phone_allowance: form.phone_allowance,
+        incentive_allowance: form.incentive_allowance,
+        overtime_allowance: form.overtime_allowance,
+        total_allowances: form.total_allowances,
+        
+        // Komponen Payroll yang Dihitung
+        bpjs_employee: form.bpjs_employee,
+        bpjs_company: form.bpjs_company,
+        pph21: form.pph21,
+        jht_employee: form.jht_employee,
+        jht_company: form.jht_company,
+        jp_employee: form.jp_employee,
+        jp_company: form.jp_company,
+        jkk: form.jkk,
+        jkm: form.jkm,
+        
+        // Deductions Manual
+        kasbon: form.kasbon,
+        telat: form.telat,
+        angsuran_kredit: form.angsuran_kredit,
+        
+        // Total Deductions
+        total_deductions: form.total_deductions
       };
 
       console.log('Sending payroll data:', payrollData);
