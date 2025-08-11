@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Search, Plus, Upload, Edit, Trash2, DollarSign, Users, TrendingUp } from "lucide-react";
+import { FileText, Search, Plus, Upload, Edit, Trash2, DollarSign, Users, TrendingUp, Eye } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -52,6 +52,7 @@ export const SalaryContent = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<SalaryRecord | null>(null);
   const [processing, setProcessing] = useState(false);
@@ -410,6 +411,11 @@ export const SalaryContent = () => {
     setEditDialogOpen(true);
   };
 
+  const openViewDialog = (record: SalaryRecord) => {
+    setSelectedRecord(record);
+    setViewDialogOpen(true);
+  };
+
   const handleBulkUpload = async () => {
     if (!csvData.trim()) {
       toast({
@@ -625,26 +631,33 @@ export const SalaryContent = () => {
                           <TableCell>{formatCurrency(totalAllowance)}</TableCell>
                           <TableCell className="font-semibold">{formatCurrency(total)}</TableCell>
                           <TableCell>{formatDate(item.updated_at)}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => openEditDialog(item)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className="text-red-600 hover:text-red-700"
-                                onClick={() => handleDeleteSalary(item.id)}
-                                disabled={processing}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
+                                                     <TableCell>
+                             <div className="flex items-center gap-2">
+                               <Button 
+                                 variant="outline" 
+                                 size="sm"
+                                 onClick={() => openViewDialog(item)}
+                               >
+                                 <Eye className="h-4 w-4" />
+                               </Button>
+                               <Button 
+                                 variant="outline" 
+                                 size="sm"
+                                 onClick={() => openEditDialog(item)}
+                               >
+                                 <Edit className="h-4 w-4" />
+                               </Button>
+                               <Button 
+                                 variant="outline" 
+                                 size="sm"
+                                 className="text-red-600 hover:text-red-700"
+                                 onClick={() => handleDeleteSalary(item.id)}
+                                 disabled={processing}
+                               >
+                                 <Trash2 className="h-4 w-4" />
+                               </Button>
+                             </div>
+                           </TableCell>
                         </TableRow>
                       );
                     })
@@ -778,8 +791,130 @@ export const SalaryContent = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Salary Dialog */}
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+             {/* View Salary Dialog */}
+       <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+         <DialogContent className="max-w-2xl">
+           <DialogHeader>
+             <DialogTitle>Detail Data Gaji</DialogTitle>
+           </DialogHeader>
+           {selectedRecord && (
+             <div className="space-y-6 py-4">
+               {/* Employee Info */}
+               <div className="grid grid-cols-2 gap-4">
+                 <div>
+                   <Label className="text-sm font-medium text-gray-500">Nama Karyawan</Label>
+                   <p className="text-lg font-semibold">
+                     {selectedRecord.employee?.first_name} {selectedRecord.employee?.last_name}
+                   </p>
+                 </div>
+                 <div>
+                   <Label className="text-sm font-medium text-gray-500">NIK</Label>
+                   <p className="text-lg font-semibold">{selectedRecord.nik}</p>
+                 </div>
+                 <div>
+                   <Label className="text-sm font-medium text-gray-500">Departemen</Label>
+                   <p className="text-lg">{selectedRecord.employee?.departemen?.nama || '-'}</p>
+                 </div>
+                 <div>
+                   <Label className="text-sm font-medium text-gray-500">Update Terakhir</Label>
+                   <p className="text-lg">{formatDate(selectedRecord.updated_at)}</p>
+                 </div>
+               </div>
+
+               {/* Salary Breakdown */}
+               <div className="space-y-4">
+                 <h3 className="text-lg font-semibold border-b pb-2">Rincian Gaji</h3>
+                 
+                 <div className="grid grid-cols-2 gap-4">
+                   <div className="space-y-3">
+                     <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                       <span className="font-medium">Gaji Pokok</span>
+                       <span className="font-bold text-green-600">
+                         {formatCurrency(typeof selectedRecord.basic_salary === 'string' ? parseFloat(selectedRecord.basic_salary) || 0 : selectedRecord.basic_salary || 0)}
+                       </span>
+                     </div>
+                     
+                     <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                       <span className="font-medium">Tunjangan Jabatan</span>
+                       <span className="font-semibold text-blue-600">
+                         {formatCurrency(typeof selectedRecord.position_allowance === 'string' ? parseFloat(selectedRecord.position_allowance) || 0 : selectedRecord.position_allowance || 0)}
+                       </span>
+                     </div>
+                     
+                     <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
+                       <span className="font-medium">Tunjangan Manajemen</span>
+                       <span className="font-semibold text-purple-600">
+                         {formatCurrency(typeof selectedRecord.management_allowance === 'string' ? parseFloat(selectedRecord.management_allowance) || 0 : selectedRecord.management_allowance || 0)}
+                       </span>
+                     </div>
+                   </div>
+                   
+                   <div className="space-y-3">
+                     <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg">
+                       <span className="font-medium">Tunjangan Telepon</span>
+                       <span className="font-semibold text-orange-600">
+                         {formatCurrency(typeof selectedRecord.phone_allowance === 'string' ? parseFloat(selectedRecord.phone_allowance) || 0 : selectedRecord.phone_allowance || 0)}
+                       </span>
+                     </div>
+                     
+                     <div className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg">
+                       <span className="font-medium">Tunjangan Insentif</span>
+                       <span className="font-semibold text-yellow-600">
+                         {formatCurrency(typeof selectedRecord.incentive_allowance === 'string' ? parseFloat(selectedRecord.incentive_allowance) || 0 : selectedRecord.incentive_allowance || 0)}
+                       </span>
+                     </div>
+                     
+                     <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
+                       <span className="font-medium">Tunjangan Lembur</span>
+                       <span className="font-semibold text-red-600">
+                         {formatCurrency(typeof selectedRecord.overtime_allowance === 'string' ? parseFloat(selectedRecord.overtime_allowance) || 0 : selectedRecord.overtime_allowance || 0)}
+                       </span>
+                     </div>
+                   </div>
+                 </div>
+                 
+                 {/* Total Summary */}
+                 <div className="border-t pt-4 space-y-3">
+                   <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                     <span className="text-lg font-medium">Total Tunjangan</span>
+                     <span className="text-xl font-bold text-blue-600">
+                       {formatCurrency(
+                         (typeof selectedRecord.position_allowance === 'string' ? parseFloat(selectedRecord.position_allowance) || 0 : selectedRecord.position_allowance || 0) +
+                         (typeof selectedRecord.management_allowance === 'string' ? parseFloat(selectedRecord.management_allowance) || 0 : selectedRecord.management_allowance || 0) +
+                         (typeof selectedRecord.phone_allowance === 'string' ? parseFloat(selectedRecord.phone_allowance) || 0 : selectedRecord.phone_allowance || 0) +
+                         (typeof selectedRecord.incentive_allowance === 'string' ? parseFloat(selectedRecord.incentive_allowance) || 0 : selectedRecord.incentive_allowance || 0) +
+                         (typeof selectedRecord.overtime_allowance === 'string' ? parseFloat(selectedRecord.overtime_allowance) || 0 : selectedRecord.overtime_allowance || 0)
+                       )}
+                     </span>
+                   </div>
+                   
+                   <div className="flex justify-between items-center p-4 bg-green-100 rounded-lg">
+                     <span className="text-xl font-bold">Total Gaji</span>
+                     <span className="text-2xl font-bold text-green-600">
+                       {formatCurrency(
+                         (typeof selectedRecord.basic_salary === 'string' ? parseFloat(selectedRecord.basic_salary) || 0 : selectedRecord.basic_salary || 0) +
+                         (typeof selectedRecord.position_allowance === 'string' ? parseFloat(selectedRecord.position_allowance) || 0 : selectedRecord.position_allowance || 0) +
+                         (typeof selectedRecord.management_allowance === 'string' ? parseFloat(selectedRecord.management_allowance) || 0 : selectedRecord.management_allowance || 0) +
+                         (typeof selectedRecord.phone_allowance === 'string' ? parseFloat(selectedRecord.phone_allowance) || 0 : selectedRecord.phone_allowance || 0) +
+                         (typeof selectedRecord.incentive_allowance === 'string' ? parseFloat(selectedRecord.incentive_allowance) || 0 : selectedRecord.incentive_allowance || 0) +
+                         (typeof selectedRecord.overtime_allowance === 'string' ? parseFloat(selectedRecord.overtime_allowance) || 0 : selectedRecord.overtime_allowance || 0)
+                       )}
+                     </span>
+                   </div>
+                 </div>
+               </div>
+             </div>
+           )}
+           <DialogFooter>
+             <Button variant="outline" onClick={() => setViewDialogOpen(false)}>
+               Tutup
+             </Button>
+           </DialogFooter>
+         </DialogContent>
+       </Dialog>
+
+       {/* Edit Salary Dialog */}
+       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit Data Gaji</DialogTitle>
