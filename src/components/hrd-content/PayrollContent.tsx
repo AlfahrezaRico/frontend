@@ -79,32 +79,64 @@ export const PayrollContent = () => {
 
   const fetchEmployees = async () => {
     try {
+      console.log('Fetching employees from:', `${API_URL}/api/employees`);
       const res = await fetch(`${API_URL}/api/employees`);
-      if (!res.ok) throw new Error("Gagal mengambil data karyawan");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${res.status}: Gagal mengambil data karyawan`);
+      }
       const data = await res.json();
+      console.log('Employees fetched successfully:', data.length, 'records');
       setEmployees(data);
-    } catch {}
+    } catch (error) {
+      console.error('Error fetching employees:', error);
+      toast({
+        title: "Warning",
+        description: error instanceof Error ? error.message : "Gagal mengambil data karyawan",
+        variant: "destructive"
+      });
+    }
   };
 
   const fetchPayrollComponents = async () => {
     try {
+      console.log('Fetching payroll components from:', `${API_URL}/api/payroll-components`);
       const res = await fetch(`${API_URL}/api/payroll-components`);
-      if (!res.ok) throw new Error("Gagal mengambil konfigurasi payroll");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${res.status}: Gagal mengambil konfigurasi payroll`);
+      }
       const data = await res.json();
+      console.log('Payroll components fetched successfully:', data.length, 'records');
       setPayrollComponents(data);
     } catch (error) {
       console.error('Error fetching payroll components:', error);
+      toast({
+        title: "Warning",
+        description: error instanceof Error ? error.message : "Gagal mengambil konfigurasi payroll",
+        variant: "destructive"
+      });
     }
   };
 
   const fetchSalaryData = async () => {
     try {
+      console.log('Fetching salary data from:', `${API_URL}/api/salary`);
       const res = await fetch(`${API_URL}/api/salary`);
-      if (!res.ok) throw new Error("Gagal mengambil data salary");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${res.status}: Gagal mengambil data salary`);
+      }
       const data = await res.json();
+      console.log('Salary data fetched successfully:', data.length, 'records');
       setSalaryData(data);
     } catch (error) {
       console.error('Error fetching salary data:', error);
+      toast({
+        title: "Warning",
+        description: error instanceof Error ? error.message : "Gagal mengambil data salary",
+        variant: "destructive"
+      });
     }
   };
 
@@ -115,8 +147,16 @@ export const PayrollContent = () => {
       updateTotals(basicSalary, [], manualDeductions);
       return;
     }
+
+    // Validasi employee_id harus terisi
+    if (!form.employee_id) {
+      console.warn('Employee ID not selected, skipping calculation');
+      return;
+    }
     
     try {
+      console.log('Calculating payroll for employee:', form.employee_id, 'with salary:', basicSalary);
+      
       const response = await fetch(`${API_URL}/api/payrolls/calculate`, {
         method: 'POST',
         headers: {
@@ -130,20 +170,24 @@ export const PayrollContent = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Gagal menghitung komponen payroll');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Backend error response:', errorData);
+        throw new Error(errorData.error || `HTTP ${response.status}: Gagal menghitung komponen payroll`);
       }
 
       const data = await response.json();
       
-      setCalculatedComponents(data.calculated_components);
+      setCalculatedComponents(data.calculated_components || []);
       
       // Update form with calculated totals
-      setForm(prev => ({
-        ...prev,
-        gross_salary: data.totals.total_pendapatan,
-        deductions: data.totals.total_deduction,
-        net_salary: data.totals.net_salary
-      }));
+      if (data.totals) {
+        setForm(prev => ({
+          ...prev,
+          gross_salary: data.totals.total_pendapatan || basicSalary,
+          deductions: data.totals.total_deduction || 0,
+          net_salary: data.totals.net_salary || basicSalary
+        }));
+      }
 
       console.log('Backend calculation result:', data);
       
@@ -151,7 +195,7 @@ export const PayrollContent = () => {
       console.error('Error calculating payroll:', error);
       toast({
         title: "Error",
-        description: "Gagal menghitung komponen payroll",
+        description: error instanceof Error ? error.message : "Gagal menghitung komponen payroll",
         variant: "destructive"
       });
       
@@ -165,12 +209,12 @@ export const PayrollContent = () => {
 
   // Recalculate when payrollComponents are loaded
   useEffect(() => {
-    if (form.gross_salary > 0 && payrollComponents.length > 0) {
+    if (form.gross_salary > 0 && payrollComponents.length > 0 && form.employee_id) {
       // Reset calculated components first to prevent accumulation
       setCalculatedComponents([]);
       calculatePayrollComponents(form.gross_salary);
     }
-  }, [payrollComponents]); // Only depend on payrollComponents
+  }, [payrollComponents, form.employee_id]); // Depend on both payrollComponents and employee_id
 
   // Update totals calculation (simplified - backend handles main calculations)
   const updateTotals = (basicSalary: number, calculated: any[], manual: any) => {
@@ -227,16 +271,36 @@ export const PayrollContent = () => {
         // BPJS Perusahaan akan dihitung terpisah sebagai komponen payroll
         const totalPendapatan = basicSalary + totalAllowances;
         
+        console.log('Selected salary data:', {
+          employee_id: value,
+          basic_salary: basicSalary,
+          allowances: {
+            position: posAllowance,
+            management: mgmtAllowance,
+            phone: phoneAllowance,
+            incentive: incentiveAllowance,
+            overtime: overtimeAllowance
+          },
+          total_allowances: totalAllowances,
+          total_pendapatan: totalPendapatan
+        });
+        
         setForm(prev => ({
           ...prev,
           gross_salary: totalPendapatan
         }));
         
         // Calculate payroll components with the total pendapatan (async)
-        calculatePayrollComponents(totalPendapatan);
+        // Pastikan employee_id sudah terisi sebelum memanggil calculatePayrollComponents
+        setTimeout(() => {
+          calculatePayrollComponents(totalPendapatan);
+        }, 100);
       }
     } else if (field === 'gross_salary') {
-      calculatePayrollComponents(Number(value));
+      // Hanya hitung jika employee sudah dipilih
+      if (form.employee_id) {
+        calculatePayrollComponents(Number(value));
+      }
     }
   };
 
@@ -244,8 +308,10 @@ export const PayrollContent = () => {
     const newManualDeductions = { ...manualDeductions, [field]: value };
     setManualDeductions(newManualDeductions);
     
+    console.log('Manual deduction changed:', field, value, 'for employee:', form.employee_id);
+    
     // Recalculate with backend automatically
-    if (form.employee_id) {
+    if (form.employee_id && form.gross_salary > 0) {
       calculatePayrollComponents(form.gross_salary);
     } else {
       // Fallback to local calculation
@@ -299,6 +365,13 @@ export const PayrollContent = () => {
     fetchPayrollComponents();
     fetchSalaryData();
   }, []);
+
+  // Debug logging untuk memeriksa state
+  useEffect(() => {
+    console.log('Current form state:', form);
+    console.log('Current manual deductions:', manualDeductions);
+    console.log('Current calculated components:', calculatedComponents);
+  }, [form, manualDeductions, calculatedComponents]);
 
   const formatCurrency = (amount: number) => {
     return `Rp ${Math.round(amount).toLocaleString('id-ID')}`;
