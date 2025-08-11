@@ -137,16 +137,34 @@ export const PayrollContent = () => {
         isPercentage = false;
       }
 
+      // Logika untuk menentukan apakah komponen masuk ke income atau deduction
+      // Berdasarkan konfigurasi payroll components yang sudah ada
+      let effectiveType = component.type;
+      
+      // Jika komponen dikategorikan sebagai 'income' di database, maka masuk ke pendapatan
+      // Jika komponen dikategorikan sebagai 'deduction' di database, maka masuk ke potongan
+      // Tidak perlu override berdasarkan nama komponen, gunakan konfigurasi yang sudah ada
+      
       calculated.push({
         name: component.name,
-        type: component.type,
+        type: effectiveType, // Gunakan type dari database
         amount: amount,
         percentage: component.percentage,
-        is_percentage: isPercentage
+        is_percentage: isPercentage,
+        category: component.category // Tambahkan category untuk debugging
       });
     });
 
     setCalculatedComponents(calculated);
+    
+    // Debug: Log perhitungan untuk memastikan logika benar
+    console.log('Payroll Components Calculation:', {
+      basicSalary,
+      calculated,
+      totalDeductions: calculated.filter(c => c.type === 'deduction').reduce((sum, c) => sum + c.amount, 0),
+      totalIncome: calculated.filter(c => c.type === 'income').reduce((sum, c) => sum + c.amount, 0)
+    });
+    
     updateTotals(basicSalary, calculated, manualDeductions);
   };
 
@@ -171,22 +189,44 @@ export const PayrollContent = () => {
 
   // Update totals calculation
   const updateTotals = (basicSalary: number, calculated: any[], manual: any) => {
+    // Total Income = Semua komponen yang dikategorikan sebagai 'income' di database
     const totalIncome = calculated
       .filter(c => c.type === 'income')
       .reduce((sum, c) => sum + c.amount, 0);
     
+    // Total Deduction = Semua komponen yang dikategorikan sebagai 'deduction' di database
     const totalAutoDeduction = calculated
       .filter(c => c.type === 'deduction')
       .reduce((sum, c) => sum + c.amount, 0);
 
+    // Total Manual Deduction = Kasbon + Telat + Angsuran Kredit
     const totalManualDeduction = manual.kasbon + manual.telat + manual.angsuran_kredit;
+    
+    // Total Deduction = Auto + Manual
     const totalDeduction = totalAutoDeduction + totalManualDeduction;
     
-    const netSalary = basicSalary + totalIncome - totalDeduction;
+    // Perhitungan sesuai konfigurasi payroll components:
+    // Total Pendapatan = Gaji Pokok + Tunjangan + Komponen Income (dari konfigurasi)
+    // Total Potongan = Komponen Deduction (dari konfigurasi) + Potongan Manual
+    // Total Diterima = Total Pendapatan - Total Potongan
+    const totalPendapatan = basicSalary + totalIncome;
+    const netSalary = totalPendapatan - totalDeduction;
+    
+    // Debug: Log perhitungan final
+    console.log('Final Payroll Calculation:', {
+      basicSalary,
+      totalIncome,
+      totalAutoDeduction,
+      totalManualDeduction,
+      totalDeduction,
+      totalPendapatan,
+      netSalary,
+      components: calculated.map(c => ({ name: c.name, type: c.type, amount: c.amount, category: c.category }))
+    });
     
     setForm(prev => ({
       ...prev,
-      gross_salary: basicSalary,
+      gross_salary: totalPendapatan, // Set gross_salary ke total pendapatan lengkap
       deductions: totalDeduction,
       net_salary: netSalary
     }));
@@ -213,6 +253,9 @@ export const PayrollContent = () => {
           parseFloat(selectedSalary.overtime_allowance) || 0 : selectedSalary.overtime_allowance || 0;
         
         const totalAllowances = posAllowance + mgmtAllowance + phoneAllowance + incentiveAllowance + overtimeAllowance;
+        
+        // Total Pendapatan = Gaji Pokok + Tunjangan (TANPA BPJS Perusahaan)
+        // BPJS Perusahaan akan dihitung terpisah sebagai komponen payroll
         const totalPendapatan = basicSalary + totalAllowances;
         
         setForm(prev => ({
@@ -465,9 +508,9 @@ export const PayrollContent = () => {
                 {calculatedComponents.length > 0 && autoCalculation && (
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-6">
-                      {/* Left Column - Employee Deductions */}
+                      {/* Left Column - Deductions */}
                       <div className="space-y-3">
-                        <h3 className="font-semibold text-gray-900 border-b pb-2">Karyawan</h3>
+                        <h3 className="font-semibold text-gray-900 border-b pb-2">Potongan (Deduction)</h3>
                         {calculatedComponents.filter(c => c.type === 'deduction').map((component, index) => (
                           <div key={index} className="flex justify-between items-center p-2 border rounded">
                             <div>
@@ -477,6 +520,9 @@ export const PayrollContent = () => {
                                   {component.percentage}% dari gaji pokok
                                 </div>
                               )}
+                              <div className="text-xs text-gray-400">
+                                Kategori: {component.category || 'N/A'}
+                              </div>
                             </div>
                             <span className="text-sm font-semibold text-red-600">
                               - {formatCurrency(component.amount)}
@@ -485,18 +531,21 @@ export const PayrollContent = () => {
                         ))}
                       </div>
 
-                      {/* Right Column - Company Contributions */}
+                      {/* Right Column - Income */}
                       <div className="space-y-3">
-                        <h3 className="font-semibold text-gray-900 border-b pb-2">Perusahaan</h3>
+                        <h3 className="font-semibold text-gray-900 border-b pb-2">Pendapatan (Income)</h3>
                         {calculatedComponents.filter(c => c.type === 'income').map((component, index) => (
                           <div key={index} className="flex justify-between items-center p-2 border rounded">
                             <div>
                               <span className="font-medium text-sm">{component.name}</span>
                               {component.is_percentage && (
                                 <div className="text-xs text-gray-500">
-                                  {component.percentage}% dari gaji pokok
+                                   {component.percentage}% dari gaji pokok
                                 </div>
                               )}
+                              <div className="text-xs text-gray-400">
+                                Kategori: {component.category || 'N/A'}
+                              </div>
                             </div>
                             <span className="text-sm font-semibold text-green-600">
                               + {formatCurrency(component.amount)}
@@ -567,42 +616,42 @@ export const PayrollContent = () => {
                   )}
                 </div>
 
-                                 {/* Summary Section */}
-                 <div className="grid grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg">
-                   <div>
-                     <Label htmlFor="gross_salary_display">Total Pendapatan (Gaji + Tunjangan)</Label>
-                     <Input 
-                       id="gross_salary_display"
-                       type="text" 
-                       value={formatCurrency(form.gross_salary)} 
-                       readOnly
-                       className="bg-white font-semibold"
-                     />
-                     <p className="text-xs text-gray-500 mt-1">Otomatis dari data salary</p>
-                   </div>
-                   <div>
-                     <Label htmlFor="deductions">Total Potongan</Label>
-                     <Input 
-                       id="deductions"
-                       type="text" 
-                       value={formatCurrency(form.deductions)} 
-                       readOnly
-                       className="bg-white font-semibold text-red-600"
-                     />
-                     <p className="text-xs text-gray-500 mt-1">Auto + Manual</p>
-                   </div>
-                   <div>
-                     <Label htmlFor="net_salary">Total Diterima</Label>
-                     <Input 
-                       id="net_salary"
-                       type="text" 
-                       value={formatCurrency(form.net_salary)} 
-                       readOnly
-                       className="bg-white font-semibold text-green-600"
-                     />
-                     <p className="text-xs text-gray-500 mt-1">Pendapatan - Potongan</p>
-                   </div>
-                 </div>
+                                                   {/* Summary Section */}
+                  <div className="grid grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg">
+                    <div>
+                      <Label htmlFor="gross_salary_display">Total Pendapatan</Label>
+                      <Input 
+                        id="gross_salary_display"
+                        type="text" 
+                        value={formatCurrency(form.gross_salary)} 
+                        readOnly
+                        className="bg-white font-semibold"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Gaji + Tunjangan + Komponen Income</p>
+                    </div>
+                    <div>
+                      <Label htmlFor="deductions">Total Potongan</Label>
+                      <Input 
+                        id="deductions"
+                        type="text" 
+                        value={formatCurrency(form.deductions)} 
+                        readOnly
+                        className="bg-white font-semibold text-red-600"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Komponen Deduction + Manual</p>
+                    </div>
+                    <div>
+                      <Label htmlFor="net_salary">Total Diterima</Label>
+                      <Input 
+                        id="net_salary"
+                        type="text" 
+                        value={formatCurrency(form.net_salary)} 
+                        readOnly
+                        className="bg-white font-semibold text-green-600"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Total Pendapatan - Total Potongan</p>
+                    </div>
+                  </div>
 
                 {/* Payment Info */}
                 <div className="grid grid-cols-2 gap-4">
