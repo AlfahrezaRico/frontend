@@ -18,6 +18,7 @@ import { LeaveContent } from '@/components/hrd-content/LeaveContent';
 import { LeaveQuotaContent } from '@/components/hrd-content/LeaveQuotaContent';
 import { IzinSakitContent } from '@/components/hrd-content/IzinSakitContent';
 import PayrollConfigContent from '@/components/hrd-content/PayrollConfigContent';
+import { SalaryContent } from '@/components/hrd-content/SalaryContent';
 
 const HRDDashboard = () => {
   const navigate = useNavigate();
@@ -445,6 +446,8 @@ const HRDDashboard = () => {
         return <IzinSakitContent />;
       case 'payroll-config':
         return <PayrollConfigContent />;
+      case 'salary':
+        return <SalaryContent />;
       case 'reports':
         return (
           <div className="space-y-6">

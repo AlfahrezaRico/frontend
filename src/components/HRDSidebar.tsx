@@ -84,6 +84,12 @@ export const HRDSidebar = ({ currentPage = 'dashboard', onPageChange }: HRDSideb
           onClick: () => handleNavigation('payroll')
         },
         {
+          id: 'salary',
+          label: 'Management Salary',
+          icon: DollarSign,
+          onClick: () => handleNavigation('salary')
+        },
+        {
           id: 'payroll-config',
           label: 'Konfigurasi Payroll',
           icon: Settings,
