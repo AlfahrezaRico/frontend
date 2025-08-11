@@ -79,14 +79,12 @@ export const PayrollContent = () => {
 
   const fetchEmployees = async () => {
     try {
-      console.log('Fetching employees from:', `${API_URL}/api/employees`);
       const res = await fetch(`${API_URL}/api/employees`);
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.error || `HTTP ${res.status}: Gagal mengambil data karyawan`);
       }
       const data = await res.json();
-      console.log('Employees fetched successfully:', data.length, 'records');
       setEmployees(data);
     } catch (error) {
       console.error('Error fetching employees:', error);
@@ -100,14 +98,12 @@ export const PayrollContent = () => {
 
   const fetchPayrollComponents = async () => {
     try {
-      console.log('Fetching payroll components from:', `${API_URL}/api/payroll-components`);
       const res = await fetch(`${API_URL}/api/payroll-components`);
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.error || `HTTP ${res.status}: Gagal mengambil konfigurasi payroll`);
       }
       const data = await res.json();
-      console.log('Payroll components fetched successfully:', data.length, 'records');
       setPayrollComponents(data);
     } catch (error) {
       console.error('Error fetching payroll components:', error);
@@ -121,14 +117,12 @@ export const PayrollContent = () => {
 
   const fetchSalaryData = async () => {
     try {
-      console.log('Fetching salary data from:', `${API_URL}/api/salary`);
       const res = await fetch(`${API_URL}/api/salary`);
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.error || `HTTP ${res.status}: Gagal mengambil data salary`);
       }
       const data = await res.json();
-      console.log('Salary data fetched successfully:', data.length, 'records');
       setSalaryData(data);
     } catch (error) {
       console.error('Error fetching salary data:', error);
@@ -150,13 +144,10 @@ export const PayrollContent = () => {
 
     // Validasi employee_id harus terisi
     if (!form.employee_id) {
-      console.warn('Employee ID not selected, skipping calculation');
       return;
     }
     
     try {
-      console.log('Calculating payroll for employee:', form.employee_id, 'with salary:', basicSalary);
-      
       const response = await fetch(`${API_URL}/api/payrolls/calculate`, {
         method: 'POST',
         headers: {
@@ -171,7 +162,6 @@ export const PayrollContent = () => {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('Backend error response:', errorData);
         throw new Error(errorData.error || `HTTP ${response.status}: Gagal menghitung komponen payroll`);
       }
 
@@ -188,8 +178,6 @@ export const PayrollContent = () => {
           net_salary: data.totals.net_salary || basicSalary
         }));
       }
-
-      console.log('Backend calculation result:', data);
       
     } catch (error) {
       console.error('Error calculating payroll:', error);
@@ -271,19 +259,7 @@ export const PayrollContent = () => {
         // BPJS Perusahaan akan dihitung terpisah sebagai komponen payroll
         const totalPendapatan = basicSalary + totalAllowances;
         
-        console.log('Selected salary data:', {
-          employee_id: value,
-          basic_salary: basicSalary,
-          allowances: {
-            position: posAllowance,
-            management: mgmtAllowance,
-            phone: phoneAllowance,
-            incentive: incentiveAllowance,
-            overtime: overtimeAllowance
-          },
-          total_allowances: totalAllowances,
-          total_pendapatan: totalPendapatan
-        });
+
         
         setForm(prev => ({
           ...prev,
@@ -308,8 +284,6 @@ export const PayrollContent = () => {
     const newManualDeductions = { ...manualDeductions, [field]: value };
     setManualDeductions(newManualDeductions);
     
-    console.log('Manual deduction changed:', field, value, 'for employee:', form.employee_id);
-    
     // Recalculate with backend automatically
     if (form.employee_id && form.gross_salary > 0) {
       calculatePayrollComponents(form.gross_salary);
@@ -323,7 +297,6 @@ export const PayrollContent = () => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      console.log('Submitting payroll data:', form);
       const res = await fetch(`${API_URL}/api/payrolls`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -336,7 +309,6 @@ export const PayrollContent = () => {
       }
       
       const result = await res.json();
-      console.log('Payroll created successfully:', result);
       
       setModalOpen(false);
       setForm({ employee_id: "", pay_period_start: "", pay_period_end: "", gross_salary: 0, deductions: 0, net_salary: 0, payment_date: "", status: "PAID" });
@@ -366,12 +338,7 @@ export const PayrollContent = () => {
     fetchSalaryData();
   }, []);
 
-  // Debug logging untuk memeriksa state
-  useEffect(() => {
-    console.log('Current form state:', form);
-    console.log('Current manual deductions:', manualDeductions);
-    console.log('Current calculated components:', calculatedComponents);
-  }, [form, manualDeductions, calculatedComponents]);
+
 
   const formatCurrency = (amount: number) => {
     return `Rp ${Math.round(amount).toLocaleString('id-ID')}`;
