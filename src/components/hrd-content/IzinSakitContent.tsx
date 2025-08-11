@@ -8,6 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { FileText, Search, Eye, Check, X, AlertTriangle, Clock, CheckCircle, XCircle, Download } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 interface IzinSakitRecord {
   id: string;
@@ -44,6 +46,12 @@ export const IzinSakitContent = () => {
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [loadingFile, setLoadingFile] = useState(false);
   const [imageLoadError, setImageLoadError] = useState(false);
+  
+  // Add new state variables for approve/reject functionality
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [processing, setProcessing] = useState(false);
   
   const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -128,6 +136,102 @@ export const IzinSakitContent = () => {
     } finally {
       setLoadingFile(false);
     }
+  };
+
+  const handleApproveIzin = async (id: string) => {
+    try {
+      setProcessing(true);
+      const response = await fetch(`${API_URL}/api/izin-sakit/${id}/approve`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          keterangan: 'Disetujui oleh HRD'
+        })
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Berhasil",
+          description: "Pengajuan izin/sakit telah disetujui"
+        });
+        fetchIzinSakitData(); // Refresh data
+      } else {
+        const error = await response.json();
+        toast({
+          title: "Error",
+          description: error.error || "Gagal menyetujui pengajuan izin/sakit",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Terjadi kesalahan saat menyetujui pengajuan",
+        variant: "destructive"
+      });
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleRejectIzin = async () => {
+    if (!rejectingId || !rejectReason.trim()) {
+      toast({
+        title: "Error",
+        description: "Alasan penolakan harus diisi",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setProcessing(true);
+      const response = await fetch(`${API_URL}/api/izin-sakit/${rejectingId}/reject`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          keterangan: rejectReason.trim()
+        })
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Berhasil",
+          description: "Pengajuan izin/sakit telah ditolak"
+        });
+        setRejectDialogOpen(false);
+        setRejectingId(null);
+        setRejectReason('');
+        fetchIzinSakitData(); // Refresh data
+      } else {
+        const error = await response.json();
+        toast({
+          title: "Error",
+          description: error.error || "Gagal menolak pengajuan izin/sakit",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Terjadi kesalahan saat menolak pengajuan",
+        variant: "destructive"
+      });
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const openRejectDialog = (id: string) => {
+    setRejectingId(id);
+    setRejectReason('');
+    setRejectDialogOpen(true);
   };
 
   return (
@@ -271,10 +375,10 @@ export const IzinSakitContent = () => {
                             </Button>
                             {item.status === 'PENDING' && (
                               <>
-                                <Button variant="outline" size="sm" className="text-green-600 hover:text-green-700">
+                                <Button variant="outline" size="sm" className="text-green-600 hover:text-green-700" onClick={() => handleApproveIzin(item.id)} disabled={processing}>
                                   <Check className="h-4 w-4" />
                                 </Button>
-                                <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                                <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700" onClick={() => openRejectDialog(item.id)} disabled={processing}>
                                   <X className="h-4 w-4" />
                                 </Button>
                               </>
@@ -452,6 +556,35 @@ export const IzinSakitContent = () => {
                 </a>
               </Button>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reject Confirmation Dialog */}
+      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Konfirmasi Penolakan</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="reject-reason" className="text-sm font-medium">
+              Alasan Penolakan
+            </Label>
+            <Textarea
+              id="reject-reason"
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              className="mt-1"
+              rows={4}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
+              Batal
+            </Button>
+            <Button variant="destructive" onClick={handleRejectIzin} disabled={processing}>
+              {processing ? 'Menolak...' : 'Tolak'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
