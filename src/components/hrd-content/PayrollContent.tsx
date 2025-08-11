@@ -31,11 +31,39 @@ export const PayrollContent = () => {
     employee_id: "",
     pay_period_start: "",
     pay_period_end: "",
+    basic_salary: 0,
     gross_salary: 0,
-    deductions: 0,
+    deductions: 0, // Total deductions (auto + manual)
     net_salary: 0,
     payment_date: "",
-    status: "PAID"
+    status: "PAID",
+    
+    // Tunjangan dari Data Salary
+    position_allowance: 0,
+    management_allowance: 0,
+    phone_allowance: 0,
+    incentive_allowance: 0,
+    overtime_allowance: 0,
+    total_allowances: 0,
+    
+    // Komponen Payroll yang Dihitung
+    bpjs_employee: 0,
+    bpjs_company: 0,
+    pph21: 0,
+    jht_employee: 0,
+    jht_company: 0,
+    jp_employee: 0,
+    jp_company: 0,
+    jkk: 0,
+    jkm: 0,
+    
+    // Deductions Manual
+    kasbon: 0,
+    telat: 0,
+    angsuran_kredit: 0,
+    
+    // Total Deductions
+    total_deductions: 0
   });
   const [submitting, setSubmitting] = useState(false);
   const [stats, setStats] = useState({
@@ -174,8 +202,25 @@ export const PayrollContent = () => {
         setForm(prev => ({
           ...prev,
           gross_salary: data.totals.total_pendapatan || basicSalary,
-          deductions: data.totals.total_deduction || 0,
+          deductions: data.totals.total_deduction || 0, // Update field deductions
           net_salary: data.totals.net_salary || basicSalary
+        }));
+      }
+      
+      // Update komponen payroll yang dihitung
+      if (data.calculated_components) {
+        const components = data.calculated_components;
+        setForm(prev => ({
+          ...prev,
+          bpjs_employee: components.find(c => c.name === 'BPJS Ketenagakerjaan (Karyawan)')?.amount || 0,
+          bpjs_company: components.find(c => c.name === 'BPJS Ketenagakerjaan (Perusahaan)')?.amount || 0,
+          pph21: components.find(c => c.name === 'PPH21')?.amount || 0,
+          jht_employee: components.find(c => c.name === 'BPJS Jaminan Pensiun (Karyawan)')?.amount || 0,
+          jht_company: components.find(c => c.name === 'BPJS Jaminan Pensiun (Perusahaan)')?.amount || 0,
+          jp_employee: components.find(c => c.name === 'BPJS Jaminan Pensiun (Karyawan)')?.amount || 0,
+          jp_company: components.find(c => c.name === 'BPJS Jaminan Pensiun (Perusahaan)')?.amount || 0,
+          jkk: components.find(c => c.name === 'BPJS Jaminan Kecelakaan Kerja')?.amount || 0,
+          jkm: components.find(c => c.name === 'BPJS Jaminan Kematian')?.amount || 0
         }));
       }
       
@@ -217,7 +262,7 @@ export const PayrollContent = () => {
       setForm(prev => ({
         ...prev,
         gross_salary: basicSalary,
-        deductions: totalManualDeduction,
+        total_deductions: totalManualDeduction,
         net_salary: netSalary
       }));
       return;
@@ -226,11 +271,11 @@ export const PayrollContent = () => {
     // If we have calculated components, use them (backend already calculated totals)
     const totalManualDeduction = manual.kasbon + manual.telat + manual.angsuran_kredit;
     
-    setForm(prev => ({
-      ...prev,
-      deductions: prev.deductions + totalManualDeduction,
-      net_salary: prev.net_salary - totalManualDeduction
-    }));
+          setForm(prev => ({
+        ...prev,
+        total_deductions: prev.total_deductions + totalManualDeduction,
+        net_salary: prev.net_salary - totalManualDeduction
+      }));
   };
 
   const handleFormChange = (field: string, value: any) => {
@@ -263,6 +308,13 @@ export const PayrollContent = () => {
         
         setForm(prev => ({
           ...prev,
+          basic_salary: basicSalary,
+          position_allowance: posAllowance,
+          management_allowance: mgmtAllowance,
+          phone_allowance: phoneAllowance,
+          incentive_allowance: incentiveAllowance,
+          overtime_allowance: overtimeAllowance,
+          total_allowances: totalAllowances,
           gross_salary: totalPendapatan
         }));
         
@@ -284,6 +336,13 @@ export const PayrollContent = () => {
     const newManualDeductions = { ...manualDeductions, [field]: value };
     setManualDeductions(newManualDeductions);
     
+    // Update form dengan manual deductions
+    setForm(prev => ({
+      ...prev,
+      [field]: value,
+      total_deductions: prev.total_deductions + (value - (prev[field as keyof typeof prev] as number || 0))
+    }));
+    
     // Recalculate with backend automatically
     if (form.employee_id && form.gross_salary > 0) {
       calculatePayrollComponents(form.gross_salary);
@@ -296,22 +355,68 @@ export const PayrollContent = () => {
   const handleAddPayroll = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+    
     try {
+      // Siapkan data yang akan dikirim ke backend (sesuai schema)
+      const payrollData = {
+        employee_id: form.employee_id,
+        pay_period_start: form.pay_period_start,
+        pay_period_end: form.pay_period_end,
+        gross_salary: form.gross_salary,
+        deductions: form.deductions, // Total deductions (auto + manual)
+        net_salary: form.net_salary,
+        payment_date: form.payment_date,
+        status: form.status
+      };
+
+      console.log('Sending payroll data:', payrollData);
+
       const res = await fetch(`${API_URL}/api/payrolls`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form)
+        body: JSON.stringify(payrollData)
       });
       
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error || "Gagal tambah payroll");
+        console.error('Backend error response:', errorData);
+        throw new Error(errorData.error || `HTTP ${res.status}: Gagal tambah payroll`);
       }
       
       const result = await res.json();
+      console.log('Payroll created successfully:', result);
       
       setModalOpen(false);
-      setForm({ employee_id: "", pay_period_start: "", pay_period_end: "", gross_salary: 0, deductions: 0, net_salary: 0, payment_date: "", status: "PAID" });
+      setForm({ 
+        employee_id: "", 
+        pay_period_start: "", 
+        pay_period_end: "", 
+        basic_salary: 0,
+        gross_salary: 0, 
+        deductions: 0,
+        net_salary: 0, 
+        payment_date: "", 
+        status: "PAID",
+        position_allowance: 0,
+        management_allowance: 0,
+        phone_allowance: 0,
+        incentive_allowance: 0,
+        overtime_allowance: 0,
+        total_allowances: 0,
+        bpjs_employee: 0,
+        bpjs_company: 0,
+        pph21: 0,
+        jht_employee: 0,
+        jht_company: 0,
+        jp_employee: 0,
+        jp_company: 0,
+        jkk: 0,
+        jkm: 0,
+        kasbon: 0,
+        telat: 0,
+        angsuran_kredit: 0,
+        total_deductions: 0
+      });
       setCalculatedComponents([]);
       setManualDeductions({ kasbon: 0, telat: 0, angsuran_kredit: 0 });
       fetchPayrolls();
