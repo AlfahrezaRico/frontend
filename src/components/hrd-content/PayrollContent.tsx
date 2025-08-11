@@ -158,7 +158,7 @@ export const PayrollContent = () => {
       // Fallback to empty calculation
       setCalculatedComponents([]);
       updateTotals(basicSalary, [], manualDeductions);
-
+    }
   };
 
 
@@ -965,4 +965,6 @@ export const PayrollContent = () => {
     </div>
   );
 };
+
+export default PayrollContent;
 
