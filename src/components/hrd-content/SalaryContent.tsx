@@ -16,12 +16,12 @@ interface SalaryRecord {
   id: string;
   employee_id: string;
   nik: string;
-  basic_salary: number;
-  position_allowance?: number;
-  management_allowance?: number;
-  phone_allowance?: number;
-  incentive_allowance?: number;
-  overtime_allowance?: number;
+  basic_salary: number | string;
+  position_allowance?: number | string | null;
+  management_allowance?: number | string | null;
+  phone_allowance?: number | string | null;
+  incentive_allowance?: number | string | null;
+  overtime_allowance?: number | string | null;
   created_at: string;
   updated_at: string;
   employee?: {
@@ -109,11 +109,15 @@ export const SalaryContent = () => {
     item.employee?.departemen?.nama?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalSalary = salaryData.reduce((sum, item) => sum + item.basic_salary, 0);
-  const totalAllowances = salaryData.reduce((sum, item) => 
-    sum + (item.position_allowance || 0) + (item.management_allowance || 0) + 
-    (item.phone_allowance || 0) + (item.incentive_allowance || 0) + (item.overtime_allowance || 0), 0
-  );
+  const totalSalary = salaryData.reduce((sum, item) => sum + (typeof item.basic_salary === 'string' ? parseFloat(item.basic_salary) || 0 : item.basic_salary || 0), 0);
+  const totalAllowances = salaryData.reduce((sum, item) => {
+    const posAllowance = typeof item.position_allowance === 'string' ? parseFloat(item.position_allowance) || 0 : item.position_allowance || 0;
+    const mgmtAllowance = typeof item.management_allowance === 'string' ? parseFloat(item.management_allowance) || 0 : item.management_allowance || 0;
+    const phoneAllowance = typeof item.phone_allowance === 'string' ? parseFloat(item.phone_allowance) || 0 : item.phone_allowance || 0;
+    const incentiveAllowance = typeof item.incentive_allowance === 'string' ? parseFloat(item.incentive_allowance) || 0 : item.incentive_allowance || 0;
+    const overtimeAllowance = typeof item.overtime_allowance === 'string' ? parseFloat(item.overtime_allowance) || 0 : item.overtime_allowance || 0;
+    return sum + posAllowance + mgmtAllowance + phoneAllowance + incentiveAllowance + overtimeAllowance;
+  }, 0);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -599,10 +603,16 @@ export const SalaryContent = () => {
                     </TableRow>
                   ) : (
                     filteredData.map((item) => {
-                      const totalAllowance = (item.position_allowance || 0) + 
-                        (item.management_allowance || 0) + (item.phone_allowance || 0) + 
-                        (item.incentive_allowance || 0) + (item.overtime_allowance || 0);
-                      const total = item.basic_salary + totalAllowance;
+                      // Convert string to number if needed
+                      const basicSalary = typeof item.basic_salary === 'string' ? parseFloat(item.basic_salary) || 0 : item.basic_salary || 0;
+                      const posAllowance = typeof item.position_allowance === 'string' ? parseFloat(item.position_allowance) || 0 : item.position_allowance || 0;
+                      const mgmtAllowance = typeof item.management_allowance === 'string' ? parseFloat(item.management_allowance) || 0 : item.management_allowance || 0;
+                      const phoneAllowance = typeof item.phone_allowance === 'string' ? parseFloat(item.phone_allowance) || 0 : item.phone_allowance || 0;
+                      const incentiveAllowance = typeof item.incentive_allowance === 'string' ? parseFloat(item.incentive_allowance) || 0 : item.incentive_allowance || 0;
+                      const overtimeAllowance = typeof item.overtime_allowance === 'string' ? parseFloat(item.overtime_allowance) || 0 : item.overtime_allowance || 0;
+                      
+                      const totalAllowance = posAllowance + mgmtAllowance + phoneAllowance + incentiveAllowance + overtimeAllowance;
+                      const total = basicSalary + totalAllowance;
                       
                       return (
                         <TableRow key={item.id}>
@@ -611,7 +621,7 @@ export const SalaryContent = () => {
                           </TableCell>
                           <TableCell>{item.nik}</TableCell>
                           <TableCell>{item.employee?.departemen?.nama || '-'}</TableCell>
-                          <TableCell>{formatCurrency(item.basic_salary)}</TableCell>
+                          <TableCell>{formatCurrency(basicSalary)}</TableCell>
                           <TableCell>{formatCurrency(totalAllowance)}</TableCell>
                           <TableCell className="font-semibold">{formatCurrency(total)}</TableCell>
                           <TableCell>{formatDate(item.updated_at)}</TableCell>
