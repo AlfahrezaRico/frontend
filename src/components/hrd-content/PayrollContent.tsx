@@ -21,6 +21,7 @@ export const PayrollContent = () => {
   const [payrollComponents, setPayrollComponents] = useState<any[]>([]);
   const [calculatedComponents, setCalculatedComponents] = useState<any[]>([]);
   const [autoCalculation, setAutoCalculation] = useState(true);
+  const [salaryData, setSalaryData] = useState<any[]>([]);
   const [manualDeductions, setManualDeductions] = useState({
     kasbon: 0,
     telat: 0,
@@ -93,6 +94,17 @@ export const PayrollContent = () => {
       setPayrollComponents(data);
     } catch (error) {
       console.error('Error fetching payroll components:', error);
+    }
+  };
+
+  const fetchSalaryData = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/salary`);
+      if (!res.ok) throw new Error("Gagal mengambil data salary");
+      const data = await res.json();
+      setSalaryData(data);
+    } catch (error) {
+      console.error('Error fetching salary data:', error);
     }
   };
 
@@ -183,7 +195,22 @@ export const PayrollContent = () => {
   const handleFormChange = (field: string, value: any) => {
     setForm(f => ({ ...f, [field]: value }));
     
-    if (field === 'gross_salary') {
+    if (field === 'employee_id') {
+      // Auto-fill salary data when employee is selected
+      const selectedSalary = salaryData.find(salary => salary.employee_id === value);
+      if (selectedSalary) {
+        const basicSalary = typeof selectedSalary.basic_salary === 'string' ? 
+          parseFloat(selectedSalary.basic_salary) || 0 : selectedSalary.basic_salary || 0;
+        
+        setForm(prev => ({
+          ...prev,
+          gross_salary: basicSalary
+        }));
+        
+        // Calculate payroll components with the auto-filled salary
+        calculatePayrollComponents(basicSalary);
+      }
+    } else if (field === 'gross_salary') {
       calculatePayrollComponents(Number(value));
     }
   };
@@ -238,6 +265,7 @@ export const PayrollContent = () => {
     fetchPayrolls();
     fetchEmployees();
     fetchPayrollComponents();
+    fetchSalaryData();
   }, []);
 
   const formatCurrency = (amount: number) => {
@@ -306,7 +334,7 @@ export const PayrollContent = () => {
                   </div>
                 </div>
                 
-                {/* Basic Salary */}
+                {/* Basic Salary - Auto-filled from salary data */}
                 <div>
                   <Label htmlFor="gross_salary">Gaji Pokok</Label>
                   <Input 
@@ -315,8 +343,15 @@ export const PayrollContent = () => {
                     value={form.gross_salary} 
                     onChange={(e) => handleFormChange('gross_salary', Number(e.target.value))} 
                     required 
-                    placeholder="Masukkan gaji pokok"
+                    placeholder="Otomatis terisi dari data salary"
+                    className="bg-gray-50"
+                    readOnly={form.employee_id !== ""}
                   />
+                  {form.employee_id && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      Data diambil otomatis dari data salary karyawan
+                    </p>
+                  )}
                 </div>
 
                 {/* Auto Calculation Toggle */}
