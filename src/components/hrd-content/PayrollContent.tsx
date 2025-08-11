@@ -125,12 +125,19 @@ export const PayrollContent = () => {
     const activeComponents = payrollComponents.filter(comp => comp.is_active);
     const calculated: any[] = [];
 
+    // Ambil gaji pokok murni (tanpa tunjangan) untuk perhitungan komponen
+    const selectedSalary = salaryData.find(salary => salary.employee_id === form.employee_id);
+    const pureBasicSalary = selectedSalary ? 
+      (typeof selectedSalary.basic_salary === 'string' ? 
+        parseFloat(selectedSalary.basic_salary) || 0 : selectedSalary.basic_salary || 0) : 0;
+
     activeComponents.forEach(component => {
       let amount = 0;
       let isPercentage = false;
 
       if (component.percentage > 0) {
-        amount = (basicSalary * component.percentage) / 100;
+        // Gunakan gaji pokok murni untuk perhitungan persentase, bukan total pendapatan
+        amount = (pureBasicSalary * component.percentage) / 100;
         isPercentage = true;
       } else if (component.amount > 0) {
         amount = component.amount;
@@ -151,7 +158,8 @@ export const PayrollContent = () => {
         amount: amount,
         percentage: component.percentage,
         is_percentage: isPercentage,
-        category: component.category // Tambahkan category untuk debugging
+        category: component.category, // Tambahkan category untuk debugging
+        pureBasicSalary // Tambahkan untuk debugging
       });
     });
 
@@ -160,6 +168,7 @@ export const PayrollContent = () => {
     // Debug: Log perhitungan untuk memastikan logika benar
     console.log('Payroll Components Calculation:', {
       basicSalary,
+      pureBasicSalary,
       calculated,
       totalDeductions: calculated.filter(c => c.type === 'deduction').reduce((sum, c) => sum + c.amount, 0),
       totalIncome: calculated.filter(c => c.type === 'income').reduce((sum, c) => sum + c.amount, 0)
@@ -517,7 +526,7 @@ export const PayrollContent = () => {
                               <span className="font-medium text-sm">{component.name}</span>
                               {component.is_percentage && (
                                 <div className="text-xs text-gray-500">
-                                  {component.percentage}% dari gaji pokok
+                                  {component.percentage}% dari gaji pokok murni
                                 </div>
                               )}
                               <div className="text-xs text-gray-400">
@@ -538,11 +547,11 @@ export const PayrollContent = () => {
                           <div key={index} className="flex justify-between items-center p-2 border rounded">
                             <div>
                               <span className="font-medium text-sm">{component.name}</span>
-                              {component.is_percentage && (
-                                <div className="text-xs text-gray-500">
-                                   {component.percentage}% dari gaji pokok
-                                </div>
-                              )}
+                                                             {component.is_percentage && (
+                                 <div className="text-xs text-gray-500">
+                                    {component.percentage}% dari gaji pokok murni
+                                 </div>
+                               )}
                               <div className="text-xs text-gray-400">
                                 Kategori: {component.category || 'N/A'}
                               </div>
