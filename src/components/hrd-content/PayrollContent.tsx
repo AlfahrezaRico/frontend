@@ -201,14 +201,27 @@ export const PayrollContent = () => {
       if (selectedSalary) {
         const basicSalary = typeof selectedSalary.basic_salary === 'string' ? 
           parseFloat(selectedSalary.basic_salary) || 0 : selectedSalary.basic_salary || 0;
+        const posAllowance = typeof selectedSalary.position_allowance === 'string' ? 
+          parseFloat(selectedSalary.position_allowance) || 0 : selectedSalary.position_allowance || 0;
+        const mgmtAllowance = typeof selectedSalary.management_allowance === 'string' ? 
+          parseFloat(selectedSalary.management_allowance) || 0 : selectedSalary.management_allowance || 0;
+        const phoneAllowance = typeof selectedSalary.phone_allowance === 'string' ? 
+          parseFloat(selectedSalary.phone_allowance) || 0 : selectedSalary.phone_allowance || 0;
+        const incentiveAllowance = typeof selectedSalary.incentive_allowance === 'string' ? 
+          parseFloat(selectedSalary.incentive_allowance) || 0 : selectedSalary.incentive_allowance || 0;
+        const overtimeAllowance = typeof selectedSalary.overtime_allowance === 'string' ? 
+          parseFloat(selectedSalary.overtime_allowance) || 0 : selectedSalary.overtime_allowance || 0;
+        
+        const totalAllowances = posAllowance + mgmtAllowance + phoneAllowance + incentiveAllowance + overtimeAllowance;
+        const totalPendapatan = basicSalary + totalAllowances;
         
         setForm(prev => ({
           ...prev,
-          gross_salary: basicSalary
+          gross_salary: totalPendapatan
         }));
         
-        // Calculate payroll components with the auto-filled salary
-        calculatePayrollComponents(basicSalary);
+        // Calculate payroll components with the total pendapatan
+        calculatePayrollComponents(totalPendapatan);
       }
     } else if (field === 'gross_salary') {
       calculatePayrollComponents(Number(value));
@@ -334,9 +347,9 @@ export const PayrollContent = () => {
                   </div>
                 </div>
                 
-                {/* Basic Salary - Auto-filled from salary data */}
+                {/* Total Pendapatan - Auto-filled from salary data */}
                 <div>
-                  <Label htmlFor="gross_salary">Gaji Pokok</Label>
+                  <Label htmlFor="gross_salary">Total Pendapatan (Gaji + Tunjangan)</Label>
                   <Input 
                     id="gross_salary"
                     type="number" 
@@ -349,7 +362,7 @@ export const PayrollContent = () => {
                   />
                   {form.employee_id && (
                     <p className="text-sm text-gray-500 mt-1">
-                      Data diambil otomatis dari data salary karyawan
+                      Otomatis terisi dengan total gaji pokok + semua tunjangan dari data salary
                     </p>
                   )}
                 </div>
@@ -554,39 +567,42 @@ export const PayrollContent = () => {
                   )}
                 </div>
 
-                {/* Summary Section */}
-                <div className="grid grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg">
-                  <div>
-                    <Label htmlFor="gross_salary_display">Gaji Pokok</Label>
-                    <Input 
-                      id="gross_salary_display"
-                      type="text" 
-                      value={formatCurrency(form.gross_salary)} 
-                      readOnly
-                      className="bg-white font-semibold"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="deductions">Total Potongan</Label>
-                    <Input 
-                      id="deductions"
-                      type="text" 
-                      value={formatCurrency(form.deductions)} 
-                      readOnly
-                      className="bg-white font-semibold text-red-600"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="net_salary">Total Diterima</Label>
-                    <Input 
-                      id="net_salary"
-                      type="text" 
-                      value={formatCurrency(form.net_salary)} 
-                      readOnly
-                      className="bg-white font-semibold text-green-600"
-                    />
-                  </div>
-                </div>
+                                 {/* Summary Section */}
+                 <div className="grid grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg">
+                   <div>
+                     <Label htmlFor="gross_salary_display">Total Pendapatan (Gaji + Tunjangan)</Label>
+                     <Input 
+                       id="gross_salary_display"
+                       type="text" 
+                       value={formatCurrency(form.gross_salary)} 
+                       readOnly
+                       className="bg-white font-semibold"
+                     />
+                     <p className="text-xs text-gray-500 mt-1">Otomatis dari data salary</p>
+                   </div>
+                   <div>
+                     <Label htmlFor="deductions">Total Potongan</Label>
+                     <Input 
+                       id="deductions"
+                       type="text" 
+                       value={formatCurrency(form.deductions)} 
+                       readOnly
+                       className="bg-white font-semibold text-red-600"
+                     />
+                     <p className="text-xs text-gray-500 mt-1">Auto + Manual</p>
+                   </div>
+                   <div>
+                     <Label htmlFor="net_salary">Total Diterima</Label>
+                     <Input 
+                       id="net_salary"
+                       type="text" 
+                       value={formatCurrency(form.net_salary)} 
+                       readOnly
+                       className="bg-white font-semibold text-green-600"
+                     />
+                     <p className="text-xs text-gray-500 mt-1">Pendapatan - Potongan</p>
+                   </div>
+                 </div>
 
                 {/* Payment Info */}
                 <div className="grid grid-cols-2 gap-4">
