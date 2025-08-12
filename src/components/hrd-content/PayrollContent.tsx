@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 
 import { DollarSign, Plus, TrendingUp, Users } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useToast } from '@/hooks/use-toast';
 
 const API_URL = import.meta.env.VITE_API_URL || "";
@@ -26,6 +26,7 @@ export const PayrollContent = () => {
     total_pendapatan: 0        // Total keseluruhan
   });
   const [isCalculating, setIsCalculating] = useState(false); // Flag untuk mencegah multiple calls
+  const isManualDeductionUpdate = useRef(false); // Flag untuk melacak update manual deduction
 
   const [salaryData, setSalaryData] = useState<any[]>([]);
   const [manualDeductions, setManualDeductions] = useState({
@@ -297,12 +298,14 @@ export const PayrollContent = () => {
         }));
       }
       
-      // Toast success
-      toast({
-        title: "Perhitungan Berhasil",
-        description: "Komponen payroll berhasil dihitung oleh backend",
-        variant: "default"
-      });
+      // Toast success - hanya tampilkan jika bukan dari perubahan manual deduction
+      if (!isManualDeductionUpdate.current) {
+        toast({
+          title: "Perhitungan Berhasil",
+          description: "Komponen payroll berhasil dihitung oleh backend",
+          variant: "default"
+        });
+      }
       
     } catch (error) {
       console.error('Error calculating payroll:', error);
@@ -446,6 +449,9 @@ export const PayrollContent = () => {
   const handleManualDeductionChange = (field: string, value: number) => {
     console.log('Manual deduction change:', { field, value, currentForm: form });
     
+    // Set flag untuk mencegah toast muncul
+    isManualDeductionUpdate.current = true;
+    
     const newManualDeductions = { ...manualDeductions, [field]: value };
     setManualDeductions(newManualDeductions);
     
@@ -454,6 +460,11 @@ export const PayrollContent = () => {
       ...prev,
       [field]: value
     }));
+    
+    // Reset flag setelah state update
+    setTimeout(() => {
+      isManualDeductionUpdate.current = false;
+    }, 100);
     
     // Manual deductions berubah, useEffect akan handle perhitungan otomatis
     // Tidak perlu manual call calculatePayrollComponents
