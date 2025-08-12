@@ -184,16 +184,21 @@ export const PayrollContent = () => {
     }
     
     try {
+      const requestBody = {
+        employee_id: form.employee_id,
+        basic_salary: form.gross_salary || (form.basic_salary + form.total_allowances),
+        manual_deductions: manualDeductions
+      };
+      
+      console.log('Sending request to backend:', requestBody);
+      console.log('API URL:', `${API_URL}/api/payrolls/calculate`);
+      
       const response = await fetch(`${API_URL}/api/payrolls/calculate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          employee_id: form.employee_id,
-          basic_salary: basicSalary,
-          manual_deductions: manualDeductions
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
@@ -202,6 +207,8 @@ export const PayrollContent = () => {
       }
 
       const data = await response.json();
+      
+      console.log('Response from backend:', data);
       
       setCalculatedComponents(data.calculated_components || []);
       
