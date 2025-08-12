@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 
 import { DollarSign, Plus, TrendingUp, Users } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useToast } from '@/hooks/use-toast';
 
 const API_URL = import.meta.env.VITE_API_URL || "";
@@ -172,7 +172,7 @@ export const PayrollContent = () => {
   };
 
   // Calculate payroll components based on basic salary
-  const calculatePayrollComponents = async (basicSalary: number) => {
+  const calculatePayrollComponents = useCallback(async (basicSalary: number) => {
     console.log('=== calculatePayrollComponents CALLED ===');
     console.log('Parameters:', { basicSalary, employee_id: form.employee_id });
     
@@ -200,7 +200,7 @@ export const PayrollContent = () => {
     try {
       const requestBody = {
         employee_id: form.employee_id,
-        basic_salary: form.basic_salary, // Gunakan basic_salary dari form, bukan parameter
+        basic_salary: basicSalary, // Gunakan parameter yang dikirim, bukan form state
         manual_deductions: manualDeductions
       };
       
@@ -345,51 +345,29 @@ export const PayrollContent = () => {
         notCalculating: !isCalculating
       });
     }
-  }, [payrollComponents, form.employee_id]); // HAPUS form.gross_salary dan isCalculating dari dependencies, bukan employee_id
+  }, [payrollComponents, form.employee_id, form.gross_salary, isCalculating, calculatePayrollComponents]); // Tambahkan calculatePayrollComponents, bukan employee_id
 
 
 
-  const handleFormChange = (field: string, value: any) => {
+    const handleFormChange = (field: string, value: any) => {
     console.log('Form change:', { field, value, currentForm: form });
     
     if (field === 'employee_id') {
-      // Reset form data when employee changes
-      setForm(prev => ({
-        ...prev,
-        employee_id: value, // Set employee_id baru
-        basic_salary: 0,
-        position_allowance: 0,
-        management_allowance: 0,
-        phone_allowance: 0,
-        incentive_allowance: 0,
-        overtime_allowance: 0,
-        total_allowances: 0,
-        gross_salary: 0,
-        net_salary: 0,
-        total_deductions: 0
-      }));
-      
-      // Reset calculated components
+      // Reset semua state terlebih dahulu
       setCalculatedComponents([]);
-      
-      // Reset breakdown pendapatan
       setBreakdownPendapatan({
         pendapatan_tetap: 0,
         pendapatan_tidak_tetap: 0,
         total_pendapatan: 0
       });
-      
-      // Reset manual deductions
       setManualDeductions({
         kasbon: 0,
         telat: 0,
         angsuran_kredit: 0
       });
-      
-      // Reset calculating flag
       setIsCalculating(false);
       
-            // Auto-fill salary data when employee is selected
+      // Auto-fill salary data when employee is selected
       const selectedSalary = salaryData.find(salary => salary.employee_id === value);
       if (selectedSalary) {
         const basicSalary = typeof selectedSalary.basic_salary === 'string' ? 
@@ -406,10 +384,12 @@ export const PayrollContent = () => {
           parseFloat(selectedSalary.overtime_allowance) || 0 : selectedSalary.overtime_allowance || 0;
         
         const totalAllowances = posAllowance + mgmtAllowance + phoneAllowance + incentiveAllowance + overtimeAllowance;
+        const totalIncome = basicSalary + totalAllowances;
         
-        // Update form dengan data salary
+        // Update form dengan data salary dalam satu batch
         setForm(prev => ({
           ...prev,
+          employee_id: value,
           basic_salary: basicSalary,
           position_allowance: posAllowance,
           management_allowance: mgmtAllowance,
@@ -417,18 +397,20 @@ export const PayrollContent = () => {
           incentive_allowance: incentiveAllowance,
           overtime_allowance: overtimeAllowance,
           total_allowances: totalAllowances,
-          gross_salary: basicSalary + totalAllowances // Set gross_salary langsung
+          gross_salary: totalIncome
         }));
         
-        // Trigger perhitungan backend
+        // Trigger perhitungan backend dengan delay untuk memastikan state ter-update
         console.log('Triggering backend calculation with:', {
           basicSalary,
           totalAllowances,
-          totalIncome: basicSalary + totalAllowances
+          totalIncome
         });
         
-        // Trigger perhitungan langsung tanpa setTimeout
-        calculatePayrollComponents(basicSalary + totalAllowances);
+        // Gunakan setTimeout untuk memastikan state ter-update dulu
+        setTimeout(() => {
+          calculatePayrollComponents(totalIncome);
+        }, 100);
         
         // Toast success
         toast({
@@ -448,6 +430,7 @@ export const PayrollContent = () => {
         // Reset form untuk karyawan tanpa data salary
         setForm(prev => ({
           ...prev,
+          employee_id: value,
           basic_salary: 0,
           position_allowance: 0,
           management_allowance: 0,
