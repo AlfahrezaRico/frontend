@@ -200,7 +200,7 @@ export const PayrollContent = () => {
     try {
       const requestBody = {
         employee_id: form.employee_id,
-        basic_salary: basicSalary, // Gunakan parameter yang dikirim
+        basic_salary: form.basic_salary, // Gunakan basic_salary dari form, bukan parameter
         manual_deductions: manualDeductions
       };
       
@@ -345,7 +345,7 @@ export const PayrollContent = () => {
         notCalculating: !isCalculating
       });
     }
-  }, [payrollComponents, form.employee_id, form.gross_salary, isCalculating]); // Tambahkan isCalculating, bukan employee_id
+  }, [payrollComponents, form.employee_id]); // HAPUS form.gross_salary dan isCalculating dari dependencies, bukan employee_id
 
 
 
