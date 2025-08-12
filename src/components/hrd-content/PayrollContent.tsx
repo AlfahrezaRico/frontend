@@ -174,7 +174,6 @@ export const PayrollContent = () => {
   const calculatePayrollComponents = async (basicSalary: number) => {
     if (basicSalary <= 0) {
       setCalculatedComponents([]);
-      updateTotals(basicSalary, [], manualDeductions);
       return;
     }
 
@@ -186,7 +185,7 @@ export const PayrollContent = () => {
     try {
       const requestBody = {
         employee_id: form.employee_id,
-        basic_salary: form.gross_salary || (form.basic_salary + form.total_allowances),
+        basic_salary: basicSalary, // Gunakan parameter yang dikirim
         manual_deductions: manualDeductions
       };
       
@@ -256,6 +255,13 @@ export const PayrollContent = () => {
         }));
       }
       
+      // Toast success
+      toast({
+        title: "Perhitungan Berhasil",
+        description: "Komponen payroll berhasil dihitung oleh backend",
+        variant: "default"
+      });
+      
     } catch (error) {
       console.error('Error calculating payroll:', error);
       toast({
@@ -266,7 +272,6 @@ export const PayrollContent = () => {
       
       // Fallback to empty calculation (backend tidak tersedia)
       setCalculatedComponents([]);
-      // JANGAN hitung manual, tunggu backend
     }
   };
 
@@ -280,7 +285,7 @@ export const PayrollContent = () => {
       // Kirim ke backend untuk kalkulasi ulang
       calculatePayrollComponents(form.gross_salary);
     }
-  }, [payrollComponents, form.employee_id]); // Depend on both payrollComponents and employee_id
+  }, [payrollComponents]); // Hanya depend on payrollComponents, bukan employee_id
 
 
 
@@ -288,6 +293,31 @@ export const PayrollContent = () => {
     setForm(f => ({ ...f, [field]: value }));
     
     if (field === 'employee_id') {
+      // Reset form data when employee changes
+      setForm(prev => ({
+        ...prev,
+        basic_salary: 0,
+        position_allowance: 0,
+        management_allowance: 0,
+        phone_allowance: 0,
+        incentive_allowance: 0,
+        overtime_allowance: 0,
+        total_allowances: 0,
+        gross_salary: 0,
+        net_salary: 0,
+        total_deductions: 0
+      }));
+      
+      // Reset calculated components
+      setCalculatedComponents([]);
+      
+      // Reset breakdown pendapatan
+      setBreakdownPendapatan({
+        pendapatan_tetap: 0,
+        pendapatan_tidak_tetap: 0,
+        total_pendapatan: 0
+      });
+      
       // Auto-fill salary data when employee is selected
       const selectedSalary = salaryData.find(salary => salary.employee_id === value);
       if (selectedSalary) {
@@ -306,9 +336,7 @@ export const PayrollContent = () => {
         
         const totalAllowances = posAllowance + mgmtAllowance + phoneAllowance + incentiveAllowance + overtimeAllowance;
         
-        // Total Pendapatan = Gaji Pokok + Tunjangan (dihitung backend)
-        // JANGAN hitung manual di frontend
-        
+        // Update form dengan data salary
         setForm(prev => ({
           ...prev,
           basic_salary: basicSalary,
@@ -318,13 +346,27 @@ export const PayrollContent = () => {
           incentive_allowance: incentiveAllowance,
           overtime_allowance: overtimeAllowance,
           total_allowances: totalAllowances
-          // gross_salary akan dihitung backend
         }));
         
-        // Kirim ke backend untuk kalkulasi lengkap
+        // Trigger perhitungan backend
         setTimeout(() => {
           calculatePayrollComponents(basicSalary + totalAllowances);
         }, 100);
+        
+        // Toast success
+        toast({
+          title: "Data Salary Ditemukan",
+          description: `Data salary untuk ${employees.find(emp => emp.id === value)?.first_name} ${employees.find(emp => emp.id === value)?.last_name} berhasil dimuat`,
+          variant: "default"
+        });
+      } else {
+        // Toast error jika karyawan belum ada data salary
+        const selectedEmployee = employees.find(emp => emp.id === value);
+        toast({
+          title: "Data Salary Tidak Ditemukan",
+          description: `Karyawan ${selectedEmployee?.first_name} ${selectedEmployee?.last_name} belum memiliki data salary. Silakan buat data salary terlebih dahulu.`,
+          variant: "destructive"
+        });
       }
     } else if (field === 'gross_salary') {
       // Hanya hitung jika employee sudah dipilih
@@ -338,16 +380,16 @@ export const PayrollContent = () => {
     const newManualDeductions = { ...manualDeductions, [field]: value };
     setManualDeductions(newManualDeductions);
     
-    // Update form dengan manual deductions (JANGAN hitung manual)
+    // Update form dengan manual deductions
     setForm(prev => ({
       ...prev,
       [field]: value
-      // total_deductions akan dihitung backend
     }));
     
-    // Kirim ke backend untuk kalkulasi ulang
-    if (form.employee_id && form.gross_salary > 0) {
-      calculatePayrollComponents(form.gross_salary);
+    // Kirim ke backend untuk kalkulasi ulang dengan manual deductions yang baru
+    if (form.employee_id && (form.basic_salary > 0 || form.total_allowances > 0)) {
+      const totalIncome = form.basic_salary + form.total_allowances;
+      calculatePayrollComponents(totalIncome);
     }
   };
 
