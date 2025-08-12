@@ -189,8 +189,12 @@ export const PayrollContent = () => {
         manual_deductions: manualDeductions
       };
       
-      console.log('Sending request to backend:', requestBody);
+      console.log('=== BACKEND CALCULATION REQUEST ===');
+      console.log('Request Body:', requestBody);
       console.log('API URL:', `${API_URL}/api/payrolls/calculate`);
+      console.log('Form State:', form);
+      console.log('Manual Deductions:', manualDeductions);
+      console.log('=====================================');
       
       const response = await fetch(`${API_URL}/api/payrolls/calculate`, {
         method: 'POST',
@@ -207,26 +211,41 @@ export const PayrollContent = () => {
 
       const data = await response.json();
       
-      console.log('Response from backend:', data);
+      console.log('=== BACKEND CALCULATION RESPONSE ===');
+      console.log('Full Response:', data);
+      console.log('Calculated Components:', data.calculated_components);
+      console.log('Totals:', data.totals);
+      console.log('Breakdown Pendapatan:', data.breakdown_pendapatan);
+      console.log('=====================================');
       
       setCalculatedComponents(data.calculated_components || []);
       
       // Update form dengan breakdown pendapatan dari backend
       if (data.totals) {
-        setForm(prev => ({
-          ...prev,
-          // Backend mengirimkan breakdown pendapatan yang lengkap
-          gross_salary: data.totals.total_pendapatan || prev.gross_salary,
-          total_deductions: data.totals.total_deduction || 0,
-          net_salary: data.totals.net_salary || prev.net_salary
-        }));
+        console.log('Updating form with totals:', data.totals);
+        
+        setForm(prev => {
+          const updatedForm = {
+            ...prev,
+            // Backend mengirimkan breakdown pendapatan yang lengkap
+            gross_salary: data.totals.total_pendapatan || prev.gross_salary,
+            total_deductions: data.totals.total_deduction || 0,
+            net_salary: data.totals.net_salary || prev.net_salary
+          };
+          
+          console.log('Form updated:', updatedForm);
+          return updatedForm;
+        });
 
         // Update breakdown pendapatan dari backend
-        setBreakdownPendapatan({
+        const newBreakdown = {
           pendapatan_tetap: data.totals.pendapatan_tetap || 0,           // Gaji Pokok
           pendapatan_tidak_tetap: data.totals.pendapatan_tidak_tetap || 0, // Total Tunjangan
           total_pendapatan: data.totals.total_pendapatan || 0             // Total keseluruhan
-        });
+        };
+        
+        console.log('Updating breakdown pendapatan:', newBreakdown);
+        setBreakdownPendapatan(newBreakdown);
       }
       
       // Update komponen payroll yang dihitung
@@ -290,6 +309,7 @@ export const PayrollContent = () => {
 
 
   const handleFormChange = (field: string, value: any) => {
+    console.log('Form change:', { field, value, currentForm: form });
     setForm(f => ({ ...f, [field]: value }));
     
     if (field === 'employee_id') {
@@ -348,10 +368,16 @@ export const PayrollContent = () => {
           total_allowances: totalAllowances
         }));
         
-        // Trigger perhitungan backend
-        setTimeout(() => {
-          calculatePayrollComponents(basicSalary + totalAllowances);
-        }, 100);
+              // Trigger perhitungan backend
+      console.log('Triggering backend calculation with:', {
+        basicSalary,
+        totalAllowances,
+        totalIncome: basicSalary + totalAllowances
+      });
+      
+      setTimeout(() => {
+        calculatePayrollComponents(basicSalary + totalAllowances);
+      }, 100);
         
         // Toast success
         toast({
@@ -377,6 +403,8 @@ export const PayrollContent = () => {
   };
 
   const handleManualDeductionChange = (field: string, value: number) => {
+    console.log('Manual deduction change:', { field, value, currentForm: form });
+    
     const newManualDeductions = { ...manualDeductions, [field]: value };
     setManualDeductions(newManualDeductions);
     
@@ -389,6 +417,7 @@ export const PayrollContent = () => {
     // Kirim ke backend untuk kalkulasi ulang dengan manual deductions yang baru
     if (form.employee_id && (form.basic_salary > 0 || form.total_allowances > 0)) {
       const totalIncome = form.basic_salary + form.total_allowances;
+      console.log('Recalculating with manual deduction change:', { totalIncome, newManualDeductions });
       calculatePayrollComponents(totalIncome);
     }
   };
