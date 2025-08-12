@@ -195,19 +195,30 @@ export default function PayrollManagement() {
 
   // Calculate payroll components based on basic salary
   const calculatePayrollComponents = (basicSalary: number) => {
+    console.log('=== calculatePayrollComponents CALLED ===');
+    console.log('basicSalary:', basicSalary);
+    console.log('autoCalculation:', autoCalculation);
+    console.log('payrollComponents:', payrollComponents);
+    console.log('payrollComponents.length:', payrollComponents.length);
+    
     if (basicSalary <= 0) {
+      console.log('Basic salary <= 0, clearing components');
       setCalculatedComponents([]);
       updateTotals(basicSalary, [], manualDeductions);
       return;
     }
 
     if (!autoCalculation) {
+      console.log('Auto calculation disabled, clearing components');
       setCalculatedComponents([]);
       updateTotals(basicSalary, [], manualDeductions);
       return;
     }
 
     const activeComponents = payrollComponents.filter(comp => comp.is_active);
+    console.log('Active components:', activeComponents);
+    console.log('Active components count:', activeComponents.length);
+    
     const calculated: CalculatedComponent[] = [];
 
     activeComponents.forEach(component => {
@@ -218,10 +229,12 @@ export default function PayrollManagement() {
         // Calculate based on percentage
         amount = (basicSalary * component.percentage) / 100;
         isPercentage = true;
+        console.log(`Component ${component.name}: ${component.percentage}% of ${basicSalary} = ${amount}`);
       } else if (component.amount > 0) {
         // Use fixed amount
         amount = component.amount;
         isPercentage = false;
+        console.log(`Component ${component.name}: fixed amount = ${amount}`);
       }
 
       calculated.push({
@@ -234,6 +247,9 @@ export default function PayrollManagement() {
       });
     });
 
+    console.log('Final calculated components:', calculated);
+    console.log('==========================================');
+    
     setCalculatedComponents(calculated);
     updateTotals(basicSalary, calculated, manualDeductions);
   };
@@ -439,6 +455,16 @@ export default function PayrollManagement() {
     setSubmitting(true);
     
     try {
+      // Debug: Check what we have before calculation
+      console.log('=== DEBUG BEFORE CALCULATION ===');
+      console.log('form.basic_salary:', form.basic_salary);
+      console.log('calculatedComponents:', calculatedComponents);
+      console.log('calculatedComponents.length:', calculatedComponents.length);
+      console.log('manualDeductions:', manualDeductions);
+      console.log('user:', user);
+      console.log('user?.id:', user?.id);
+      console.log('================================');
+      
       // Calculate all values before submitting
       const totalAllowances = calculatedComponents
         .filter(c => c.type === 'income' && c.category === 'allowance')
@@ -459,6 +485,18 @@ export default function PayrollManagement() {
       const totalPendapatan = form.basic_salary + totalAllowances + companyContributions;
       const netSalary = totalPendapatan - totalDeduction;
       
+      // Debug: Check calculated values
+      console.log('=== DEBUG CALCULATED VALUES ===');
+      console.log('totalAllowances:', totalAllowances);
+      console.log('companyContributions:', companyContributions);
+      console.log('employeeDeductions:', employeeDeductions);
+      console.log('totalManualDeduction:', totalManualDeduction);
+      console.log('totalDeduction:', totalDeduction);
+      console.log('grossSalary:', grossSalary);
+      console.log('totalPendapatan:', totalPendapatan);
+      console.log('netSalary:', netSalary);
+      console.log('================================');
+      
       // Map calculated components to specific fields
       const bpjsHealthCompany = calculatedComponents.find(c => c.name === 'BPJS Kesehatan (Perusahaan)' && c.type === 'income')?.amount || 0;
       const jhtCompany = calculatedComponents.find(c => c.name === 'BPJS Ketenagakerjaan JHT (Perusahaan)' && c.type === 'income')?.amount || 0;
@@ -476,9 +514,22 @@ export default function PayrollManagement() {
       const incentiveAllowance = calculatedComponents.find(c => c.name === 'Tunjangan Insentif' && c.type === 'income')?.amount || 0;
       const overtimeAllowance = calculatedComponents.find(c => c.name === 'Tunjangan Lembur' && c.type === 'income')?.amount || 0;
       
+      // Debug: Check mapped values
+      console.log('=== DEBUG MAPPED VALUES ===');
+      console.log('BPJS Company:', { bpjsHealthCompany, jhtCompany, jkkCompany, jkmCompany, jpCompany });
+      console.log('BPJS Employee:', { bpjsHealthEmployee, jhtEmployee, jpEmployee });
+      console.log('Allowances:', { positionAllowance, managementAllowance, phoneAllowance, incentiveAllowance, overtimeAllowance });
+      console.log('================================');
+      
       // Calculate subtotals
       const subtotalCompany = bpjsHealthCompany + jhtCompany + jkkCompany + jkmCompany + jpCompany;
       const subtotalEmployee = bpjsHealthEmployee + jhtEmployee + jpEmployee;
+      
+      // Debug: Check subtotals
+      console.log('=== DEBUG SUBTOTALS ===');
+      console.log('subtotalCompany:', subtotalCompany);
+      console.log('subtotalEmployee:', subtotalEmployee);
+      console.log('================================');
       
       // Create the complete payroll data object
       const payrollData = {
