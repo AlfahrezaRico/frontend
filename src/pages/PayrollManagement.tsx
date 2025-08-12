@@ -58,6 +58,10 @@ const formatCurrency = (amount: number | null | undefined): string => {
   }).format(numAmount).replace('IDR', 'Rp ').trim();
 };
 
+const getTotalManualDeductions = (manualDeductions: ManualDeduction): number => {
+  return manualDeductions.kasbon + manualDeductions.telat + manualDeductions.angsuran_kredit;
+};
+
 export default function PayrollManagement() {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -226,6 +230,18 @@ export default function PayrollManagement() {
   };
 
   const handleManualDeductionChange = (field: keyof ManualDeduction, value: number) => {
+    // Validasi: manual deduction tidak boleh melebihi total diterima
+    const currentTotalManualDeductions = getTotalManualDeductions(manualDeductions) - manualDeductions[field] + value;
+    
+    if (currentTotalManualDeductions > form.net_salary) {
+      toast({
+        title: "Validasi Gagal",
+        description: `Total potongan manual (${formatCurrency(currentTotalManualDeductions)}) tidak boleh melebihi total diterima (${formatCurrency(form.net_salary)})`,
+        variant: "destructive"
+      });
+      return;
+    }
+    
     const newManualDeductions = { ...manualDeductions, [field]: value };
     setManualDeductions(newManualDeductions);
     
@@ -344,7 +360,7 @@ export default function PayrollManagement() {
                         <Input 
                           id="pay_period_start"
                           type="date" 
-                          value={form.pay_period_start} 
+                          value={form.pay_period_start || ''} 
                           onChange={(e) => handleFormChange('pay_period_start', e.target.value)} 
                           required 
                         />
@@ -354,7 +370,7 @@ export default function PayrollManagement() {
                         <Input 
                           id="pay_period_end"
                           type="date" 
-                          value={form.pay_period_end} 
+                          value={form.pay_period_end || ''} 
                           onChange={(e) => handleFormChange('pay_period_end', e.target.value)} 
                           required 
                         />
@@ -454,10 +470,16 @@ export default function PayrollManagement() {
                             onChange={(e) => handleManualDeductionChange('kasbon', Number(e.target.value))} 
                             placeholder="0"
                             min="0"
+                            className={manualDeductions.kasbon > 0 && getTotalManualDeductions(manualDeductions) > form.net_salary ? 'border-red-500' : ''}
                           />
                           <div className="text-xs text-gray-500 mt-1">
                             {formatCurrency(manualDeductions.kasbon)}
                           </div>
+                          {manualDeductions.kasbon > 0 && getTotalManualDeductions(manualDeductions) > form.net_salary && (
+                            <div className="text-xs text-red-500 mt-1">
+                              ⚠️ Melebihi batas maksimal
+                            </div>
+                          )}
                         </div>
                         <div>
                           <Label htmlFor="telat">Telat</Label>
@@ -468,10 +490,16 @@ export default function PayrollManagement() {
                             onChange={(e) => handleManualDeductionChange('telat', Number(e.target.value))} 
                             placeholder="0"
                             min="0"
+                            className={manualDeductions.telat > 0 && getTotalManualDeductions(manualDeductions) > form.net_salary ? 'border-red-500' : ''}
                           />
                           <div className="text-xs text-gray-500 mt-1">
                             {formatCurrency(manualDeductions.telat)}
                           </div>
+                          {manualDeductions.telat > 0 && getTotalManualDeductions(manualDeductions) > form.net_salary && (
+                            <div className="text-xs text-red-500 mt-1">
+                              ⚠️ Melebihi batas maksimal
+                            </div>
+                          )}
                         </div>
                         <div>
                           <Label htmlFor="angsuran_kredit">Angsuran Kredit</Label>
@@ -482,10 +510,16 @@ export default function PayrollManagement() {
                             onChange={(e) => handleManualDeductionChange('angsuran_kredit', Number(e.target.value))} 
                             placeholder="0"
                             min="0"
+                            className={manualDeductions.angsuran_kredit > 0 && getTotalManualDeductions(manualDeductions) > form.net_salary ? 'border-red-500' : ''}
                           />
                           <div className="text-xs text-gray-500 mt-1">
                             {formatCurrency(manualDeductions.angsuran_kredit)}
                           </div>
+                          {manualDeductions.angsuran_kredit > 0 && getTotalManualDeductions(manualDeductions) > form.net_salary && (
+                            <div className="text-xs text-red-500 mt-1">
+                              ⚠️ Melebihi batas maksimal
+                            </div>
+                          )}
                         </div>
                       </div>
                       {(manualDeductions.kasbon > 0 || manualDeductions.telat > 0 || manualDeductions.angsuran_kredit > 0) && (
@@ -493,7 +527,18 @@ export default function PayrollManagement() {
                           <div className="flex justify-between items-center">
                             <span className="font-medium text-sm text-red-800">Total Potongan Manual</span>
                             <span className="text-sm font-semibold text-red-600">
-                              - {formatCurrency(manualDeductions.kasbon + manualDeductions.telat + manualDeductions.angsuran_kredit)}
+                              - {formatCurrency(getTotalManualDeductions(manualDeductions))}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Warning message for total deductions */}
+                      {getTotalManualDeductions(manualDeductions) > form.net_salary && (
+                        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <div className="flex items-center text-red-700">
+                            <span className="text-sm font-medium">
+                              ⚠️ Total potongan manual ({formatCurrency(getTotalManualDeductions(manualDeductions))}) melebihi total diterima ({formatCurrency(form.net_salary)})
                             </span>
                           </div>
                         </div>
@@ -541,7 +586,7 @@ export default function PayrollManagement() {
                         <Input 
                           id="payment_date"
                           type="date" 
-                          value={form.payment_date} 
+                          value={form.payment_date || ''} 
                           onChange={(e) => handleFormChange('payment_date', e.target.value)} 
                           required 
                         />
