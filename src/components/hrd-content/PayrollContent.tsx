@@ -1456,6 +1456,14 @@ export const PayrollContent = () => {
           </DialogHeader>
           {selectedPayroll && (
             <div className="space-y-6">
+              {/* Debug Info - Hapus setelah testing */}
+              <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                <h4 className="font-medium text-yellow-800 mb-2">Debug Info (Hapus setelah testing)</h4>
+                <pre className="text-xs text-yellow-700 overflow-auto">
+                  {JSON.stringify(selectedPayroll, null, 2)}
+                </pre>
+              </div>
+              
               {/* Employee Info */}
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h3 className="font-semibold text-lg mb-3">Informasi Karyawan</h3>
@@ -1629,7 +1637,13 @@ export const PayrollContent = () => {
                   <div className="flex justify-between items-center py-3 px-4 bg-orange-100 rounded-lg border border-orange-300">
                     <span className="font-semibold text-gray-800">SUB TOTAL</span>
                     <span className="font-bold text-orange-800">
-                      {formatCurrency((selectedPayroll.bpjs_health_company || 0) + (selectedPayroll.jht_company || 0) + (selectedPayroll.jkk_company || 0) + (selectedPayroll.jkm_company || 0) + (selectedPayroll.jp_company || 0))}
+                      {formatCurrency(
+                        (selectedPayroll.bpjs_health_company || 0) + 
+                        (selectedPayroll.jht_company || 0) + 
+                        (selectedPayroll.jkk_company || 0) + 
+                        (selectedPayroll.jkm_company || 0) + 
+                        (selectedPayroll.jp_company || 0)
+                      )}
                     </span>
                   </div>
                 </div>
@@ -1700,7 +1714,15 @@ export const PayrollContent = () => {
                   <div className="flex justify-between items-center py-3 px-4 bg-red-100 rounded-lg border border-red-300">
                     <span className="font-semibold text-gray-800">SUB TOTAL</span>
                     <span className="font-bold text-red-800">
-                      {formatCurrency((selectedPayroll.bpjs_health_employee || 0) + (selectedPayroll.jht_employee || 0) + (selectedPayroll.jp_employee || 0) + (selectedPayroll.pph21 || 0) + (selectedPayroll.kasbon || 0) + (selectedPayroll.telat || 0) + (selectedPayroll.angsuran_kredit || 0))}
+                      {formatCurrency(
+                        (selectedPayroll.bpjs_health_employee || 0) + 
+                        (selectedPayroll.jht_employee || 0) + 
+                        (selectedPayroll.jp_employee || 0) + 
+                        (selectedPayroll.pph21 || 0) + 
+                        (selectedPayroll.kasbon || 0) + 
+                        (selectedPayroll.telat || 0) + 
+                        (selectedPayroll.angsuran_kredit || 0)
+                      )}
                     </span>
                   </div>
                 </div>
