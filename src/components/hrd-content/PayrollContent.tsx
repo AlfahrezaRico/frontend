@@ -25,6 +25,7 @@ export const PayrollContent = () => {
     pendapatan_tidak_tetap: 0, // Total Tunjangan
     total_pendapatan: 0        // Total keseluruhan
   });
+  const [isCalculating, setIsCalculating] = useState(false); // Flag untuk mencegah multiple calls
 
   const [salaryData, setSalaryData] = useState<any[]>([]);
   const [manualDeductions, setManualDeductions] = useState({
@@ -175,6 +176,12 @@ export const PayrollContent = () => {
     console.log('=== calculatePayrollComponents CALLED ===');
     console.log('Parameters:', { basicSalary, employee_id: form.employee_id });
     
+    // Prevent multiple simultaneous calls
+    if (isCalculating) {
+      console.log('Already calculating, skipping...');
+      return;
+    }
+    
     if (basicSalary <= 0) {
       console.log('Basic salary <= 0, returning early');
       setCalculatedComponents([]);
@@ -186,6 +193,9 @@ export const PayrollContent = () => {
       console.log('No employee_id, returning early');
       return;
     }
+    
+    // Set flag to prevent multiple calls
+    setIsCalculating(true);
     
     try {
       const requestBody = {
@@ -298,6 +308,9 @@ export const PayrollContent = () => {
       
       // Fallback to empty calculation (backend tidak tersedia)
       setCalculatedComponents([]);
+    } finally {
+      // Reset flag setelah selesai (success atau error)
+      setIsCalculating(false);
     }
   };
 
@@ -320,7 +333,7 @@ export const PayrollContent = () => {
     } else {
       console.log('useEffect: Conditions not met for calculation');
     }
-  }, [payrollComponents, form.employee_id, form.gross_salary]); // Depend on all relevant values, bukan employee_id
+  }, [payrollComponents, form.employee_id]); // Hapus form.gross_salary dari dependencies, bukan employee_id
 
 
 
