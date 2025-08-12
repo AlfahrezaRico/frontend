@@ -20,6 +20,11 @@ export const PayrollContent = () => {
   const [employees, setEmployees] = useState<any[]>([]);
   const [payrollComponents, setPayrollComponents] = useState<any[]>([]);
   const [calculatedComponents, setCalculatedComponents] = useState<any[]>([]);
+  const [breakdownPendapatan, setBreakdownPendapatan] = useState<any>({
+    pendapatan_tetap: 0,      // Gaji Pokok
+    pendapatan_tidak_tetap: 0, // Total Tunjangan
+    total_pendapatan: 0        // Total keseluruhan
+  });
 
   const [salaryData, setSalaryData] = useState<any[]>([]);
   const [manualDeductions, setManualDeductions] = useState({
@@ -200,15 +205,22 @@ export const PayrollContent = () => {
       
       setCalculatedComponents(data.calculated_components || []);
       
-      // Update form with calculated totals (JANGAN override gross_salary dari backend)
+      // Update form dengan breakdown pendapatan dari backend
       if (data.totals) {
         setForm(prev => ({
           ...prev,
-          // gross_salary tetap dari data salary (gaji pokok + tunjangan)
-          // gross_salary: data.totals.total_pendapatan || basicSalary,
+          // Backend mengirimkan breakdown pendapatan yang lengkap
+          gross_salary: data.totals.total_pendapatan || prev.gross_salary,
           total_deductions: data.totals.total_deduction || 0,
-          net_salary: data.totals.net_salary || basicSalary
+          net_salary: data.totals.net_salary || prev.net_salary
         }));
+
+        // Update breakdown pendapatan dari backend
+        setBreakdownPendapatan({
+          pendapatan_tetap: data.totals.pendapatan_tetap || 0,           // Gaji Pokok
+          pendapatan_tidak_tetap: data.totals.pendapatan_tidak_tetap || 0, // Total Tunjangan
+          total_pendapatan: data.totals.total_pendapatan || 0             // Total keseluruhan
+        });
       }
       
       // Update komponen payroll yang dihitung
@@ -674,6 +686,86 @@ export const PayrollContent = () => {
                           <span className="text-2xl font-bold text-green-600">
                             {formatCurrency(basicSalary + totalAllowances)}
                           </span>
+                        </div>
+
+                        {/* Breakdown Pendapatan dari Backend */}
+                        <div className="space-y-4">
+                          <h4 className="font-semibold text-gray-800 border-b pb-2">Breakdown Pendapatan (Dihitung Backend)</h4>
+                          
+                          {/* Pendapatan Tetap (Gaji Pokok) */}
+                          <div className="p-4 bg-green-50 rounded-lg border">
+                            <h5 className="font-medium text-gray-700 mb-3">PENDAPATAN TETAP</h5>
+                            <div className="space-y-2">
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm text-gray-600">Gaji Pokok</span>
+                                <span className="font-semibold text-green-600">
+                                  {formatCurrency(breakdownPendapatan.pendapatan_tetap)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center pt-2 border-t">
+                                <span className="font-medium text-gray-700">SUB TOTAL</span>
+                                <span className="font-bold text-green-600">
+                                  {formatCurrency(breakdownPendapatan.pendapatan_tetap)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Pendapatan Tidak Tetap (Tunjangan) */}
+                          <div className="p-4 bg-blue-50 rounded-lg border">
+                            <h5 className="font-medium text-gray-700 mb-3">PENDAPATAN TIDAK TETAP</h5>
+                            <div className="space-y-2">
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm text-gray-600">Tunjangan Jabatan</span>
+                                <span className="font-semibold text-blue-600">
+                                  {formatCurrency(posAllowance)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm text-gray-600">Tunjangan Pengurus</span>
+                                <span className="font-semibold text-blue-600">
+                                  {formatCurrency(mgmtAllowance)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm text-gray-600">Tunjangan Pulsa</span>
+                                <span className="font-semibold text-blue-600">
+                                  {formatCurrency(phoneAllowance)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm text-gray-600">Tunjangan Insentif</span>
+                                <span className="font-semibold text-blue-600">
+                                  {formatCurrency(incentiveAllowance)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm text-gray-600">Tunjangan Lembur</span>
+                                <span className="font-semibold text-blue-600">
+                                  {formatCurrency(overtimeAllowance)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center pt-2 border-t">
+                                <span className="font-medium text-gray-700">SUB TOTAL</span>
+                                <span className="font-bold text-blue-600">
+                                  {formatCurrency(breakdownPendapatan.pendapatan_tidak_tetap)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Total Pendapatan (Verifikasi) */}
+                          <div className="p-4 bg-yellow-50 rounded-lg border">
+                            <div className="flex justify-between items-center">
+                              <span className="text-lg font-bold text-gray-800">TOTAL PENDAPATAN</span>
+                              <span className="text-2xl font-bold text-yellow-600">
+                                {formatCurrency(breakdownPendapatan.total_pendapatan)}
+                              </span>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1 text-center">
+                              Pendapatan Tetap ({formatCurrency(breakdownPendapatan.pendapatan_tetap)}) + Pendapatan Tidak Tetap ({formatCurrency(breakdownPendapatan.pendapatan_tidak_tetap)}) = {formatCurrency(breakdownPendapatan.total_pendapatan)}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     );
