@@ -194,7 +194,7 @@ export const PayrollContent = () => {
       return;
     }
     
-    // Set flag to prevent multiple calls
+    // Set flag to prevent multiple calls and recursive useEffect triggers
     setIsCalculating(true);
     
     try {
@@ -318,7 +318,7 @@ export const PayrollContent = () => {
       // Reset flag setelah selesai (success atau error)
       setIsCalculating(false);
     }
-  }, [form.employee_id, manualDeductions]);
+  }, [form.employee_id, manualDeductions, isCalculating]);
 
 
 
@@ -345,7 +345,7 @@ export const PayrollContent = () => {
         notCalculating: !isCalculating
       });
     }
-  }, [payrollComponents, form.employee_id, form.gross_salary, isCalculating, calculatePayrollComponents]); // Tambahkan calculatePayrollComponents, bukan employee_id
+  }, [payrollComponents, form.employee_id, form.gross_salary, manualDeductions]); // Removed isCalculating to prevent unnecessary re-runs
 
   const handleFormChange = (field: string, value: any) => {
     console.log('Form change:', { field, value, currentForm: form });
@@ -398,17 +398,15 @@ export const PayrollContent = () => {
           gross_salary: totalIncome
         }));
         
-        // Trigger perhitungan backend dengan delay untuk memastikan state ter-update
+        // Trigger perhitungan backend setelah state ter-update
         console.log('Triggering backend calculation with:', {
           basicSalary,
           totalAllowances,
           totalIncome
         });
         
-        // Gunakan setTimeout untuk memastikan state ter-update dulu
-        setTimeout(() => {
-          calculatePayrollComponents(totalIncome);
-        }, 100);
+        // State akan ter-update dan useEffect akan otomatis memanggil calculatePayrollComponents
+        // Tidak perlu manual call karena useEffect sudah handle ini
         
         // Toast success
         toast({
@@ -440,10 +438,8 @@ export const PayrollContent = () => {
         }));
       }
     } else if (field === 'gross_salary') {
-      // Hanya hitung jika employee sudah dipilih
-      if (form.employee_id) {
-        calculatePayrollComponents(Number(value));
-      }
+      // Hanya update form, useEffect akan handle perhitungan otomatis
+      // Tidak perlu manual call calculatePayrollComponents
     }
   };
 
@@ -459,12 +455,8 @@ export const PayrollContent = () => {
       [field]: value
     }));
     
-    // Kirim ke backend untuk kalkulasi ulang dengan manual deductions yang baru
-    if (form.employee_id && (form.basic_salary > 0 || form.total_allowances > 0)) {
-      const totalIncome = form.basic_salary + form.total_allowances;
-      console.log('Recalculating with manual deduction change:', { totalIncome, newManualDeductions });
-      calculatePayrollComponents(totalIncome);
-    }
+    // Manual deductions berubah, useEffect akan handle perhitungan otomatis
+    // Tidak perlu manual call calculatePayrollComponents
   };
 
   const handleAddPayroll = async (e: React.FormEvent) => {
