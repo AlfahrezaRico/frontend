@@ -615,7 +615,7 @@ export const PayrollContent = () => {
   };
 
   const getTotalManualDeductions = () => {
-    return Object.values(manualDeductions).reduce((sum, val) => sum + val, 0);
+    return form.kasbon + form.telat + form.angsuran_kredit;
   };
 
   return (
@@ -1006,27 +1006,27 @@ export const PayrollContent = () => {
                             ))}
                             
                             {/* Manual Deductions */}
-                            {manualDeductions.kasbon > 0 && (
+                            {form.kasbon > 0 && (
                               <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
                                 <span className="font-medium text-sm text-gray-800">KASBON</span>
                                 <span className="text-sm font-bold text-red-700 ml-4">
-                                  {formatCurrency(manualDeductions.kasbon)}
+                                  {formatCurrency(form.kasbon)}
                                 </span>
                               </div>
                             )}
-                            {manualDeductions.angsuran_kredit > 0 && (
+                            {form.angsuran_kredit > 0 && (
                               <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
                                 <span className="font-medium text-sm text-gray-800">Angsuran Kredit</span>
                                 <span className="text-sm font-bold text-red-700 ml-4">
-                                  {formatCurrency(manualDeductions.angsuran_kredit)}
+                                  {formatCurrency(form.angsuran_kredit)}
                                 </span>
                               </div>
                             )}
-                            {manualDeductions.telat > 0 && (
+                            {form.telat > 0 && (
                               <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
                                 <span className="font-medium text-sm text-gray-800">Telat</span>
                                 <span className="text-sm font-bold text-red-700 ml-4">
-                                  {formatCurrency(manualDeductions.telat)}
+                                  {formatCurrency(form.telat)}
                                 </span>
                            </div>
                             )}
@@ -1035,7 +1035,7 @@ export const PayrollContent = () => {
                             <span className="font-semibold text-gray-800">SUB TOTAL</span>
                             <span className="font-bold text-red-800">
                               {formatCurrency(calculatedComponents.filter(c => c.type === 'deduction' && c.name.includes('(Karyawan)')).reduce((sum, c) => sum + c.amount, 0) + 
-                                manualDeductions.kasbon + manualDeductions.telat + manualDeductions.angsuran_kredit)}
+                                form.kasbon + form.telat + form.angsuran_kredit)}
                             </span>
                           </div>
                         </div>
@@ -1090,65 +1090,65 @@ export const PayrollContent = () => {
                 <div className="space-y-4">
                   <h3 className="font-semibold text-gray-900 border-b pb-2">Input Potongan Manual</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="kasbon">KASBON</Label>
-                      <Input 
-                        id="kasbon"
-                        type="number" 
-                        value={manualDeductions.kasbon} 
-                        onChange={(e) => handleManualDeductionChange('kasbon', Number(e.target.value))} 
-                        placeholder="0"
-                        min="0"
-                        className={manualDeductions.kasbon > 0 && getTotalManualDeductions() > form.net_salary ? 'border-red-500' : ''}
-                      />
-                      <div className="text-xs text-gray-500 mt-1">
-                        {formatCurrency(manualDeductions.kasbon)}
-                      </div>
-                      {manualDeductions.kasbon > 0 && getTotalManualDeductions() > form.net_salary && (
-                        <div className="text-xs text-red-500 mt-1">
-                          ⚠️ Melebihi batas maksimal
-                        </div>
-                      )}
+                                            <div>
+                          <Label htmlFor="kasbon">KASBON</Label>
+                          <Input 
+                            id="kasbon"
+                            type="number" 
+                            value={form.kasbon} 
+                            onChange={(e) => handleManualDeductionChange('kasbon', Number(e.target.value))} 
+                            placeholder="0"
+                            min="0"
+                            className={form.kasbon > 0 && getTotalManualDeductions() > form.net_salary ? 'border-red-500' : ''}
+                          />
+                                                <div className="text-xs text-gray-500 mt-1">
+                            {formatCurrency(form.kasbon)}
+                          </div>
+                          {form.kasbon > 0 && getTotalManualDeductions() > form.net_salary && (
+                            <div className="text-xs text-red-500 mt-1">
+                              ⚠️ Melebihi batas maksimal
+                            </div>
+                          )}
                     </div>
-                    <div>
-                      <Label htmlFor="telat">Telat</Label>
-                      <Input 
-                        id="telat"
-                        type="number" 
-                        value={manualDeductions.telat} 
-                        onChange={(e) => handleManualDeductionChange('telat', Number(e.target.value))} 
-                        placeholder="0"
-                        min="0"
-                        className={manualDeductions.telat > 0 && getTotalManualDeductions() > form.net_salary ? 'border-red-500' : ''}
-                      />
-                      <div className="text-xs text-gray-500 mt-1">
-                        {formatCurrency(manualDeductions.telat)}
-                      </div>
-                      {manualDeductions.telat > 0 && getTotalManualDeductions() > form.net_salary && (
-                        <div className="text-xs text-red-500 mt-1">
-                          ⚠️ Melebihi batas maksimal
-                        </div>
-                      )}
+                                            <div>
+                          <Label htmlFor="telat">Telat</Label>
+                          <Input 
+                            id="telat"
+                            type="number" 
+                            value={form.telat} 
+                            onChange={(e) => handleManualDeductionChange('telat', Number(e.target.value))} 
+                            placeholder="0"
+                            min="0"
+                            className={form.telat > 0 && getTotalManualDeductions() > form.net_salary ? 'border-red-500' : ''}
+                          />
+                                                <div className="text-xs text-gray-500 mt-1">
+                            {formatCurrency(form.telat)}
+                          </div>
+                          {form.telat > 0 && getTotalManualDeductions() > form.net_salary && (
+                            <div className="text-xs text-red-500 mt-1">
+                              ⚠️ Melebihi batas maksimal
+                            </div>
+                          )}
                     </div>
-                    <div>
-                      <Label htmlFor="angsuran_kredit">Angsuran Kredit</Label>
-                      <Input 
-                        id="angsuran_kredit"
-                        type="number" 
-                        value={manualDeductions.angsuran_kredit} 
-                        onChange={(e) => handleManualDeductionChange('angsuran_kredit', Number(e.target.value))} 
-                        placeholder="0"
-                        min="0"
-                        className={manualDeductions.angsuran_kredit > 0 && getTotalManualDeductions() > form.net_salary ? 'border-red-500' : ''}
-                      />
-                      <div className="text-xs text-gray-500 mt-1">
-                        {formatCurrency(manualDeductions.angsuran_kredit)}
-                      </div>
-                      {manualDeductions.angsuran_kredit > 0 && getTotalManualDeductions() > form.net_salary && (
-                        <div className="text-xs text-red-500 mt-1">
-                          ⚠️ Melebihi batas maksimal
-                        </div>
-                      )}
+                                            <div>
+                          <Label htmlFor="angsuran_kredit">Angsuran Kredit</Label>
+                          <Input 
+                            id="angsuran_kredit"
+                            type="number" 
+                            value={form.angsuran_kredit} 
+                            onChange={(e) => handleManualDeductionChange('angsuran_kredit', Number(e.target.value))} 
+                            placeholder="0"
+                            min="0"
+                            className={form.angsuran_kredit > 0 && getTotalManualDeductions() > form.net_salary ? 'border-red-500' : ''}
+                          />
+                                                <div className="text-xs text-gray-500 mt-1">
+                            {formatCurrency(form.angsuran_kredit)}
+                          </div>
+                          {form.angsuran_kredit > 0 && getTotalManualDeductions() > form.net_salary && (
+                            <div className="text-xs text-red-500 mt-1">
+                              ⚠️ Melebihi batas maksimal
+                            </div>
+                          )}
                     </div>
                   </div>
                   
