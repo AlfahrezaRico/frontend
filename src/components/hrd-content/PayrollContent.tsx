@@ -174,24 +174,18 @@ export const PayrollContent = () => {
 
   // Calculate payroll components based on basic salary
   const calculatePayrollComponents = useCallback(async (basicSalary: number) => {
-    console.log('=== calculatePayrollComponents CALLED ===');
-    console.log('Parameters:', { basicSalary, employee_id: form.employee_id });
-    
     // Prevent multiple simultaneous calls
     if (isCalculating) {
-      console.log('Already calculating, skipping...');
       return;
     }
     
     if (basicSalary <= 0) {
-      console.log('Basic salary <= 0, returning early');
       setCalculatedComponents([]);
       return;
     }
 
     // Validasi employee_id harus terisi
     if (!form.employee_id) {
-      console.log('No employee_id, returning early');
       return;
     }
     
@@ -201,18 +195,10 @@ export const PayrollContent = () => {
     try {
       const requestBody = {
         employee_id: form.employee_id,
-        basic_salary: basicSalary, // Gunakan parameter yang dikirim, bukan form state
+        basic_salary: form.basic_salary, // Use basic salary from form (from salary data)
         manual_deductions: manualDeductions
       };
       
-      console.log('=== BACKEND CALCULATION REQUEST ===');
-      console.log('Request Body:', requestBody);
-      console.log('API URL:', `${API_URL}/api/payrolls/calculate`);
-      console.log('Form State:', form);
-      console.log('Manual Deductions:', manualDeductions);
-      console.log('=====================================');
-      
-      console.log('Making fetch request to backend...');
       const response = await fetch(`${API_URL}/api/payrolls/calculate`, {
         method: 'POST',
         headers: {
@@ -220,11 +206,9 @@ export const PayrollContent = () => {
         },
         body: JSON.stringify(requestBody)
       });
-      console.log('Fetch response received:', { status: response.status, ok: response.ok });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('Backend error response:', { status: response.status, error: errorData });
         
         if (response.status === 404 && errorData.error?.includes('Data gaji karyawan tidak ditemukan')) {
           throw new Error('Data gaji karyawan tidak ditemukan. Silakan buat data salary terlebih dahulu.');
@@ -235,31 +219,17 @@ export const PayrollContent = () => {
 
       const data = await response.json();
       
-      console.log('=== BACKEND CALCULATION RESPONSE ===');
-      console.log('Full Response:', data);
-      console.log('Calculated Components:', data.calculated_components);
-      console.log('Totals:', data.totals);
-      console.log('Breakdown Pendapatan:', data.breakdown_pendapatan);
-      console.log('=====================================');
-      
       setCalculatedComponents(data.calculated_components || []);
       
       // Update form dengan breakdown pendapatan dari backend
       if (data.totals) {
-        console.log('Updating form with totals:', data.totals);
-        
-        setForm(prev => {
-          const updatedForm = {
-            ...prev,
-            // Backend mengirimkan breakdown pendapatan yang lengkap
-            gross_salary: data.totals.total_pendapatan || prev.gross_salary,
-            total_deductions: data.totals.total_deduction || 0,
-            net_salary: data.totals.net_salary || prev.net_salary
-          };
-          
-          console.log('Form updated:', updatedForm);
-          return updatedForm;
-        });
+        setForm(prev => ({
+          ...prev,
+          // Backend mengirimkan breakdown pendapatan yang lengkap
+          gross_salary: data.totals.total_pendapatan || prev.gross_salary,
+          total_deductions: data.totals.total_deduction || 0,
+          net_salary: data.totals.net_salary || prev.net_salary
+        }));
 
         // Update breakdown pendapatan dari backend
         const newBreakdown = {
@@ -268,7 +238,6 @@ export const PayrollContent = () => {
           total_pendapatan: data.totals.total_pendapatan || 0             // Total keseluruhan
         };
         
-        console.log('Updating breakdown pendapatan:', newBreakdown);
         setBreakdownPendapatan(newBreakdown);
       }
       
@@ -307,8 +276,7 @@ export const PayrollContent = () => {
         });
       }
       
-    } catch (error) {
-      console.error('Error calculating payroll:', error);
+          } catch (error) {
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Gagal menghitung komponen payroll",
@@ -325,34 +293,19 @@ export const PayrollContent = () => {
 
 
 
-  // Recalculate when payrollComponents are loaded
+  // Recalculate when payrollComponents are loaded or employee changes
   useEffect(() => {
-    console.log('useEffect triggered:', { 
-      gross_salary: form.gross_salary, 
-      payrollComponentsLength: payrollComponents.length, 
-      employee_id: form.employee_id 
-    });
-    
-    // Hanya jalankan jika semua kondisi terpenuhi dan tidak sedang calculating
-    if (form.gross_salary > 0 && payrollComponents.length > 0 && form.employee_id && !isCalculating) {
-      console.log('useEffect: Calling calculatePayrollComponents');
+    // Only trigger calculation when employee changes or payroll components are loaded
+    // Don't trigger on gross_salary changes to prevent infinite loop
+    if (form.basic_salary > 0 && payrollComponents.length > 0 && form.employee_id && !isCalculating) {
       // Reset calculated components first to prevent accumulation
       setCalculatedComponents([]);
-      // Kirim ke backend untuk kalkulasi ulang
-      calculatePayrollComponents(form.gross_salary);
-    } else {
-      console.log('useEffect: Conditions not met for calculation', {
-        gross_salary: form.gross_salary > 0,
-        payrollComponents: payrollComponents.length > 0,
-        employee_id: !!form.employee_id,
-        notCalculating: !isCalculating
-      });
+      // Use basic_salary (from salary data) instead of gross_salary to prevent loop
+      calculatePayrollComponents(form.basic_salary);
     }
-  }, [payrollComponents, form.employee_id, form.gross_salary, manualDeductions]); // Removed isCalculating to prevent unnecessary re-runs
+  }, [payrollComponents, form.employee_id, form.basic_salary, manualDeductions]); // Removed form.gross_salary to prevent infinite loop
 
   const handleFormChange = (field: string, value: any) => {
-    console.log('Form change:', { field, value, currentForm: form });
-    
     if (field === 'employee_id') {
       // Reset semua state terlebih dahulu
       setCalculatedComponents([]);
@@ -401,13 +354,6 @@ export const PayrollContent = () => {
           gross_salary: totalIncome
         }));
         
-        // Trigger perhitungan backend setelah state ter-update
-        console.log('Triggering backend calculation with:', {
-          basicSalary,
-          totalAllowances,
-          totalIncome
-        });
-        
         // State akan ter-update dan useEffect akan otomatis memanggil calculatePayrollComponents
         // Tidak perlu manual call karena useEffect sudah handle ini
         
@@ -447,7 +393,6 @@ export const PayrollContent = () => {
   };
 
   const handleManualDeductionChange = (field: string, value: number) => {
-    console.log('Manual deduction change:', { field, value, currentForm: form });
     
     // Validasi: manual deduction tidak boleh melebihi total diterima
     const currentTotalManualDeductions = getTotalManualDeductions() - manualDeductions[field as keyof typeof manualDeductions] + value;
@@ -530,8 +475,6 @@ export const PayrollContent = () => {
         total_deductions: form.total_deductions
       };
 
-      console.log('Sending payroll data:', payrollData);
-
       const res = await fetch(`${API_URL}/api/payrolls`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -540,12 +483,10 @@ export const PayrollContent = () => {
       
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        console.error('Backend error response:', errorData);
         throw new Error(errorData.error || `HTTP ${res.status}: Gagal tambah payroll`);
       }
       
       const result = await res.json();
-      console.log('Payroll created successfully:', result);
       
       setModalOpen(false);
       setForm({ 
@@ -590,7 +531,6 @@ export const PayrollContent = () => {
         description: 'Payroll berhasil ditambahkan',
       });
     } catch (err: any) {
-      console.error('Error adding payroll:', err);
       toast({
         title: 'Error',
         description: err.message || 'Gagal tambah payroll',
@@ -615,7 +555,7 @@ export const PayrollContent = () => {
   };
 
   const getTotalManualDeductions = () => {
-    return Object.values(manualDeductions).reduce((sum, val) => sum + val, 0);
+    return form.kasbon + form.telat + form.angsuran_kredit;
   };
 
   return (
@@ -1006,27 +946,27 @@ export const PayrollContent = () => {
                             ))}
                             
                             {/* Manual Deductions */}
-                            {manualDeductions.kasbon > 0 && (
+                            {form.kasbon > 0 && (
                               <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
                                 <span className="font-medium text-sm text-gray-800">KASBON</span>
                                 <span className="text-sm font-bold text-red-700 ml-4">
-                                  {formatCurrency(manualDeductions.kasbon)}
+                                  {formatCurrency(form.kasbon)}
                                 </span>
                               </div>
                             )}
-                            {manualDeductions.angsuran_kredit > 0 && (
+                            {form.angsuran_kredit > 0 && (
                               <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
                                 <span className="font-medium text-sm text-gray-800">Angsuran Kredit</span>
                                 <span className="text-sm font-bold text-red-700 ml-4">
-                                  {formatCurrency(manualDeductions.angsuran_kredit)}
+                                  {formatCurrency(form.angsuran_kredit)}
                                 </span>
                               </div>
                             )}
-                            {manualDeductions.telat > 0 && (
+                            {form.telat > 0 && (
                               <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
                                 <span className="font-medium text-sm text-gray-800">Telat</span>
                                 <span className="text-sm font-bold text-red-700 ml-4">
-                                  {formatCurrency(manualDeductions.telat)}
+                                  {formatCurrency(form.telat)}
                                 </span>
                            </div>
                             )}
@@ -1035,7 +975,7 @@ export const PayrollContent = () => {
                             <span className="font-semibold text-gray-800">SUB TOTAL</span>
                             <span className="font-bold text-red-800">
                               {formatCurrency(calculatedComponents.filter(c => c.type === 'deduction' && c.name.includes('(Karyawan)')).reduce((sum, c) => sum + c.amount, 0) + 
-                                manualDeductions.kasbon + manualDeductions.telat + manualDeductions.angsuran_kredit)}
+                                form.kasbon + form.telat + form.angsuran_kredit)}
                             </span>
                           </div>
                         </div>
@@ -1090,65 +1030,65 @@ export const PayrollContent = () => {
                 <div className="space-y-4">
                   <h3 className="font-semibold text-gray-900 border-b pb-2">Input Potongan Manual</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="kasbon">KASBON</Label>
-                      <Input 
-                        id="kasbon"
-                        type="number" 
-                        value={manualDeductions.kasbon} 
-                        onChange={(e) => handleManualDeductionChange('kasbon', Number(e.target.value))} 
-                        placeholder="0"
-                        min="0"
-                        className={manualDeductions.kasbon > 0 && getTotalManualDeductions() > form.net_salary ? 'border-red-500' : ''}
-                      />
-                      <div className="text-xs text-gray-500 mt-1">
-                        {formatCurrency(manualDeductions.kasbon)}
-                      </div>
-                      {manualDeductions.kasbon > 0 && getTotalManualDeductions() > form.net_salary && (
-                        <div className="text-xs text-red-500 mt-1">
-                          ⚠️ Melebihi batas maksimal
-                        </div>
-                      )}
+                                            <div>
+                          <Label htmlFor="kasbon">KASBON</Label>
+                          <Input 
+                            id="kasbon"
+                            type="number" 
+                            value={form.kasbon} 
+                            onChange={(e) => handleManualDeductionChange('kasbon', Number(e.target.value))} 
+                            placeholder="0"
+                            min="0"
+                            className={form.kasbon > 0 && getTotalManualDeductions() > form.net_salary ? 'border-red-500' : ''}
+                          />
+                                                <div className="text-xs text-gray-500 mt-1">
+                            {formatCurrency(form.kasbon)}
+                          </div>
+                          {form.kasbon > 0 && getTotalManualDeductions() > form.net_salary && (
+                            <div className="text-xs text-red-500 mt-1">
+                              ⚠️ Melebihi batas maksimal
+                            </div>
+                          )}
                     </div>
-                    <div>
-                      <Label htmlFor="telat">Telat</Label>
-                      <Input 
-                        id="telat"
-                        type="number" 
-                        value={manualDeductions.telat} 
-                        onChange={(e) => handleManualDeductionChange('telat', Number(e.target.value))} 
-                        placeholder="0"
-                        min="0"
-                        className={manualDeductions.telat > 0 && getTotalManualDeductions() > form.net_salary ? 'border-red-500' : ''}
-                      />
-                      <div className="text-xs text-gray-500 mt-1">
-                        {formatCurrency(manualDeductions.telat)}
-                      </div>
-                      {manualDeductions.telat > 0 && getTotalManualDeductions() > form.net_salary && (
-                        <div className="text-xs text-red-500 mt-1">
-                          ⚠️ Melebihi batas maksimal
-                        </div>
-                      )}
+                                            <div>
+                          <Label htmlFor="telat">Telat</Label>
+                          <Input 
+                            id="telat"
+                            type="number" 
+                            value={form.telat} 
+                            onChange={(e) => handleManualDeductionChange('telat', Number(e.target.value))} 
+                            placeholder="0"
+                            min="0"
+                            className={form.telat > 0 && getTotalManualDeductions() > form.net_salary ? 'border-red-500' : ''}
+                          />
+                                                <div className="text-xs text-gray-500 mt-1">
+                            {formatCurrency(form.telat)}
+                          </div>
+                          {form.telat > 0 && getTotalManualDeductions() > form.net_salary && (
+                            <div className="text-xs text-red-500 mt-1">
+                              ⚠️ Melebihi batas maksimal
+                            </div>
+                          )}
                     </div>
-                    <div>
-                      <Label htmlFor="angsuran_kredit">Angsuran Kredit</Label>
-                      <Input 
-                        id="angsuran_kredit"
-                        type="number" 
-                        value={manualDeductions.angsuran_kredit} 
-                        onChange={(e) => handleManualDeductionChange('angsuran_kredit', Number(e.target.value))} 
-                        placeholder="0"
-                        min="0"
-                        className={manualDeductions.angsuran_kredit > 0 && getTotalManualDeductions() > form.net_salary ? 'border-red-500' : ''}
-                      />
-                      <div className="text-xs text-gray-500 mt-1">
-                        {formatCurrency(manualDeductions.angsuran_kredit)}
-                      </div>
-                      {manualDeductions.angsuran_kredit > 0 && getTotalManualDeductions() > form.net_salary && (
-                        <div className="text-xs text-red-500 mt-1">
-                          ⚠️ Melebihi batas maksimal
-                        </div>
-                      )}
+                                            <div>
+                          <Label htmlFor="angsuran_kredit">Angsuran Kredit</Label>
+                          <Input 
+                            id="angsuran_kredit"
+                            type="number" 
+                            value={form.angsuran_kredit} 
+                            onChange={(e) => handleManualDeductionChange('angsuran_kredit', Number(e.target.value))} 
+                            placeholder="0"
+                            min="0"
+                            className={form.angsuran_kredit > 0 && getTotalManualDeductions() > form.net_salary ? 'border-red-500' : ''}
+                          />
+                                                <div className="text-xs text-gray-500 mt-1">
+                            {formatCurrency(form.angsuran_kredit)}
+                          </div>
+                          {form.angsuran_kredit > 0 && getTotalManualDeductions() > form.net_salary && (
+                            <div className="text-xs text-red-500 mt-1">
+                              ⚠️ Melebihi batas maksimal
+                            </div>
+                          )}
                     </div>
                   </div>
                   
