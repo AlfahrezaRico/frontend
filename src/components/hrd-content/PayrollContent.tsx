@@ -200,11 +200,12 @@ export const PayrollContent = () => {
       
       setCalculatedComponents(data.calculated_components || []);
       
-      // Update form with calculated totals
+      // Update form with calculated totals (JANGAN override gross_salary dari backend)
       if (data.totals) {
         setForm(prev => ({
           ...prev,
-          gross_salary: data.totals.total_pendapatan || basicSalary,
+          // gross_salary tetap dari data salary (gaji pokok + tunjangan)
+          // gross_salary: data.totals.total_pendapatan || basicSalary,
           total_deductions: data.totals.total_deduction || 0,
           net_salary: data.totals.net_salary || basicSalary
         }));
@@ -215,15 +216,24 @@ export const PayrollContent = () => {
         const components = data.calculated_components;
         setForm(prev => ({
           ...prev,
-          bpjs_employee: components.find(c => c.name === 'BPJS Ketenagakerjaan (Karyawan)')?.amount || 0,
-          bpjs_company: components.find(c => c.name === 'BPJS Ketenagakerjaan (Perusahaan)')?.amount || 0,
-          pph21: components.find(c => c.name === 'PPH21')?.amount || 0,
-          jht_employee: components.find(c => c.name === 'BPJS Jaminan Pensiun (Karyawan)')?.amount || 0,
-          jht_company: components.find(c => c.name === 'BPJS Jaminan Pensiun (Perusahaan)')?.amount || 0,
+          // BPJS Kesehatan
+          bpjs_health_employee: components.find(c => c.name === 'BPJS Kesehatan (Karyawan)')?.amount || 0,
+          bpjs_health_company: components.find(c => c.name === 'BPJS Kesehatan (Perusahaan)')?.amount || 0,
+          
+          // BPJS Ketenagakerjaan
+          jht_employee: components.find(c => c.name === 'BPJS Jaminan Hari Tua (Karyawan)')?.amount || 0,
+          jht_company: components.find(c => c.name === 'BPJS Jaminan Hari Tua (Perusahaan)')?.amount || 0,
+          
+          // BPJS Jaminan Pensiun
           jp_employee: components.find(c => c.name === 'BPJS Jaminan Pensiun (Karyawan)')?.amount || 0,
           jp_company: components.find(c => c.name === 'BPJS Jaminan Pensiun (Perusahaan)')?.amount || 0,
-          jkk: components.find(c => c.name === 'BPJS Jaminan Kecelakaan Kerja')?.amount || 0,
-          jkm: components.find(c => c.name === 'BPJS Jaminan Kematian')?.amount || 0
+          
+          // BPJS Jaminan Kecelakaan Kerja & Kematian
+          jkk_company: components.find(c => c.name === 'BPJS Jaminan Kecelakaan Kerja (Perusahaan)')?.amount || 0,
+          jkm_company: components.find(c => c.name === 'BPJS Jaminan Kematian (Perusahaan)')?.amount || 0,
+          
+          // Pajak
+          pph21: components.find(c => c.name === 'PPH21')?.amount || 0
         }));
       }
       
@@ -258,13 +268,15 @@ export const PayrollContent = () => {
     // Only used for fallback cases or when auto-calculation is disabled
     
     if (calculated.length === 0) {
-      // Simple fallback calculation
+      // Simple fallback calculation (jika backend tidak tersedia)
+      // JANGAN override gross_salary, tetap gunakan yang sudah dihitung dari data salary
       const totalManualDeduction = manual.kasbon + manual.telat + manual.angsuran_kredit;
       const netSalary = basicSalary - totalManualDeduction;
       
       setForm(prev => ({
         ...prev,
-        gross_salary: basicSalary,
+        // gross_salary tetap dari data salary (gaji pokok + tunjangan)
+        // gross_salary: basicSalary,
         total_deductions: totalManualDeduction,
         net_salary: netSalary
       }));
@@ -549,14 +561,14 @@ export const PayrollContent = () => {
                   </div>
                 </div>
                 
-                {/* Total Pendapatan - Auto-filled from salary data */}
+                {/* Gaji Pokok - Auto-filled from salary data */}
                 <div>
-                  <Label htmlFor="gross_salary">Total Pendapatan (Gaji + Tunjangan)</Label>
+                  <Label htmlFor="basic_salary">Gaji Pokok</Label>
                   <Input 
-                    id="gross_salary"
+                    id="basic_salary"
                     type="number" 
-                    value={form.gross_salary} 
-                    onChange={(e) => handleFormChange('gross_salary', Number(e.target.value))} 
+                    value={form.basic_salary} 
+                    onChange={(e) => handleFormChange('basic_salary', Number(e.target.value))} 
                     required 
                     placeholder="Otomatis terisi dari data salary"
                     className="bg-gray-50"
@@ -564,7 +576,25 @@ export const PayrollContent = () => {
                   />
                   {form.employee_id && (
                     <p className="text-sm text-gray-500 mt-1">
-                      Otomatis terisi dengan total gaji pokok + semua tunjangan dari data salary
+                      Gaji pokok karyawan (diambil dari data salary)
+                    </p>
+                  )}
+                </div>
+
+                {/* Total Pendapatan - Dihitung otomatis oleh backend */}
+                <div>
+                  <Label htmlFor="gross_salary">Total Pendapatan (Gaji Pokok + Tunjangan)</Label>
+                  <Input 
+                    id="gross_salary"
+                    type="number" 
+                    value={form.gross_salary} 
+                    readOnly
+                    placeholder="Dihitung otomatis oleh backend"
+                    className="bg-gray-50 font-semibold"
+                  />
+                  {form.employee_id && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      Total gaji pokok + tunjangan (dihitung otomatis oleh backend)
                     </p>
                   )}
                 </div>
