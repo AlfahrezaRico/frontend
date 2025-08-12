@@ -244,68 +244,60 @@ export const PayrollContent = () => {
       
       setCalculatedComponents(data.calculated_components || []);
       
-      // Update form dengan breakdown pendapatan dari backend
-      if (data.totals) {
-        console.log('Updating form with totals:', data.totals);
+      // Update form dengan semua data dari backend dalam satu batch untuk mencegah multiple updates
+      if (data.totals || data.calculated_components) {
+        console.log('Updating form with backend data:', { totals: data.totals, components: data.calculated_components });
         
         setForm(prev => {
+          const components = data.calculated_components || [];
           const updatedForm = {
             ...prev,
             // Backend mengirimkan breakdown pendapatan yang lengkap
-            gross_salary: data.totals.total_pendapatan || prev.gross_salary,
-            total_deductions: data.totals.total_deduction || 0,
-            net_salary: data.totals.net_salary || prev.net_salary
+            gross_salary: data.totals?.total_pendapatan || prev.gross_salary,
+            total_deductions: data.totals?.total_deduction || 0,
+            net_salary: data.totals?.net_salary || prev.net_salary,
+            
+            // Komponen payroll yang dihitung
+            // BPJS Kesehatan
+            bpjs_health_employee: components.find(c => c.name === 'BPJS Kesehatan (Karyawan)')?.amount || 0,
+            bpjs_health_company: components.find(c => c.name === 'BPJS Kesehatan (Perusahaan)')?.amount || 0,
+            
+            // BPJS Ketenagakerjaan
+            jht_employee: components.find(c => c.name === 'BPJS Jaminan Hari Tua (Karyawan)')?.amount || 0,
+            jht_company: components.find(c => c.name === 'BPJS Jaminan Hari Tua (Perusahaan)')?.amount || 0,
+            
+            // BPJS Jaminan Pensiun
+            jp_employee: components.find(c => c.name === 'BPJS Jaminan Pensiun (Karyawan)')?.amount || 0,
+            jp_company: components.find(c => c.name === 'BPJS Jaminan Pensiun (Perusahaan)')?.amount || 0,
+            
+            // BPJS Jaminan Kecelakaan Kerja & Kematian
+            jkk_company: components.find(c => c.name === 'BPJS Jaminan Kecelakaan Kerja (Perusahaan)')?.amount || 0,
+            jkm_company: components.find(c => c.name === 'BPJS Jaminan Kematian (Perusahaan)')?.amount || 0,
+            
+            // Pajak
+            pph21: components.find(c => c.name === 'PPH21')?.amount || 0
           };
           
-          console.log('Form updated:', updatedForm);
+          console.log('Form updated with all backend data:', updatedForm);
           return updatedForm;
         });
 
         // Update breakdown pendapatan dari backend
-        const newBreakdown = {
-          pendapatan_tetap: data.totals.pendapatan_tetap || 0,           // Gaji Pokok
-          pendapatan_tidak_tetap: data.totals.pendapatan_tidak_tetap || 0, // Total Tunjangan
-          total_pendapatan: data.totals.total_pendapatan || 0             // Total keseluruhan
-        };
-        
-        console.log('Updating breakdown pendapatan:', newBreakdown);
-        setBreakdownPendapatan(newBreakdown);
-      }
-      
-      // Update komponen payroll yang dihitung
-      if (data.calculated_components) {
-        const components = data.calculated_components;
-        setForm(prev => ({
-          ...prev,
-          // BPJS Kesehatan
-          bpjs_health_employee: components.find(c => c.name === 'BPJS Kesehatan (Karyawan)')?.amount || 0,
-          bpjs_health_company: components.find(c => c.name === 'BPJS Kesehatan (Perusahaan)')?.amount || 0,
+        if (data.totals) {
+          const newBreakdown = {
+            pendapatan_tetap: data.totals.pendapatan_tetap || 0,           // Gaji Pokok
+            pendapatan_tidak_tetap: data.totals.pendapatan_tidak_tetap || 0, // Total Tunjangan
+            total_pendapatan: data.totals.total_pendapatan || 0             // Total keseluruhan
+          };
           
-          // BPJS Ketenagakerjaan
-          jht_employee: components.find(c => c.name === 'BPJS Jaminan Hari Tua (Karyawan)')?.amount || 0,
-          jht_company: components.find(c => c.name === 'BPJS Jaminan Hari Tua (Perusahaan)')?.amount || 0,
-          
-          // BPJS Jaminan Pensiun
-          jp_employee: components.find(c => c.name === 'BPJS Jaminan Pensiun (Karyawan)')?.amount || 0,
-          jp_company: components.find(c => c.name === 'BPJS Jaminan Pensiun (Perusahaan)')?.amount || 0,
-          
-          // BPJS Jaminan Kecelakaan Kerja & Kematian
-          jkk_company: components.find(c => c.name === 'BPJS Jaminan Kecelakaan Kerja (Perusahaan)')?.amount || 0,
-          jkm_company: components.find(c => c.name === 'BPJS Jaminan Kematian (Perusahaan)')?.amount || 0,
-          
-          // Pajak
-          pph21: components.find(c => c.name === 'PPH21')?.amount || 0
-        }));
+          console.log('Updating breakdown pendapatan:', newBreakdown);
+          setBreakdownPendapatan(newBreakdown);
+        }
       }
       
       // Toast success - hanya tampilkan jika bukan dari perubahan manual deduction
-      if (!isManualDeductionUpdate.current) {
-        toast({
-          title: "Perhitungan Berhasil",
-          description: "Komponen payroll berhasil dihitung oleh backend",
-          variant: "default"
-        });
-      }
+      // Note: Toast "Perhitungan Berhasil" dihapus untuk mencegah duplikasi
+      // Toast hanya ditampilkan saat karyawan dipilih di handleFormChange
       
     } catch (error) {
       console.error('Error calculating payroll:', error);
@@ -325,30 +317,31 @@ export const PayrollContent = () => {
 
 
 
-  // Recalculate when payrollComponents are loaded
-  useEffect(() => {
-    console.log('useEffect triggered:', { 
-      gross_salary: form.gross_salary, 
-      payrollComponentsLength: payrollComponents.length, 
-      employee_id: form.employee_id 
-    });
-    
-    // Hanya jalankan jika semua kondisi terpenuhi dan tidak sedang calculating
-    if (form.gross_salary > 0 && payrollComponents.length > 0 && form.employee_id && !isCalculating) {
-      console.log('useEffect: Calling calculatePayrollComponents');
-      // Reset calculated components first to prevent accumulation
-      setCalculatedComponents([]);
-      // Kirim ke backend untuk kalkulasi ulang
-      calculatePayrollComponents(form.gross_salary);
-    } else {
-      console.log('useEffect: Conditions not met for calculation', {
-        gross_salary: form.gross_salary > 0,
-        payrollComponents: payrollComponents.length > 0,
-        employee_id: !!form.employee_id,
-        notCalculating: !isCalculating
-      });
-    }
-  }, [payrollComponents, form.employee_id, form.gross_salary, manualDeductions]); // Removed isCalculating to prevent unnecessary re-runs
+  // useEffect ini dihapus untuk mencegah double calculation
+  // Perhitungan hanya dilakukan manual saat karyawan dipilih
+  // useEffect(() => {
+  //   console.log('useEffect triggered:', { 
+  //     gross_salary: form.gross_salary, 
+  //     payrollComponentsLength: payrollComponents.length, 
+  //     employee_id: form.employee_id 
+  //   });
+  //   
+  //   // Hanya jalankan jika semua kondisi terpenuhi dan tidak sedang calculating
+  //   if (form.gross_salary > 0 && payrollComponents.length > 0 && form.employee_id && !isCalculating) {
+  //     console.log('useEffect: Calling calculatePayrollComponents');
+  //     // Reset calculated components first to prevent accumulation
+  //     setCalculatedComponents([]);
+  //     // Kirim ke backend untuk kalkulasi ulang
+  //     calculatePayrollComponents(form.gross_salary);
+  //   } else {
+  //     console.log('useEffect: Conditions not met for calculation', {
+  //       gross_salary: form.gross_salary > 0,
+  //       payrollComponents: payrollComponents.length > 0,
+  //       employee_id: !!form.employee_id,
+  //       notCalculating: !isCalculating
+  //     });
+  //   }
+  // }, [payrollComponents, form.employee_id, form.gross_salary]);
 
   const handleFormChange = (field: string, value: any) => {
     console.log('Form change:', { field, value, currentForm: form });
@@ -408,8 +401,8 @@ export const PayrollContent = () => {
           totalIncome
         });
         
-        // State akan ter-update dan useEffect akan otomatis memanggil calculatePayrollComponents
-        // Tidak perlu manual call karena useEffect sudah handle ini
+        // State akan ter-update, sekarang panggil calculatePayrollComponents secara manual
+        // untuk mencegah double calculation
         
         // Toast success
         toast({
@@ -417,6 +410,11 @@ export const PayrollContent = () => {
           description: `Data salary untuk ${employees.find(emp => emp.id === value)?.first_name} ${employees.find(emp => emp.id === value)?.last_name} berhasil dimuat`,
           variant: "default"
         });
+        
+        // Trigger perhitungan backend setelah toast
+        setTimeout(() => {
+          calculatePayrollComponents(totalIncome);
+        }, 100);
       } else {
         // Toast error jika karyawan belum ada data salary
         const selectedEmployee = employees.find(emp => emp.id === value);
