@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 
-import { DollarSign, Plus, TrendingUp, Users } from "lucide-react";
+import { DollarSign, Plus, TrendingUp, Users, Eye, Edit, Check, Trash2 } from "lucide-react";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useToast } from '@/hooks/use-toast';
 
@@ -17,6 +17,9 @@ export const PayrollContent = () => {
   const [payrolls, setPayrolls] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedPayroll, setSelectedPayroll] = useState<any>(null);
   const [employees, setEmployees] = useState<any[]>([]);
   const [payrollComponents, setPayrollComponents] = useState<any[]>([]);
   const [calculatedComponents, setCalculatedComponents] = useState<any[]>([]);
@@ -587,6 +590,180 @@ export const PayrollContent = () => {
       pay_period_end: lastDayOfMonth.toISOString().split('T')[0],
       payment_date: today.toISOString().split('T')[0]
     }));
+  };
+
+  // Handler untuk View Payroll
+  const handleViewPayroll = (payroll: any) => {
+    setSelectedPayroll(payroll);
+    setViewModalOpen(true);
+  };
+
+  // Handler untuk Edit Payroll
+  const handleEditPayroll = (payroll: any) => {
+    setSelectedPayroll(payroll);
+    // Populate form dengan data payroll yang dipilih
+    setForm({
+      employee_id: payroll.employee_id,
+      pay_period_start: new Date(payroll.pay_period_start).toISOString().split('T')[0],
+      pay_period_end: new Date(payroll.pay_period_end).toISOString().split('T')[0],
+      basic_salary: payroll.basic_salary || 0,
+      gross_salary: payroll.gross_salary || 0,
+      net_salary: payroll.net_salary || 0,
+      payment_date: payroll.payment_date ? new Date(payroll.payment_date).toISOString().split('T')[0] : '',
+      status: payroll.status || 'UNPAID',
+      position_allowance: payroll.position_allowance || 0,
+      management_allowance: payroll.management_allowance || 0,
+      phone_allowance: payroll.phone_allowance || 0,
+      incentive_allowance: payroll.incentive_allowance || 0,
+      overtime_allowance: payroll.overtime_allowance || 0,
+      total_allowances: payroll.total_allowances || 0,
+      bpjs_health_company: payroll.bpjs_health_company || 0,
+      jht_company: payroll.jht_company || 0,
+      jkk_company: payroll.jkk_company || 0,
+      jkm_company: payroll.jkm_company || 0,
+      jp_company: payroll.jp_company || 0,
+      bpjs_health_employee: payroll.bpjs_health_employee || 0,
+      jht_employee: payroll.jht_employee || 0,
+      jp_employee: payroll.jp_employee || 0,
+      pph21: payroll.pph21 || 0,
+      kasbon: payroll.kasbon || 0,
+      telat: payroll.telat || 0,
+      angsuran_kredit: payroll.angsuran_kredit || 0,
+      total_deductions: payroll.total_deductions || 0
+    });
+    setEditModalOpen(true);
+  };
+
+  // Handler untuk Submit Edit Payroll
+  const handleEditPayrollSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPayroll) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/payrolls/${selectedPayroll.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(form)
+      });
+
+      if (!response.ok) {
+        throw new Error('Gagal mengupdate payroll');
+      }
+
+      toast({
+        title: "Berhasil",
+        description: "Payroll berhasil diupdate",
+        variant: "default"
+      });
+
+      setEditModalOpen(false);
+      setSelectedPayroll(null);
+      
+      // Reset form ke default
+      setForm({
+        employee_id: "",
+        pay_period_start: "",
+        pay_period_end: "",
+        basic_salary: 0,
+        gross_salary: 0,
+        net_salary: 0,
+        payment_date: "",
+        status: "PAID",
+        position_allowance: 0,
+        management_allowance: 0,
+        phone_allowance: 0,
+        incentive_allowance: 0,
+        overtime_allowance: 0,
+        total_allowances: 0,
+        bpjs_health_company: 0,
+        jht_company: 0,
+        jkk_company: 0,
+        jkm_company: 0,
+        jp_company: 0,
+        bpjs_health_employee: 0,
+        jht_employee: 0,
+        jp_employee: 0,
+        pph21: 0,
+        kasbon: 0,
+        telat: 0,
+        angsuran_kredit: 0,
+        total_deductions: 0
+      });
+      
+      fetchPayrolls(); // Refresh data
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Gagal mengupdate payroll",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Handler untuk Mark as Paid
+  const handleMarkAsPaid = async (payrollId: string) => {
+    try {
+      const response = await fetch(`${API_URL}/api/payrolls/${payrollId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 'PAID' })
+      });
+
+      if (!response.ok) {
+        throw new Error('Gagal mengubah status payroll');
+      }
+
+      toast({
+        title: "Berhasil",
+        description: "Status payroll berhasil diubah menjadi PAID",
+        variant: "default"
+      });
+
+      // Refresh data
+      fetchPayrolls();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Gagal mengubah status payroll",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Handler untuk Delete Payroll
+  const handleDeletePayroll = async (payrollId: string) => {
+    if (!confirm('Apakah Anda yakin ingin menghapus payroll ini?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/payrolls/${payrollId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Gagal menghapus payroll');
+      }
+
+      toast({
+        title: "Berhasil",
+        description: "Payroll berhasil dihapus",
+        variant: "default"
+      });
+
+      // Refresh data
+      fetchPayrolls();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Gagal menghapus payroll",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -1219,6 +1396,237 @@ export const PayrollContent = () => {
         </div>
       </div>
 
+      {/* View Payroll Modal */}
+      <Dialog open={viewModalOpen} onOpenChange={setViewModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Detail Payroll</DialogTitle>
+          </DialogHeader>
+          {selectedPayroll && (
+            <div className="space-y-6">
+              {/* Employee Info */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-lg mb-3">Informasi Karyawan</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <span className="font-medium">Nama:</span>
+                    <p className="text-gray-700">{selectedPayroll.employee?.first_name} {selectedPayroll.employee?.last_name}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Jabatan:</span>
+                    <p className="text-gray-700">{selectedPayroll.employee?.position}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Periode:</span>
+                    <p className="text-gray-700">
+                      {new Date(selectedPayroll.pay_period_start).toLocaleDateString('id-ID')} - {new Date(selectedPayroll.pay_period_end).toLocaleDateString('id-ID')}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Status:</span>
+                    <span className={`px-2 py-1 rounded-full text-sm font-medium ${
+                      selectedPayroll.status === 'PAID' ? 'bg-green-100 text-green-700' : 
+                      selectedPayroll.status === 'UNPAID' ? 'bg-red-100 text-red-700' :
+                      selectedPayroll.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-gray-100 text-gray-700'
+                    }`}>
+                      {selectedPayroll.status}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Salary Breakdown */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Rincian Gaji</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <h4 className="font-medium text-green-800">Gaji Pokok</h4>
+                    <p className="text-2xl font-bold text-green-600">{formatCurrency(selectedPayroll.basic_salary || 0)}</p>
+                  </div>
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <h4 className="font-medium text-blue-800">Total Tunjangan</h4>
+                    <p className="text-2xl font-bold text-blue-600">{formatCurrency(selectedPayroll.total_allowances || 0)}</p>
+                  </div>
+                  <div className="bg-green-100 p-4 rounded-lg">
+                    <h4 className="font-medium text-green-800">Total Pendapatan</h4>
+                    <p className="text-2xl font-bold text-green-600">{formatCurrency(selectedPayroll.gross_salary || 0)}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Deductions */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Potongan</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-red-50 p-4 rounded-lg">
+                    <h4 className="font-medium text-red-800">Total Potongan</h4>
+                    <p className="text-2xl font-bold text-red-600">{formatCurrency(selectedPayroll.total_deductions || 0)}</p>
+                  </div>
+                  <div className="bg-green-100 p-4 rounded-lg">
+                    <h4 className="font-medium text-green-800">Total Diterima</h4>
+                    <p className="text-2xl font-bold text-green-600">{formatCurrency(selectedPayroll.net_salary || 0)}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button variant="outline" onClick={() => setViewModalOpen(false)}>
+                  Tutup
+                </Button>
+                {(selectedPayroll.status === 'UNPAID' || selectedPayroll.status === 'PENDING') && (
+                  <Button onClick={() => {
+                    setViewModalOpen(false);
+                    handleEditPayroll(selectedPayroll);
+                  }}>
+                    Edit Payroll
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Payroll Modal */}
+      <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Payroll</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditPayrollSubmit} className="space-y-6">
+            {/* Form fields sama seperti form tambah, tapi dengan data yang sudah terisi */}
+            {/* Employee Selection */}
+            <div>
+              <Label htmlFor="edit_employee_id">Karyawan</Label>
+              <Input 
+                id="edit_employee_id"
+                value={employees.find(emp => emp.id === form.employee_id)?.first_name + ' ' + employees.find(emp => emp.id === form.employee_id)?.last_name || ''}
+                readOnly
+                className="bg-gray-50"
+              />
+            </div>
+
+            {/* Period */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="edit_pay_period_start">Periode Mulai</Label>
+                <Input 
+                  id="edit_pay_period_start"
+                  type="date" 
+                  value={form.pay_period_start} 
+                  onChange={(e) => handleFormChange('pay_period_start', e.target.value)} 
+                  required 
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit_pay_period_end">Periode Akhir</Label>
+                <Input 
+                  id="edit_pay_period_end"
+                  type="date" 
+                  value={form.pay_period_end} 
+                  onChange={(e) => handleFormChange('pay_period_end', e.target.value)} 
+                  required 
+                />
+              </div>
+            </div>
+
+            {/* Basic Salary */}
+            <div>
+              <Label htmlFor="edit_basic_salary">Gaji Pokok</Label>
+              <Input 
+                id="edit_basic_salary"
+                type="number" 
+                value={form.basic_salary} 
+                onChange={(e) => handleFormChange('basic_salary', Number(e.target.value))} 
+                required 
+              />
+            </div>
+
+            {/* Manual Deductions */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-gray-900 border-b pb-2">Potongan Manual</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="edit_kasbon">KASBON</Label>
+                  <Input 
+                    id="edit_kasbon"
+                    type="number" 
+                    value={form.kasbon} 
+                    onChange={(e) => handleManualDeductionChange('kasbon', Number(e.target.value))} 
+                    placeholder="0"
+                    min="0"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit_telat">Telat</Label>
+                  <Input 
+                    id="edit_telat"
+                    type="number" 
+                    value={form.telat} 
+                    onChange={(e) => handleManualDeductionChange('telat', Number(e.target.value))} 
+                    placeholder="0"
+                    min="0"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit_angsuran_kredit">Angsuran Kredit</Label>
+                  <Input 
+                    id="edit_angsuran_kredit"
+                    type="number" 
+                    value={form.angsuran_kredit} 
+                    onChange={(e) => handleManualDeductionChange('angsuran_kredit', Number(e.target.value))} 
+                    placeholder="0"
+                    min="0"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Summary */}
+            <div className="grid grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg">
+              <div>
+                <Label>Total Pendapatan</Label>
+                <Input 
+                  type="text" 
+                  value={formatCurrency(form.gross_salary)} 
+                  readOnly
+                  className="bg-white font-semibold"
+                />
+              </div>
+              <div>
+                <Label>Total Potongan</Label>
+                <Input 
+                  type="text" 
+                  value={formatCurrency(form.total_deductions)} 
+                  readOnly
+                  className="bg-white font-semibold text-red-600"
+                />
+              </div>
+              <div>
+                <Label>Total Diterima</Label>
+                <Input 
+                  type="text" 
+                  value={formatCurrency(form.net_salary)} 
+                  readOnly
+                  className="bg-white font-semibold text-green-600"
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setEditModalOpen(false)}>
+                Batal
+              </Button>
+              <Button type="submit">
+                Update Payroll
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
@@ -1283,19 +1691,76 @@ export const PayrollContent = () => {
             <div className="space-y-4">
               {payrolls.slice(0, 5).map((payroll) => (
                 <div key={payroll.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
+                  <div className="flex-1">
                     <h4 className="font-medium">
                       {payroll.employee?.first_name} {payroll.employee?.last_name}
                     </h4>
                     <p className="text-sm text-muted-foreground">
-                      {payroll.pay_period_start} - {payroll.pay_period_end}
+                      {new Date(payroll.pay_period_start).toLocaleDateString('id-ID')} - {new Date(payroll.pay_period_end).toLocaleDateString('id-ID')}
                     </p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-700">
+                        {payroll.employee?.position}
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right mr-4">
                     <div className="font-medium">{formatCurrency(payroll.net_salary)}</div>
-                    <div className={`text-sm ${payroll.status === 'PAID' ? 'text-green-600' : 'text-orange-600'}`}>
+                    <div className={`text-sm font-medium px-2 py-1 rounded-full ${
+                      payroll.status === 'PAID' ? 'bg-green-100 text-green-700' : 
+                      payroll.status === 'UNPAID' ? 'bg-red-100 text-red-700' :
+                      payroll.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-gray-100 text-gray-700'
+                    }`}>
                       {payroll.status}
                     </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {/* View Button */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleViewPayroll(payroll)}
+                      className="h-8 px-3"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    
+                    {/* Edit Button - hanya jika status UNPAID atau PENDING */}
+                    {(payroll.status === 'UNPAID' || payroll.status === 'PENDING') && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditPayroll(payroll)}
+                        className="h-8 px-3"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    )}
+                    
+                    {/* PAID Button - hanya jika status UNPAID atau PENDING */}
+                    {(payroll.status === 'UNPAID' || payroll.status === 'PENDING') && (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => handleMarkAsPaid(payroll.id)}
+                        className="h-8 px-3 bg-green-600 hover:bg-green-700"
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                    )}
+                    
+                    {/* Delete Button - hanya jika status UNPAID */}
+                    {payroll.status === 'UNPAID' && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeletePayroll(payroll.id)}
+                        className="h-8 px-3"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
