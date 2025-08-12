@@ -257,9 +257,9 @@ export const PayrollContent = () => {
         variant: "destructive"
       });
       
-      // Fallback to empty calculation
+      // Fallback to empty calculation (backend tidak tersedia)
       setCalculatedComponents([]);
-      updateTotals(basicSalary, [], manualDeductions);
+      // JANGAN hitung manual, tunggu backend
     }
   };
 
@@ -270,40 +270,12 @@ export const PayrollContent = () => {
     if (form.gross_salary > 0 && payrollComponents.length > 0 && form.employee_id) {
       // Reset calculated components first to prevent accumulation
       setCalculatedComponents([]);
+      // Kirim ke backend untuk kalkulasi ulang
       calculatePayrollComponents(form.gross_salary);
     }
   }, [payrollComponents, form.employee_id]); // Depend on both payrollComponents and employee_id
 
-  // Update totals calculation (simplified - backend handles main calculations)
-  const updateTotals = (basicSalary: number, calculated: any[], manual: any) => {
-    // This function is now simplified since backend handles the main calculations
-    // Only used for fallback cases or when auto-calculation is disabled
-    
-    if (calculated.length === 0) {
-      // Simple fallback calculation (jika backend tidak tersedia)
-      // JANGAN override gross_salary, tetap gunakan yang sudah dihitung dari data salary
-      const totalManualDeduction = manual.kasbon + manual.telat + manual.angsuran_kredit;
-      const netSalary = basicSalary - totalManualDeduction;
-      
-      setForm(prev => ({
-        ...prev,
-        // gross_salary tetap dari data salary (gaji pokok + tunjangan)
-        // gross_salary: basicSalary,
-        total_deductions: totalManualDeduction,
-        net_salary: netSalary
-      }));
-      return;
-    }
-    
-    // If we have calculated components, use them (backend already calculated totals)
-    const totalManualDeduction = manual.kasbon + manual.telat + manual.angsuran_kredit;
-    
-          setForm(prev => ({
-        ...prev,
-        total_deductions: prev.total_deductions + totalManualDeduction,
-        net_salary: prev.net_salary - totalManualDeduction
-      }));
-  };
+
 
   const handleFormChange = (field: string, value: any) => {
     setForm(f => ({ ...f, [field]: value }));
@@ -327,11 +299,8 @@ export const PayrollContent = () => {
         
         const totalAllowances = posAllowance + mgmtAllowance + phoneAllowance + incentiveAllowance + overtimeAllowance;
         
-        // Total Pendapatan = Gaji Pokok + Tunjangan (TANPA BPJS Perusahaan)
-        // BPJS Perusahaan akan dihitung terpisah sebagai komponen payroll
-        const totalPendapatan = basicSalary + totalAllowances;
-        
-
+        // Total Pendapatan = Gaji Pokok + Tunjangan (dihitung backend)
+        // JANGAN hitung manual di frontend
         
         setForm(prev => ({
           ...prev,
@@ -341,14 +310,13 @@ export const PayrollContent = () => {
           phone_allowance: phoneAllowance,
           incentive_allowance: incentiveAllowance,
           overtime_allowance: overtimeAllowance,
-          total_allowances: totalAllowances,
-          gross_salary: totalPendapatan
+          total_allowances: totalAllowances
+          // gross_salary akan dihitung backend
         }));
         
-        // Calculate payroll components with the total pendapatan (async)
-        // Pastikan employee_id sudah terisi sebelum memanggil calculatePayrollComponents
+        // Kirim ke backend untuk kalkulasi lengkap
         setTimeout(() => {
-          calculatePayrollComponents(totalPendapatan);
+          calculatePayrollComponents(basicSalary + totalAllowances);
         }, 100);
       }
     } else if (field === 'gross_salary') {
@@ -363,19 +331,16 @@ export const PayrollContent = () => {
     const newManualDeductions = { ...manualDeductions, [field]: value };
     setManualDeductions(newManualDeductions);
     
-    // Update form dengan manual deductions
+    // Update form dengan manual deductions (JANGAN hitung manual)
     setForm(prev => ({
       ...prev,
-      [field]: value,
-      total_deductions: prev.total_deductions + (value - (prev[field as keyof typeof prev] as number || 0))
+      [field]: value
+      // total_deductions akan dihitung backend
     }));
     
-    // Recalculate with backend automatically
+    // Kirim ke backend untuk kalkulasi ulang
     if (form.employee_id && form.gross_salary > 0) {
       calculatePayrollComponents(form.gross_salary);
-    } else {
-      // Fallback to local calculation
-      updateTotals(form.gross_salary, calculatedComponents, newManualDeductions);
     }
   };
 
