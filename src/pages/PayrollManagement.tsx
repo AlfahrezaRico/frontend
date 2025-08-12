@@ -400,6 +400,10 @@ export default function PayrollManagement() {
         // Recalculate payroll components with new basic salary
         if (autoCalculation) {
           calculatePayrollComponents(Number(salaryData.basic_salary));
+          // Also update totals to ensure form state is updated
+          setTimeout(() => {
+            updateTotals(Number(salaryData.basic_salary), calculatedComponents, manualDeductions);
+          }, 100);
         }
       }
     }
@@ -433,12 +437,102 @@ export default function PayrollManagement() {
   const handleAddPayroll = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+    
     try {
-      console.log('Submitting payroll data:', form);
+      // Calculate all values before submitting
+      const totalAllowances = calculatedComponents
+        .filter(c => c.type === 'income' && c.category === 'allowance')
+        .reduce((sum, c) => sum + c.amount, 0);
+      
+      const companyContributions = calculatedComponents
+        .filter(c => c.type === 'income' && c.category === 'bpjs')
+        .reduce((sum, c) => sum + c.amount, 0);
+      
+      const employeeDeductions = calculatedComponents
+        .filter(c => c.type === 'deduction' && c.category === 'bpjs')
+        .reduce((sum, c) => sum + c.amount, 0);
+      
+      const totalManualDeduction = manualDeductions.kasbon + manualDeductions.telat + manualDeductions.angsuran_kredit;
+      const totalDeduction = employeeDeductions + totalManualDeduction;
+      
+      const grossSalary = form.basic_salary + totalAllowances;
+      const totalPendapatan = form.basic_salary + totalAllowances + companyContributions;
+      const netSalary = totalPendapatan - totalDeduction;
+      
+      // Map calculated components to specific fields
+      const bpjsHealthCompany = calculatedComponents.find(c => c.name === 'BPJS Kesehatan (Perusahaan)' && c.type === 'income')?.amount || 0;
+      const jhtCompany = calculatedComponents.find(c => c.name === 'BPJS Ketenagakerjaan JHT (Perusahaan)' && c.type === 'income')?.amount || 0;
+      const jkkCompany = calculatedComponents.find(c => c.name === 'BPJS Ketenagakerjaan JKK (Perusahaan)' && c.type === 'income')?.amount || 0;
+      const jkmCompany = calculatedComponents.find(c => c.name === 'BPJS Ketenagakerjaan JKM (Perusahaan)' && c.type === 'income')?.amount || 0;
+      const jpCompany = calculatedComponents.find(c => c.name === 'BPJS Jaminan Pensiun (Perusahaan)' && c.type === 'income')?.amount || 0;
+      
+      const bpjsHealthEmployee = calculatedComponents.find(c => c.name === 'BPJS Kesehatan (Karyawan)' && c.type === 'deduction')?.amount || 0;
+      const jhtEmployee = calculatedComponents.find(c => c.name === 'BPJS Ketenagakerjaan JHT (Karyawan)' && c.type === 'deduction')?.amount || 0;
+      const jpEmployee = calculatedComponents.find(c => c.name === 'BPJS Jaminan Pensiun (Karyawan)' && c.type === 'deduction')?.amount || 0;
+      
+      const positionAllowance = calculatedComponents.find(c => c.name === 'Tunjangan Jabatan' && c.type === 'income')?.amount || 0;
+      const managementAllowance = calculatedComponents.find(c => c.name === 'Tunjangan Pengurus' && c.type === 'income')?.amount || 0;
+      const phoneAllowance = calculatedComponents.find(c => c.name === 'Tunjangan Pulsa' && c.type === 'income')?.amount || 0;
+      const incentiveAllowance = calculatedComponents.find(c => c.name === 'Tunjangan Insentif' && c.type === 'income')?.amount || 0;
+      const overtimeAllowance = calculatedComponents.find(c => c.name === 'Tunjangan Lembur' && c.type === 'income')?.amount || 0;
+      
+      // Calculate subtotals
+      const subtotalCompany = bpjsHealthCompany + jhtCompany + jkkCompany + jkmCompany + jpCompany;
+      const subtotalEmployee = bpjsHealthEmployee + jhtEmployee + jpEmployee;
+      
+      // Create the complete payroll data object
+      const payrollData = {
+        ...form,
+        gross_salary: grossSalary,
+        net_salary: netSalary,
+        
+        // Tunjangan dari Data Salary
+        position_allowance: positionAllowance,
+        management_allowance: managementAllowance,
+        phone_allowance: phoneAllowance,
+        incentive_allowance: incentiveAllowance,
+        overtime_allowance: overtimeAllowance,
+        total_allowances: totalAllowances,
+        
+        // Komponen Payroll yang Dihitung - Perusahaan
+        bpjs_health_company: bpjsHealthCompany,
+        jht_company: jhtCompany,
+        jkk_company: jkkCompany,
+        jkm_company: jkmCompany,
+        jp_company: jpCompany,
+        subtotal_company: subtotalCompany,
+        
+        // Komponen Payroll yang Dihitung - Karyawan
+        bpjs_health_employee: bpjsHealthEmployee,
+        jht_employee: jhtEmployee,
+        jp_employee: jpEmployee,
+        subtotal_employee: subtotalEmployee,
+        
+        // Deductions Manual
+        kasbon: manualDeductions.kasbon,
+        telat: manualDeductions.telat,
+        angsuran_kredit: manualDeductions.angsuran_kredit,
+        
+        // Total Deductions
+        total_deductions: totalDeduction,
+        
+        // Total Pendapatan (Gaji + Tunjangan + BPJS Perusahaan)
+        total_pendapatan: totalPendapatan,
+        
+        // Additional fields
+        created_by: user?.id,
+        approved_by: null,
+        approved_at: null
+      };
+      
+      console.log('=== CALCULATED PAYROLL DATA ===');
+      console.log('Payroll data to be sent:', payrollData);
+      console.log('================================');
+      
       const res = await fetch(`${API_URL}/api/payrolls`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form)
+        body: JSON.stringify(payrollData)
       });
       
       if (!res.ok) {
