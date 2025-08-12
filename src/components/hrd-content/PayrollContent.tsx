@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-import { DollarSign, Plus, TrendingUp, Users, Eye, Edit, Check, Trash2 } from "lucide-react";
+import { DollarSign, Plus, TrendingUp, Users, Eye, Edit, Check, Trash2, Search, Filter } from "lucide-react";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useToast } from '@/hooks/use-toast';
 
@@ -30,6 +31,11 @@ export const PayrollContent = () => {
   });
   const [isCalculating, setIsCalculating] = useState(false); // Flag untuk mencegah multiple calls
   const isManualDeductionUpdate = useRef(false); // Flag untuk melacak update manual deduction
+
+  // New state for table functionality
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("all");
 
   const [salaryData, setSalaryData] = useState<any[]>([]);
   const [manualDeductions, setManualDeductions] = useState({
@@ -764,6 +770,52 @@ export const PayrollContent = () => {
         variant: "destructive"
       });
     }
+  };
+
+  // Filter and search functions
+  const filteredPayrolls = payrolls.filter((payroll) => {
+    // Search filter
+    const searchMatch = searchTerm === "" || 
+      payroll.employee?.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payroll.employee?.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payroll.employee?.position?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payroll.id.toLowerCase().includes(searchTerm.toLowerCase());
+
+    // Status filter
+    const statusMatch = statusFilter === "all" || payroll.status === statusFilter;
+
+    // Date filter
+    let dateMatch = true;
+    if (dateFilter !== "all") {
+      const today = new Date();
+      const payrollDate = new Date(payroll.pay_period_start);
+      
+      switch (dateFilter) {
+        case "today":
+          dateMatch = payrollDate.toDateString() === today.toDateString();
+          break;
+        case "thisWeek":
+          const weekStart = new Date(today.setDate(today.getDate() - today.getDay()));
+          const weekEnd = new Date(today.setDate(today.getDate() - today.getDay() + 6));
+          dateMatch = payrollDate >= weekStart && payrollDate <= weekEnd;
+          break;
+        case "thisMonth":
+          dateMatch = payrollDate.getMonth() === today.getMonth() && 
+                     payrollDate.getFullYear() === today.getFullYear();
+          break;
+        case "thisYear":
+          dateMatch = payrollDate.getFullYear() === today.getFullYear();
+          break;
+      }
+    }
+
+    return searchMatch && statusMatch && dateMatch;
+  });
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    setDateFilter("all");
   };
 
   return (
@@ -1674,96 +1726,194 @@ export const PayrollContent = () => {
         </Card>
       </div>
 
-      {/* Recent Payrolls */}
+      {/* Payroll Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Payroll Terbaru</CardTitle>
-          <CardDescription>Daftar payroll yang baru diproses</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Daftar Payroll</CardTitle>
+              <CardDescription>Semua data payroll dengan fitur filter dan pencarian</CardDescription>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Total: {filteredPayrolls.length} dari {payrolls.length} payroll
+            </div>
+          </div>
+          
+          {/* Search and Filter Controls */}
+          <div className="flex flex-col sm:flex-row gap-4 mt-4">
+            {/* Search */}
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Cari nama, posisi, atau ID payroll..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            {/* Status Filter */}
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Filter Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Status</SelectItem>
+                <SelectItem value="PENDING">PENDING</SelectItem>
+                <SelectItem value="APPROVED">APPROVED</SelectItem>
+                <SelectItem value="PAID">PAID</SelectItem>
+                <SelectItem value="REJECTED">REJECTED</SelectItem>
+                <SelectItem value="UNPAID">UNPAID</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            {/* Date Filter */}
+            <Select value={dateFilter} onValueChange={setDateFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Filter Tanggal" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Tanggal</SelectItem>
+                <SelectItem value="today">Hari Ini</SelectItem>
+                <SelectItem value="thisWeek">Minggu Ini</SelectItem>
+                <SelectItem value="thisMonth">Bulan Ini</SelectItem>
+                <SelectItem value="thisYear">Tahun Ini</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            {/* Clear Filters */}
+            {(searchTerm !== "" || statusFilter !== "all" || dateFilter !== "all") && (
+              <Button variant="outline" onClick={clearFilters} size="sm">
+                Clear Filters
+              </Button>
+            )}
+          </div>
         </CardHeader>
+        
         <CardContent>
           {loading ? (
             <div className="text-center py-8">Loading...</div>
-          ) : payrolls.length === 0 ? (
+          ) : filteredPayrolls.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              Belum ada data payroll
+              {payrolls.length === 0 ? "Belum ada data payroll" : "Tidak ada payroll yang sesuai dengan filter"}
             </div>
           ) : (
-            <div className="space-y-4">
-              {payrolls.slice(0, 5).map((payroll) => (
-                <div key={payroll.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex-1">
-                    <h4 className="font-medium">
-                      {payroll.employee?.first_name} {payroll.employee?.last_name}
-                    </h4>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(payroll.pay_period_start).toLocaleDateString('id-ID')} - {new Date(payroll.pay_period_end).toLocaleDateString('id-ID')}
-                    </p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-700">
-                        {payroll.employee?.position}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="text-right mr-4">
-                    <div className="font-medium">{formatCurrency(payroll.net_salary)}</div>
-                    <div className={`text-sm font-medium px-2 py-1 rounded-full ${
-                      payroll.status === 'PAID' ? 'bg-green-100 text-green-700' : 
-                      payroll.status === 'UNPAID' ? 'bg-red-100 text-red-700' :
-                      payroll.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-gray-100 text-gray-700'
-                    }`}>
-                      {payroll.status}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {/* View Button */}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleViewPayroll(payroll)}
-                      className="h-8 px-3"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    
-                    {/* Edit Button - hanya jika status UNPAID atau PENDING */}
-                    {(payroll.status === 'UNPAID' || payroll.status === 'PENDING') && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEditPayroll(payroll)}
-                        className="h-8 px-3"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    )}
-                    
-                    {/* PAID Button - hanya jika status UNPAID atau PENDING */}
-                    {(payroll.status === 'UNPAID' || payroll.status === 'PENDING') && (
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => handleMarkAsPaid(payroll.id)}
-                        className="h-8 px-3 bg-green-600 hover:bg-green-700"
-                      >
-                        <Check className="h-4 w-4" />
-                      </Button>
-                    )}
-                    
-                    {/* Delete Button - hanya jika status UNPAID */}
-                    {payroll.status === 'UNPAID' && (
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDeletePayroll(payroll.id)}
-                        className="h-8 px-3"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))}
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Karyawan</TableHead>
+                    <TableHead>Periode</TableHead>
+                    <TableHead>Gaji Pokok</TableHead>
+                    <TableHead>Total Pendapatan</TableHead>
+                    <TableHead>Total Deductions</TableHead>
+                    <TableHead>Gaji Bersih</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredPayrolls.map((payroll) => (
+                    <TableRow key={payroll.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">
+                            {payroll.employee?.first_name} {payroll.employee?.last_name}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {payroll.employee?.position}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          <div>{new Date(payroll.pay_period_start).toLocaleDateString('id-ID')}</div>
+                          <div className="text-muted-foreground">
+                            {new Date(payroll.pay_period_end).toLocaleDateString('id-ID')}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {formatCurrency(payroll.basic_salary)}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {formatCurrency(payroll.gross_salary)}
+                      </TableCell>
+                      <TableCell className="font-medium text-red-600">
+                        {formatCurrency(payroll.total_deductions)}
+                      </TableCell>
+                      <TableCell className="font-bold text-green-600">
+                        {formatCurrency(payroll.net_salary)}
+                      </TableCell>
+                      <TableCell>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          payroll.status === 'PAID' ? 'bg-green-100 text-green-800' : 
+                          payroll.status === 'UNPAID' ? 'bg-red-100 text-red-800' :
+                          payroll.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                          payroll.status === 'APPROVED' ? 'bg-blue-100 text-blue-800' :
+                          payroll.status === 'REJECTED' ? 'bg-gray-100 text-gray-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {payroll.status}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          {/* View Button */}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewPayroll(payroll)}
+                            className="h-8 w-8 p-0"
+                            title="View Details"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          
+                          {/* Edit Button - hanya jika status UNPAID atau PENDING */}
+                          {(payroll.status === 'UNPAID' || payroll.status === 'PENDING') && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditPayroll(payroll)}
+                              className="h-8 w-8 p-0"
+                              title="Edit Payroll"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          )}
+                          
+                          {/* PAID Button - hanya jika status UNPAID atau PENDING */}
+                          {(payroll.status === 'UNPAID' || payroll.status === 'PENDING') && (
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => handleMarkAsPaid(payroll.id)}
+                              className="h-8 w-8 p-0 bg-green-600 hover:bg-green-700"
+                              title="Mark as Paid"
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                          )}
+                          
+                          {/* Delete Button - hanya jika status UNPAID */}
+                          {payroll.status === 'UNPAID' && (
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeletePayroll(payroll.id)}
+                              className="h-8 w-8 p-0"
+                              title="Delete Payroll"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           )}
         </CardContent>
