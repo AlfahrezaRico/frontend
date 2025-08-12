@@ -223,7 +223,13 @@ export const PayrollContent = () => {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP ${response.status}: Gagal menghitung komponen payroll`);
+        console.error('Backend error response:', { status: response.status, error: errorData });
+        
+        if (response.status === 404 && errorData.error?.includes('Data gaji karyawan tidak ditemukan')) {
+          throw new Error('Data gaji karyawan tidak ditemukan. Silakan buat data salary terlebih dahulu.');
+        } else {
+          throw new Error(errorData.error || `HTTP ${response.status}: Gagal menghitung komponen payroll`);
+        }
       }
 
       const data = await response.json();
@@ -324,27 +330,33 @@ export const PayrollContent = () => {
       employee_id: form.employee_id 
     });
     
-    if (form.gross_salary > 0 && payrollComponents.length > 0 && form.employee_id) {
+    // Hanya jalankan jika semua kondisi terpenuhi dan tidak sedang calculating
+    if (form.gross_salary > 0 && payrollComponents.length > 0 && form.employee_id && !isCalculating) {
       console.log('useEffect: Calling calculatePayrollComponents');
       // Reset calculated components first to prevent accumulation
       setCalculatedComponents([]);
       // Kirim ke backend untuk kalkulasi ulang
       calculatePayrollComponents(form.gross_salary);
     } else {
-      console.log('useEffect: Conditions not met for calculation');
+      console.log('useEffect: Conditions not met for calculation', {
+        gross_salary: form.gross_salary > 0,
+        payrollComponents: payrollComponents.length > 0,
+        employee_id: !!form.employee_id,
+        notCalculating: !isCalculating
+      });
     }
-  }, [payrollComponents, form.employee_id]); // Hapus form.gross_salary dari dependencies, bukan employee_id
+  }, [payrollComponents, form.employee_id, form.gross_salary, isCalculating]); // Tambahkan isCalculating, bukan employee_id
 
 
 
   const handleFormChange = (field: string, value: any) => {
     console.log('Form change:', { field, value, currentForm: form });
-    setForm(f => ({ ...f, [field]: value }));
     
     if (field === 'employee_id') {
       // Reset form data when employee changes
       setForm(prev => ({
         ...prev,
+        employee_id: value, // Set employee_id baru
         basic_salary: 0,
         position_allowance: 0,
         management_allowance: 0,
@@ -367,7 +379,17 @@ export const PayrollContent = () => {
         total_pendapatan: 0
       });
       
-      // Auto-fill salary data when employee is selected
+      // Reset manual deductions
+      setManualDeductions({
+        kasbon: 0,
+        telat: 0,
+        angsuran_kredit: 0
+      });
+      
+      // Reset calculating flag
+      setIsCalculating(false);
+      
+            // Auto-fill salary data when employee is selected
       const selectedSalary = salaryData.find(salary => salary.employee_id === value);
       if (selectedSalary) {
         const basicSalary = typeof selectedSalary.basic_salary === 'string' ? 
@@ -385,7 +407,7 @@ export const PayrollContent = () => {
         
         const totalAllowances = posAllowance + mgmtAllowance + phoneAllowance + incentiveAllowance + overtimeAllowance;
         
-                // Update form dengan data salary
+        // Update form dengan data salary
         setForm(prev => ({
           ...prev,
           basic_salary: basicSalary,
@@ -422,6 +444,19 @@ export const PayrollContent = () => {
           description: `Karyawan ${selectedEmployee?.first_name} ${selectedEmployee?.last_name} belum memiliki data salary. Silakan buat data salary terlebih dahulu.`,
           variant: "destructive"
         });
+        
+        // Reset form untuk karyawan tanpa data salary
+        setForm(prev => ({
+          ...prev,
+          basic_salary: 0,
+          position_allowance: 0,
+          management_allowance: 0,
+          phone_allowance: 0,
+          incentive_allowance: 0,
+          overtime_allowance: 0,
+          total_allowances: 0,
+          gross_salary: 0
+        }));
       }
     } else if (field === 'gross_salary') {
       // Hanya hitung jika employee sudah dipilih
