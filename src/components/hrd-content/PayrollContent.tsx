@@ -449,6 +449,18 @@ export const PayrollContent = () => {
   const handleManualDeductionChange = (field: string, value: number) => {
     console.log('Manual deduction change:', { field, value, currentForm: form });
     
+    // Validasi: manual deduction tidak boleh melebihi total diterima
+    const currentTotalManualDeductions = getTotalManualDeductions() - manualDeductions[field as keyof typeof manualDeductions] + value;
+    
+    if (currentTotalManualDeductions > form.net_salary) {
+      toast({
+        title: "Validasi Gagal",
+        description: `Total potongan manual (${formatCurrency(currentTotalManualDeductions)}) tidak boleh melebihi total diterima (${formatCurrency(form.net_salary)})`,
+        variant: "destructive"
+      });
+      return;
+    }
+    
     // Set flag untuk mencegah toast muncul
     isManualDeductionUpdate.current = true;
     
@@ -602,6 +614,10 @@ export const PayrollContent = () => {
     return `Rp ${Math.round(amount).toLocaleString('id-ID')}`;
   };
 
+  const getTotalManualDeductions = () => {
+    return Object.values(manualDeductions).reduce((sum, val) => sum + val, 0);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -647,7 +663,7 @@ export const PayrollContent = () => {
                     <Input 
                       id="pay_period_start"
                       type="date" 
-                      value={form.pay_period_start} 
+                      value={form.pay_period_start || ''} 
                       onChange={(e) => handleFormChange('pay_period_start', e.target.value)} 
                       required 
                     />
@@ -657,7 +673,7 @@ export const PayrollContent = () => {
                     <Input 
                       id="pay_period_end"
                       type="date" 
-                      value={form.pay_period_end} 
+                      value={form.pay_period_end || ''} 
                       onChange={(e) => handleFormChange('pay_period_end', e.target.value)} 
                       required 
                     />
@@ -1083,10 +1099,16 @@ export const PayrollContent = () => {
                         onChange={(e) => handleManualDeductionChange('kasbon', Number(e.target.value))} 
                         placeholder="0"
                         min="0"
+                        className={manualDeductions.kasbon > 0 && getTotalManualDeductions() > form.net_salary ? 'border-red-500' : ''}
                       />
                       <div className="text-xs text-gray-500 mt-1">
                         {formatCurrency(manualDeductions.kasbon)}
                       </div>
+                      {manualDeductions.kasbon > 0 && getTotalManualDeductions() > form.net_salary && (
+                        <div className="text-xs text-red-500 mt-1">
+                          ⚠️ Melebihi batas maksimal
+                        </div>
+                      )}
                     </div>
                     <div>
                       <Label htmlFor="telat">Telat</Label>
@@ -1097,10 +1119,16 @@ export const PayrollContent = () => {
                         onChange={(e) => handleManualDeductionChange('telat', Number(e.target.value))} 
                         placeholder="0"
                         min="0"
+                        className={manualDeductions.telat > 0 && getTotalManualDeductions() > form.net_salary ? 'border-red-500' : ''}
                       />
                       <div className="text-xs text-gray-500 mt-1">
                         {formatCurrency(manualDeductions.telat)}
                       </div>
+                      {manualDeductions.telat > 0 && getTotalManualDeductions() > form.net_salary && (
+                        <div className="text-xs text-red-500 mt-1">
+                          ⚠️ Melebihi batas maksimal
+                        </div>
+                      )}
                     </div>
                     <div>
                       <Label htmlFor="angsuran_kredit">Angsuran Kredit</Label>
@@ -1111,12 +1139,29 @@ export const PayrollContent = () => {
                         onChange={(e) => handleManualDeductionChange('angsuran_kredit', Number(e.target.value))} 
                         placeholder="0"
                         min="0"
+                        className={manualDeductions.angsuran_kredit > 0 && getTotalManualDeductions() > form.net_salary ? 'border-red-500' : ''}
                       />
                       <div className="text-xs text-gray-500 mt-1">
                         {formatCurrency(manualDeductions.angsuran_kredit)}
                       </div>
+                      {manualDeductions.angsuran_kredit > 0 && getTotalManualDeductions() > form.net_salary && (
+                        <div className="text-xs text-red-500 mt-1">
+                          ⚠️ Melebihi batas maksimal
+                        </div>
+                      )}
                     </div>
                   </div>
+                  
+                  {/* Warning message for total deductions */}
+                  {getTotalManualDeductions() > form.net_salary && (
+                    <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <div className="flex items-center text-red-700">
+                        <span className="text-sm font-medium">
+                          ⚠️ Total potongan manual ({formatCurrency(getTotalManualDeductions())}) melebihi total diterima ({formatCurrency(form.net_salary)})
+                        </span>
+                      </div>
+                    </div>
+                  )}
 
                 </div>
 
@@ -1164,7 +1209,7 @@ export const PayrollContent = () => {
                     <Input 
                       id="payment_date"
                       type="date" 
-                      value={form.payment_date} 
+                      value={form.payment_date || ''} 
                       onChange={(e) => handleFormChange('payment_date', e.target.value)} 
                       required 
                     />
