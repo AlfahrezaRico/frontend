@@ -172,13 +172,18 @@ export const PayrollContent = () => {
 
   // Calculate payroll components based on basic salary
   const calculatePayrollComponents = async (basicSalary: number) => {
+    console.log('=== calculatePayrollComponents CALLED ===');
+    console.log('Parameters:', { basicSalary, employee_id: form.employee_id });
+    
     if (basicSalary <= 0) {
+      console.log('Basic salary <= 0, returning early');
       setCalculatedComponents([]);
       return;
     }
 
     // Validasi employee_id harus terisi
     if (!form.employee_id) {
+      console.log('No employee_id, returning early');
       return;
     }
     
@@ -196,6 +201,7 @@ export const PayrollContent = () => {
       console.log('Manual Deductions:', manualDeductions);
       console.log('=====================================');
       
+      console.log('Making fetch request to backend...');
       const response = await fetch(`${API_URL}/api/payrolls/calculate`, {
         method: 'POST',
         headers: {
@@ -203,6 +209,7 @@ export const PayrollContent = () => {
         },
         body: JSON.stringify(requestBody)
       });
+      console.log('Fetch response received:', { status: response.status, ok: response.ok });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -298,13 +305,22 @@ export const PayrollContent = () => {
 
   // Recalculate when payrollComponents are loaded
   useEffect(() => {
+    console.log('useEffect triggered:', { 
+      gross_salary: form.gross_salary, 
+      payrollComponentsLength: payrollComponents.length, 
+      employee_id: form.employee_id 
+    });
+    
     if (form.gross_salary > 0 && payrollComponents.length > 0 && form.employee_id) {
+      console.log('useEffect: Calling calculatePayrollComponents');
       // Reset calculated components first to prevent accumulation
       setCalculatedComponents([]);
       // Kirim ke backend untuk kalkulasi ulang
       calculatePayrollComponents(form.gross_salary);
+    } else {
+      console.log('useEffect: Conditions not met for calculation');
     }
-  }, [payrollComponents]); // Hanya depend on payrollComponents, bukan employee_id
+  }, [payrollComponents, form.employee_id, form.gross_salary]); // Depend on all relevant values, bukan employee_id
 
 
 
@@ -356,7 +372,7 @@ export const PayrollContent = () => {
         
         const totalAllowances = posAllowance + mgmtAllowance + phoneAllowance + incentiveAllowance + overtimeAllowance;
         
-        // Update form dengan data salary
+                // Update form dengan data salary
         setForm(prev => ({
           ...prev,
           basic_salary: basicSalary,
@@ -365,19 +381,19 @@ export const PayrollContent = () => {
           phone_allowance: phoneAllowance,
           incentive_allowance: incentiveAllowance,
           overtime_allowance: overtimeAllowance,
-          total_allowances: totalAllowances
+          total_allowances: totalAllowances,
+          gross_salary: basicSalary + totalAllowances // Set gross_salary langsung
         }));
         
-              // Trigger perhitungan backend
-      console.log('Triggering backend calculation with:', {
-        basicSalary,
-        totalAllowances,
-        totalIncome: basicSalary + totalAllowances
-      });
-      
-      setTimeout(() => {
+        // Trigger perhitungan backend
+        console.log('Triggering backend calculation with:', {
+          basicSalary,
+          totalAllowances,
+          totalIncome: basicSalary + totalAllowances
+        });
+        
+        // Trigger perhitungan langsung tanpa setTimeout
         calculatePayrollComponents(basicSalary + totalAllowances);
-      }, 100);
         
         // Toast success
         toast({
