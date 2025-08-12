@@ -195,6 +195,17 @@ export const PayrollContent = () => {
       return;
     }
     
+    // Validasi API_URL tidak boleh kosong
+    if (!API_URL) {
+      console.error('API_URL is empty! Please check environment variables.');
+      toast({
+        title: "Error",
+        description: "API URL tidak tersedia. Silakan periksa konfigurasi.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     // Set flag to prevent multiple calls and recursive useEffect triggers
     setIsCalculating(true);
     
@@ -226,8 +237,12 @@ export const PayrollContent = () => {
         const errorData = await response.json().catch(() => ({}));
         console.error('Backend error response:', { status: response.status, error: errorData });
         
-        if (response.status === 404 && errorData.error?.includes('Data gaji karyawan tidak ditemukan')) {
-          throw new Error('Data gaji karyawan tidak ditemukan. Silakan buat data salary terlebih dahulu.');
+        if (response.status === 404) {
+          if (errorData.error?.includes('Data gaji karyawan tidak ditemukan')) {
+            throw new Error('Data gaji karyawan tidak ditemukan. Silakan buat data salary terlebih dahulu.');
+          } else {
+            throw new Error(`Endpoint tidak ditemukan (404). Pastikan backend berjalan dan endpoint tersedia.`);
+          }
         } else {
           throw new Error(errorData.error || `HTTP ${response.status}: Gagal menghitung komponen payroll`);
         }
@@ -301,14 +316,65 @@ export const PayrollContent = () => {
       
     } catch (error) {
       console.error('Error calculating payroll:', error);
+      
+      // Tampilkan error message yang lebih informatif
+      let errorMessage = "Gagal menghitung komponen payroll";
+      if (error instanceof Error) {
+        if (error.message.includes('Endpoint tidak ditemukan')) {
+          errorMessage = "Backend tidak tersedia. Silakan periksa koneksi server.";
+        } else if (error.message.includes('Data gaji karyawan tidak ditemukan')) {
+          errorMessage = error.message;
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Gagal menghitung komponen payroll",
+        description: errorMessage,
         variant: "destructive"
       });
       
-      // Fallback to empty calculation (backend tidak tersedia)
-      setCalculatedComponents([]);
+      // Fallback calculation jika backend tidak tersedia
+      if (error instanceof Error && error.message.includes('Endpoint tidak ditemukan')) {
+        console.log('Backend tidak tersedia, menggunakan fallback calculation...');
+        const fallbackComponents = [
+          { name: 'BPJS Kesehatan (Karyawan)', amount: Math.round(basicSalary * 0.01) },
+          { name: 'BPJS Kesehatan (Perusahaan)', amount: Math.round(basicSalary * 0.04) },
+          { name: 'BPJS Jaminan Hari Tua (Karyawan)', amount: Math.round(basicSalary * 0.02) },
+          { name: 'BPJS Jaminan Hari Tua (Perusahaan)', amount: Math.round(basicSalary * 0.037) },
+          { name: 'BPJS Jaminan Pensiun (Karyawan)', amount: Math.round(basicSalary * 0.01) },
+          { name: 'BPJS Jaminan Pensiun (Perusahaan)', amount: Math.round(basicSalary * 0.02) },
+          { name: 'BPJS Jaminan Kecelakaan Kerja (Perusahaan)', amount: Math.round(basicSalary * 0.0024) },
+          { name: 'BPJS Jaminan Kematian (Perusahaan)', amount: Math.round(basicSalary * 0.003) },
+          { name: 'PPH21', amount: Math.round(basicSalary * 0.05) }
+        ];
+        
+        setCalculatedComponents(fallbackComponents);
+        
+        // Update form dengan fallback calculation
+        setForm(prev => ({
+          ...prev,
+          bpjs_health_employee: fallbackComponents.find(c => c.name === 'BPJS Kesehatan (Karyawan)')?.amount || 0,
+          bpjs_health_company: fallbackComponents.find(c => c.name === 'BPJS Kesehatan (Perusahaan)')?.amount || 0,
+          jht_employee: fallbackComponents.find(c => c.name === 'BPJS Jaminan Hari Tua (Karyawan)')?.amount || 0,
+          jht_company: fallbackComponents.find(c => c.name === 'BPJS Jaminan Hari Tua (Perusahaan)')?.amount || 0,
+          jp_employee: fallbackComponents.find(c => c.name === 'BPJS Jaminan Pensiun (Karyawan)')?.amount || 0,
+          jp_company: fallbackComponents.find(c => c.name === 'BPJS Jaminan Pensiun (Perusahaan)')?.amount || 0,
+          jkk_company: fallbackComponents.find(c => c.name === 'BPJS Jaminan Kecelakaan Kerja (Perusahaan)')?.amount || 0,
+          jkm_company: fallbackComponents.find(c => c.name === 'BPJS Jaminan Kematian (Perusahaan)')?.amount || 0,
+          pph21: fallbackComponents.find(c => c.name === 'PPH21')?.amount || 0
+        }));
+        
+        toast({
+          title: "Info",
+          description: "Menggunakan perhitungan fallback karena backend tidak tersedia.",
+          variant: "default"
+        });
+      } else {
+        // Fallback to empty calculation untuk error lainnya
+        setCalculatedComponents([]);
+      }
     } finally {
       // Reset flag setelah selesai (success atau error)
       setIsCalculating(false);
@@ -401,9 +467,6 @@ export const PayrollContent = () => {
           totalIncome
         });
         
-        // State akan ter-update, sekarang panggil calculatePayrollComponents secara manual
-        // untuk mencegah double calculation
-        
         // Toast success
         toast({
           title: "Data Salary Ditemukan",
@@ -411,10 +474,11 @@ export const PayrollContent = () => {
           variant: "default"
         });
         
-        // Trigger perhitungan backend setelah toast
+        // Trigger perhitungan backend dengan delay untuk memastikan state ter-update
         setTimeout(() => {
-          calculatePayrollComponents(totalIncome);
-        }, 100);
+          // Gunakan basicSalary yang sudah di-parse, bukan totalIncome
+          calculatePayrollComponents(basicSalary);
+        }, 200);
       } else {
         // Toast error jika karyawan belum ada data salary
         const selectedEmployee = employees.find(emp => emp.id === value);
@@ -588,6 +652,19 @@ export const PayrollContent = () => {
   };
 
   useEffect(() => {
+    // Validasi API_URL tersedia
+    if (!API_URL) {
+      console.error('API_URL is empty! Please check environment variables.');
+      toast({
+        title: "Error",
+        description: "API URL tidak tersedia. Silakan periksa konfigurasi environment variables.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    console.log('API_URL loaded:', API_URL);
+    
     fetchPayrolls();
     fetchEmployees();
     fetchPayrollComponents();
