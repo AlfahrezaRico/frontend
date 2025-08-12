@@ -265,32 +265,52 @@ export const PayrollContent = () => {
         
         setForm(prev => {
           const components = data.calculated_components || [];
+          
+          // Extract component amounts
+          const bpjs_health_employee = components.find(c => c.name === 'BPJS Kesehatan (Karyawan)')?.amount || 0;
+          const bpjs_health_company = components.find(c => c.name === 'BPJS Kesehatan (Perusahaan)')?.amount || 0;
+          const jht_employee = components.find(c => c.name === 'BPJS Jaminan Hari Tua (Karyawan)')?.amount || 0;
+          const jht_company = components.find(c => c.name === 'BPJS Jaminan Hari Tua (Perusahaan)')?.amount || 0;
+          const jp_employee = components.find(c => c.name === 'BPJS Jaminan Pensiun (Karyawan)')?.amount || 0;
+          const jp_company = components.find(c => c.name === 'BPJS Jaminan Pensiun (Perusahaan)')?.amount || 0;
+          const jkk_company = components.find(c => c.name === 'BPJS Jaminan Kecelakaan Kerja (Perusahaan)')?.amount || 0;
+          const jkm_company = components.find(c => c.name === 'BPJS Jaminan Kematian (Perusahaan)')?.amount || 0;
+          const pph21 = components.find(c => c.name === 'PPH21')?.amount || 0;
+          
+          // Calculate total deductions including manual deductions
+          const totalDeductions = bpjs_health_employee + jht_employee + jp_employee + pph21 + 
+                                 manualDeductions.kasbon + manualDeductions.telat + manualDeductions.angsuran_kredit;
+          
+          // Calculate net salary
+          const grossSalary = data.totals?.total_pendapatan || prev.gross_salary;
+          const netSalary = Math.max(0, grossSalary - totalDeductions);
+          
           const updatedForm = {
             ...prev,
             // Backend mengirimkan breakdown pendapatan yang lengkap
-            gross_salary: data.totals?.total_pendapatan || prev.gross_salary,
-            total_deductions: data.totals?.total_deduction || 0,
-            net_salary: data.totals?.net_salary || prev.net_salary,
+            gross_salary: grossSalary,
+            total_deductions: totalDeductions,
+            net_salary: netSalary,
             
             // Komponen payroll yang dihitung
             // BPJS Kesehatan
-            bpjs_health_employee: components.find(c => c.name === 'BPJS Kesehatan (Karyawan)')?.amount || 0,
-            bpjs_health_company: components.find(c => c.name === 'BPJS Kesehatan (Perusahaan)')?.amount || 0,
+            bpjs_health_employee,
+            bpjs_health_company,
             
             // BPJS Ketenagakerjaan
-            jht_employee: components.find(c => c.name === 'BPJS Jaminan Hari Tua (Karyawan)')?.amount || 0,
-            jht_company: components.find(c => c.name === 'BPJS Jaminan Hari Tua (Perusahaan)')?.amount || 0,
+            jht_employee,
+            jht_company,
             
             // BPJS Jaminan Pensiun
-            jp_employee: components.find(c => c.name === 'BPJS Jaminan Pensiun (Karyawan)')?.amount || 0,
-            jp_company: components.find(c => c.name === 'BPJS Jaminan Pensiun (Perusahaan)')?.amount || 0,
+            jp_employee,
+            jp_company,
             
             // BPJS Jaminan Kecelakaan Kerja & Kematian
-            jkk_company: components.find(c => c.name === 'BPJS Jaminan Kecelakaan Kerja (Perusahaan)')?.amount || 0,
-            jkm_company: components.find(c => c.name === 'BPJS Jaminan Kematian (Perusahaan)')?.amount || 0,
+            jkk_company,
+            jkm_company,
             
             // Pajak
-            pph21: components.find(c => c.name === 'PPH21')?.amount || 0
+            pph21
           };
           
           console.log('Form updated with all backend data:', updatedForm);
@@ -353,18 +373,46 @@ export const PayrollContent = () => {
         setCalculatedComponents(fallbackComponents);
         
         // Update form dengan fallback calculation
-        setForm(prev => ({
-          ...prev,
-          bpjs_health_employee: fallbackComponents.find(c => c.name === 'BPJS Kesehatan (Karyawan)')?.amount || 0,
-          bpjs_health_company: fallbackComponents.find(c => c.name === 'BPJS Kesehatan (Perusahaan)')?.amount || 0,
-          jht_employee: fallbackComponents.find(c => c.name === 'BPJS Jaminan Hari Tua (Karyawan)')?.amount || 0,
-          jht_company: fallbackComponents.find(c => c.name === 'BPJS Jaminan Hari Tua (Perusahaan)')?.amount || 0,
-          jp_employee: fallbackComponents.find(c => c.name === 'BPJS Jaminan Pensiun (Karyawan)')?.amount || 0,
-          jp_company: fallbackComponents.find(c => c.name === 'BPJS Jaminan Pensiun (Perusahaan)')?.amount || 0,
-          jkk_company: fallbackComponents.find(c => c.name === 'BPJS Jaminan Kecelakaan Kerja (Perusahaan)')?.amount || 0,
-          jkm_company: fallbackComponents.find(c => c.name === 'BPJS Jaminan Kematian (Perusahaan)')?.amount || 0,
-          pph21: fallbackComponents.find(c => c.name === 'PPH21')?.amount || 0
-        }));
+        setForm(prev => {
+          const bpjs_health_employee = fallbackComponents.find(c => c.name === 'BPJS Kesehatan (Karyawan)')?.amount || 0;
+          const bpjs_health_company = fallbackComponents.find(c => c.name === 'BPJS Kesehatan (Perusahaan)')?.amount || 0;
+          const jht_employee = fallbackComponents.find(c => c.name === 'BPJS Jaminan Hari Tua (Karyawan)')?.amount || 0;
+          const jht_company = fallbackComponents.find(c => c.name === 'BPJS Jaminan Hari Tua (Perusahaan)')?.amount || 0;
+          const jp_employee = fallbackComponents.find(c => c.name === 'BPJS Jaminan Pensiun (Karyawan)')?.amount || 0;
+          const jp_company = fallbackComponents.find(c => c.name === 'BPJS Jaminan Pensiun (Perusahaan)')?.amount || 0;
+          const jkk_company = fallbackComponents.find(c => c.name === 'BPJS Jaminan Kecelakaan Kerja (Perusahaan)')?.amount || 0;
+          const jkm_company = fallbackComponents.find(c => c.name === 'BPJS Jaminan Kematian (Perusahaan)')?.amount || 0;
+          const pph21 = fallbackComponents.find(c => c.name === 'PPH21')?.amount || 0;
+          
+          // Calculate total deductions
+          const totalDeductions = bpjs_health_employee + jht_employee + jp_employee + pph21 + 
+                                 manualDeductions.kasbon + manualDeductions.telat + manualDeductions.angsuran_kredit;
+          
+          // Calculate net salary
+          const netSalary = Math.max(0, prev.gross_salary - totalDeductions);
+          
+          return {
+            ...prev,
+            bpjs_health_employee,
+            bpjs_health_company,
+            jht_employee,
+            jht_company,
+            jp_employee,
+            jp_company,
+            jkk_company,
+            jkm_company,
+            pph21,
+            total_deductions: totalDeductions,
+            net_salary: netSalary
+          };
+        });
+        
+        // Update breakdown pendapatan untuk fallback calculation
+        setBreakdownPendapatan({
+          pendapatan_tetap: form.basic_salary || 0,
+          pendapatan_tidak_tetap: form.total_allowances || 0,
+          total_pendapatan: form.gross_salary || 0
+        });
         
         toast({
           title: "Info",
@@ -381,6 +429,30 @@ export const PayrollContent = () => {
     }
   }, [form.employee_id, manualDeductions, isCalculating]);
 
+  // useEffect untuk recalculate net salary ketika calculated components atau manual deductions berubah
+  useEffect(() => {
+    if (form.gross_salary > 0 && !isCalculating) {
+      const totalDeductions = (form.bpjs_health_employee || 0) + 
+                             (form.jht_employee || 0) + 
+                             (form.jp_employee || 0) + 
+                             (form.pph21 || 0) + 
+                             manualDeductions.kasbon + 
+                             manualDeductions.telat + 
+                             manualDeductions.angsuran_kredit;
+      
+      const netSalary = Math.max(0, form.gross_salary - totalDeductions);
+      
+      // Update form jika net salary berubah
+      if (Math.abs(netSalary - (form.net_salary || 0)) > 0.01) {
+        setForm(prev => ({
+          ...prev,
+          total_deductions: totalDeductions,
+          net_salary: netSalary
+        }));
+      }
+    }
+  }, [calculatedComponents, manualDeductions, form.gross_salary, form.bpjs_health_employee, form.jht_employee, form.jp_employee, form.pph21, isCalculating]);
+
 
 
   // useEffect ini dihapus untuk mencegah double calculation
@@ -388,7 +460,7 @@ export const PayrollContent = () => {
   // useEffect(() => {
   //   console.log('useEffect triggered:', { 
   //     gross_salary: form.gross_salary, 
-  //     payrollComponentsLength: payrollComponents.length, 
+  //     payrollComponents: form.gross_salary, 
   //     employee_id: form.employee_id 
   //   });
   //   
@@ -457,7 +529,10 @@ export const PayrollContent = () => {
           incentive_allowance: incentiveAllowance,
           overtime_allowance: overtimeAllowance,
           total_allowances: totalAllowances,
-          gross_salary: totalIncome
+          gross_salary: totalIncome,
+          // Reset deductions and net salary when employee changes
+          total_deductions: 0,
+          net_salary: totalIncome
         }));
         
         // Trigger perhitungan backend setelah state ter-update
@@ -517,11 +592,27 @@ export const PayrollContent = () => {
     const newManualDeductions = { ...manualDeductions, [field]: value };
     setManualDeductions(newManualDeductions);
     
-    // Update form dengan manual deductions
-    setForm(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    // Update form dengan manual deductions dan recalculate net salary
+    setForm(prev => {
+      const newForm = { ...prev, [field]: value };
+      
+      // Recalculate total deductions and net salary
+      const totalDeductions = (newForm.bpjs_health_employee || 0) + 
+                             (newForm.jht_employee || 0) + 
+                             (newForm.jp_employee || 0) + 
+                             (newForm.pph21 || 0) + 
+                             newManualDeductions.kasbon + 
+                             newManualDeductions.telat + 
+                             newManualDeductions.angsuran_kredit;
+      
+      const netSalary = Math.max(0, (newForm.gross_salary || 0) - totalDeductions);
+      
+      return {
+        ...newForm,
+        total_deductions: totalDeductions,
+        net_salary: netSalary
+      };
+    });
     
     // Reset flag setelah state update
     setTimeout(() => {
@@ -804,19 +895,19 @@ export const PayrollContent = () => {
                             <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border">
                               <span className="font-medium text-gray-700">Gaji Pokok</span>
                               <span className="font-bold text-green-600">
-                                {formatCurrency(basicSalary)}
+                                {formatCurrency(form.basic_salary)}
                               </span>
                             </div>
                             <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg border">
                               <span className="font-medium text-gray-700">Tunjangan Jabatan</span>
                               <span className="font-semibold text-blue-600">
-                                {formatCurrency(posAllowance)}
+                                {formatCurrency(form.position_allowance)}
                               </span>
                             </div>
                             <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg border">
                               <span className="font-medium text-gray-700">Tunjangan Manajemen</span>
                               <span className="font-semibold text-purple-600">
-                                {formatCurrency(mgmtAllowance)}
+                                {formatCurrency(form.management_allowance)}
                               </span>
                             </div>
                           </div>
@@ -824,19 +915,19 @@ export const PayrollContent = () => {
                             <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg border">
                               <span className="font-medium text-gray-700">Tunjangan Telepon</span>
                               <span className="font-semibold text-orange-600">
-                                {formatCurrency(phoneAllowance)}
+                                {formatCurrency(form.phone_allowance)}
                               </span>
                             </div>
                             <div className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg border">
                               <span className="font-medium text-gray-700">Tunjangan Insentif</span>
                               <span className="font-semibold text-yellow-600">
-                                {formatCurrency(incentiveAllowance)}
+                                {formatCurrency(form.incentive_allowance)}
                               </span>
                             </div>
                             <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg border">
                               <span className="font-medium text-gray-700">Tunjangan Lembur</span>
                               <span className="font-semibold text-red-600">
-                                {formatCurrency(overtimeAllowance)}
+                                {formatCurrency(form.overtime_allowance)}
                               </span>
                             </div>
                           </div>
@@ -844,13 +935,13 @@ export const PayrollContent = () => {
                         <div className="flex justify-between items-center p-4 bg-blue-50 rounded-lg border">
                           <span className="text-lg font-medium text-gray-700">Total Tunjangan</span>
                           <span className="text-xl font-bold text-blue-600">
-                            {formatCurrency(totalAllowances)}
+                            {formatCurrency(form.total_allowances)}
                           </span>
                         </div>
                         <div className="flex justify-between items-center p-4 bg-green-100 rounded-lg border">
                           <span className="text-xl font-bold text-gray-800">Total Pendapatan (Gaji + Tunjangan)</span>
                           <span className="text-2xl font-bold text-green-600">
-                            {formatCurrency(basicSalary + totalAllowances)}
+                            {formatCurrency(form.gross_salary)}
                           </span>
                         </div>
 
