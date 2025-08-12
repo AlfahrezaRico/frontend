@@ -318,7 +318,7 @@ export const PayrollContent = () => {
       // Reset flag setelah selesai (success atau error)
       setIsCalculating(false);
     }
-  };
+  }, [form.employee_id, manualDeductions]);
 
 
 
@@ -347,9 +347,7 @@ export const PayrollContent = () => {
     }
   }, [payrollComponents, form.employee_id, form.gross_salary, isCalculating, calculatePayrollComponents]); // Tambahkan calculatePayrollComponents, bukan employee_id
 
-
-
-    const handleFormChange = (field: string, value: any) => {
+  const handleFormChange = (field: string, value: any) => {
     console.log('Form change:', { field, value, currentForm: form });
     
     if (field === 'employee_id') {
