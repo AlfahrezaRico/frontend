@@ -389,6 +389,12 @@ export const PayrollContent = () => {
     } else if (field === 'gross_salary') {
       // Hanya update form, useEffect akan handle perhitungan otomatis
       // Tidak perlu manual call calculatePayrollComponents
+    } else {
+      // Handle all other form fields (including date fields)
+      setForm(prev => ({
+        ...prev,
+        [field]: value
+      }));
     }
   };
 
@@ -554,8 +560,33 @@ export const PayrollContent = () => {
     return `Rp ${Math.round(amount).toLocaleString('id-ID')}`;
   };
 
+  const formatDateForInput = (dateString: string) => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return '';
+      return date.toISOString().split('T')[0];
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return '';
+    }
+  };
+
   const getTotalManualDeductions = () => {
     return form.kasbon + form.telat + form.angsuran_kredit;
+  };
+
+  const setDefaultDates = () => {
+    const today = new Date();
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    
+    setForm(prev => ({
+      ...prev,
+      pay_period_start: firstDayOfMonth.toISOString().split('T')[0],
+      pay_period_end: lastDayOfMonth.toISOString().split('T')[0],
+      payment_date: today.toISOString().split('T')[0]
+    }));
   };
 
   return (
@@ -567,7 +598,12 @@ export const PayrollContent = () => {
           <p className="text-gray-600">Kelola data gaji dan pembayaran karyawan</p>
         </div>
         <div className="flex gap-2">
-          <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+          <Dialog open={modalOpen} onOpenChange={(open) => {
+            setModalOpen(open);
+            if (open) {
+              setDefaultDates();
+            }
+          }}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
@@ -596,6 +632,8 @@ export const PayrollContent = () => {
                   </Select>
                 </div>
 
+
+
                 {/* Period */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -603,7 +641,7 @@ export const PayrollContent = () => {
                     <Input 
                       id="pay_period_start"
                       type="date" 
-                      value={form.pay_period_start || ''} 
+                      value={formatDateForInput(form.pay_period_start)} 
                       onChange={(e) => handleFormChange('pay_period_start', e.target.value)} 
                       required 
                     />
@@ -613,7 +651,7 @@ export const PayrollContent = () => {
                     <Input 
                       id="pay_period_end"
                       type="date" 
-                      value={form.pay_period_end || ''} 
+                      value={formatDateForInput(form.pay_period_end)} 
                       onChange={(e) => handleFormChange('pay_period_end', e.target.value)} 
                       required 
                     />
@@ -1149,7 +1187,7 @@ export const PayrollContent = () => {
                     <Input 
                       id="payment_date"
                       type="date" 
-                      value={form.payment_date || ''} 
+                      value={formatDateForInput(form.payment_date)} 
                       onChange={(e) => handleFormChange('payment_date', e.target.value)} 
                       required 
                     />
