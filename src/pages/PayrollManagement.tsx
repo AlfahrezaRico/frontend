@@ -96,17 +96,19 @@ export default function PayrollManagement() {
     overtime_allowance: 0,
     total_allowances: 0,
     
-    // Komponen Payroll yang Dihitung - Perusahaan
+    // Komponen Payroll yang Dihitung - Perusahaan (PENDAPATAN TETAP)
     bpjs_health_company: 0,
     jht_company: 0,
     jkk_company: 0,
     jkm_company: 0,
     jp_company: 0,
+    subtotal_company: 0,  // SUB TOTAL (Perusahaan)
     
-    // Komponen Payroll yang Dihitung - Karyawan
+    // Komponen Payroll yang Dihitung - Karyawan (POTONGAN)
     bpjs_health_employee: 0,
     jht_employee: 0,
     jp_employee: 0,
+    subtotal_employee: 0,  // SUB TOTAL (Potongan Karyawan)
     
     // Pajak
     pph21: 0,
@@ -117,7 +119,15 @@ export default function PayrollManagement() {
     angsuran_kredit: 0,
     
     // Total Deductions
-    total_deductions: 0
+    total_deductions: 0,
+    
+    // Total Pendapatan (Gaji + Tunjangan + BPJS Perusahaan)
+    total_pendapatan: 0,
+    
+    // Additional fields
+    created_by: null,
+    approved_by: null,
+    approved_at: null
   });
   const [submitting, setSubmitting] = useState(false);
   const [search, setSearch] = useState('');
@@ -290,16 +300,26 @@ export default function PayrollManagement() {
       jkk_company: jkkCompany,
       jkm_company: jkmCompany,
       jp_company: jpCompany,
+      subtotal_company: bpjsHealthCompany + jhtCompany + jkkCompany + jkmCompany + jpCompany,
       
       // Komponen Payroll yang Dihitung - Karyawan
       bpjs_health_employee: bpjsHealthEmployee,
       jht_employee: jhtEmployee,
       jp_employee: jpEmployee,
+      subtotal_employee: bpjsHealthEmployee + jhtEmployee + jpEmployee,
       
       // Deductions Manual
       kasbon: manual.kasbon,
       telat: manual.telat,
-      angsuran_kredit: manual.angsuran_kredit
+      angsuran_kredit: manual.angsuran_kredit,
+      
+      // Total Pendapatan (Gaji + Tunjangan + BPJS Perusahaan)
+      total_pendapatan: grossSalary,
+      
+      // Additional fields
+      created_by: null,
+      approved_by: null,
+      approved_at: null
     }));
   };
 
@@ -423,11 +443,13 @@ export default function PayrollManagement() {
         jkk_company: 0,
         jkm_company: 0,
         jp_company: 0,
+        subtotal_company: 0,
         
         // Komponen Payroll yang Dihitung - Karyawan
         bpjs_health_employee: 0,
         jht_employee: 0,
         jp_employee: 0,
+        subtotal_employee: 0,
         
         // Pajak
         pph21: 0,
@@ -438,7 +460,15 @@ export default function PayrollManagement() {
         angsuran_kredit: 0,
         
         // Total Deductions
-        total_deductions: 0
+        total_deductions: 0,
+        
+        // Total Pendapatan (Gaji + Tunjangan + BPJS Perusahaan)
+        total_pendapatan: 0,
+        
+        // Additional fields
+        created_by: null,
+        approved_by: null,
+        approved_at: null
       });
       setCalculatedComponents([]);
       setManualDeductions({ kasbon: 0, telat: 0, angsuran_kredit: 0 });
@@ -743,7 +773,7 @@ export default function PayrollManagement() {
                         </div>
                       </div>
                       
-                      {/* Gross Salary */}
+                      {/* Total Pendapatan (Gaji + Tunjangan) */}
                       <div>
                         <Label htmlFor="gross_salary_display">Total Pendapatan (Gaji + Tunjangan)</Label>
                         <Input 
@@ -755,10 +785,98 @@ export default function PayrollManagement() {
                         />
                       </div>
                       
+                      {/* BPJS Perusahaan - PENDAPATAN TETAP */}
+                      <div className="space-y-2">
+                        <h4 className="font-medium text-gray-800">PENDAPATAN TETAP (Perusahaan)</h4>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div>BPJS Ketenagakerjaan JHT: {formatCurrency(form.jht_company)}</div>
+                          <div>BPJS Ketenagakerjaan JKM: {formatCurrency(form.jkm_company)}</div>
+                          <div>BPJS Ketenagakerjaan JKK: {formatCurrency(form.jkk_company)}</div>
+                          <div>BPJS Jaminan Pensiun: {formatCurrency(form.jp_company)}</div>
+                          <div>BPJS Kesehatan: {formatCurrency(form.bpjs_health_company)}</div>
+                        </div>
+                        <div className="border-t pt-2">
+                          <Label htmlFor="subtotal_company">SUB TOTAL (Perusahaan)</Label>
+                          <Input 
+                            id="subtotal_company"
+                            type="text" 
+                            value={formatCurrency(form.subtotal_company)} 
+                            readOnly
+                            className="bg-white font-semibold text-green-600"
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* Total Pendapatan (Gaji + Tunjangan + BPJS Perusahaan) */}
+                      <div>
+                        <Label htmlFor="total_pendapatan_display">Total Pendapatan</Label>
+                        <Input 
+                          id="total_pendapatan_display"
+                          type="text" 
+                          value={formatCurrency(form.total_pendapatan)} 
+                          readOnly
+                          className="bg-white font-semibold text-green-600"
+                        />
+                      </div>
+                      
                       {/* Deductions */}
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <h4 className="font-medium text-gray-800">POTONGAN</h4>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div>BPJS Kesehatan (Karyawan): {formatCurrency(form.bpjs_health_employee)}</div>
+                          <div>BPJS Ketenagakerjaan JHT (Karyawan): {formatCurrency(form.jht_employee)}</div>
+                          <div>BPJS Jaminan Pensiun (Karyawan): {formatCurrency(form.jp_employee)}</div>
+                        </div>
+                        <div className="border-t pt-2">
+                          <Label htmlFor="subtotal_employee">SUB TOTAL (Potongan Karyawan)</Label>
+                          <Input 
+                            id="subtotal_employee"
+                            type="text" 
+                            value={formatCurrency(form.subtotal_employee)} 
+                            readOnly
+                            className="bg-white font-semibold text-red-600"
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* Manual Deductions */}
+                      <div className="grid grid-cols-3 gap-4">
                         <div>
-                          <Label htmlFor="total_deductions">Total Potongan</Label>
+                          <Label htmlFor="kasbon_display">KASBON</Label>
+                          <Input 
+                            id="kasbon_display"
+                            type="text" 
+                            value={formatCurrency(form.kasbon)} 
+                            readOnly
+                            className="bg-white font-semibold text-red-600"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="telat_display">Telat</Label>
+                          <Input 
+                            id="telat_display"
+                            type="text" 
+                            value={formatCurrency(form.telat)} 
+                            readOnly
+                            className="bg-white font-semibold text-red-600"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="angsuran_kredit_display">Angsuran Kredit</Label>
+                          <Input 
+                            id="angsuran_kredit_display"
+                            type="text" 
+                            value={formatCurrency(form.angsuran_kredit)} 
+                            readOnly
+                            className="bg-white font-semibold text-red-600"
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* Final Totals */}
+                      <div className="grid grid-cols-2 gap-4 border-t pt-4">
+                        <div>
+                          <Label htmlFor="total_deductions">TOTAL PEMOTONGAN</Label>
                           <Input 
                             id="total_deductions"
                             type="text" 
