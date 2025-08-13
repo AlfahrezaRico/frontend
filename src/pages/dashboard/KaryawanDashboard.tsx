@@ -321,38 +321,38 @@ const KaryawanDashboard = () => {
           reader.readAsDataURL(blob);
           const base64Logo = await base64Promise;
           
-          // Add logo to PDF (left side, above title) - make it wider
-          doc.addImage(base64Logo, 'JPEG', margin, 8, 40, 25);
+          // Add logo to PDF (left side, above title) - make it wider and move up
+          doc.addImage(base64Logo, 'JPEG', margin, 5, 40, 25);
           console.log('Logo loaded successfully');
         }
       } catch (logoError) {
         console.error('Error loading logo:', logoError);
       }
       
-      // Add document number and date with better styling
+      // Add document number and date with better styling - moved up
       doc.setFontSize(8);
       doc.setTextColor(75, 85, 99);
-      doc.text(`No: ${payroll.id.slice(0, 8).toUpperCase()}`, pageWidth - margin, 10, { align: 'right' });
-      doc.text(`Tanggal: ${format(new Date(), 'dd/MM/yyyy', { locale: id })}`, pageWidth - margin, 15, { align: 'right' });
+      doc.text(`No: ${payroll.id.slice(0, 8).toUpperCase()}`, pageWidth - margin, 8, { align: 'right' });
+      doc.text(`Tanggal: ${format(new Date(), 'dd/MM/yyyy', { locale: id })}`, pageWidth - margin, 12, { align: 'right' });
       
-      // Header with logo consideration - adjusted for left logo
+      // Header with logo consideration - adjusted for left logo (moved up)
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(16);
       doc.setFont(undefined, 'bold');
-      doc.text('SLIP GAJI KARYAWAN', 105, 20, { align: 'center' });
+      doc.text('SLIP GAJI KARYAWAN', 105, 15, { align: 'center' });
       doc.setFontSize(12);
-      doc.text('KSP MEKARSARI', 105, 27, { align: 'center' });
+      doc.text('KSP MEKARSARI', 105, 22, { align: 'center' });
       doc.setFont(undefined, 'normal');
       
       // Add decorative line under company name
       doc.setDrawColor(59, 130, 246);
       doc.setLineWidth(0.5);
-      doc.line(margin, 32, pageWidth - margin, 32);
+      doc.line(margin, 27, pageWidth - margin, 27);
       doc.setLineWidth(0.1);
       doc.setDrawColor(0, 0, 0);
       
       // Line separator - adjusted position for logo
-      const headerLineY = 45;
+      const headerLineY = 35;
       doc.line(20, headerLineY, 190, headerLineY);
       
       // Employee Information section
@@ -660,18 +660,26 @@ const KaryawanDashboard = () => {
       doc.setTextColor(0, 0, 0);
       doc.text(`Rp ${Number(payroll.net_salary || 0).toLocaleString('id-ID')}`, 105, netSalaryY + 22, { align: 'center' });
       
-      // Add Total Diterima at the bottom
+      // Add Total Diterima at the bottom with more prominence
       yPos = netSalaryY + 40;
-      doc.setFillColor(41, 128, 185);
-      doc.rect(margin, yPos, contentWidth, 15, 'F');
-      doc.setFont(undefined, 'bold');
-      doc.setFontSize(14);
-      doc.setTextColor(255, 255, 255);
-      doc.text('TOTAL DITERIMA', 60, yPos + 10);
-      doc.text(`Rp ${Number(payroll.net_salary || 0).toLocaleString('id-ID')}`, pageWidth - margin - 10, yPos + 10, { align: 'right' });
       
-      // Footer with better formatting
-      yPos = netSalaryY + 65;
+      // Create a more prominent box for Total Diterima
+      doc.setFillColor(0, 102, 204); // Darker blue for better visibility
+      doc.rect(margin, yPos, contentWidth, 20, 'F');
+      doc.setDrawColor(0, 51, 153);
+      doc.setLineWidth(1);
+      doc.rect(margin, yPos, contentWidth, 20, 'S');
+      doc.setLineWidth(0.1);
+      
+      // Add text with larger font
+      doc.setFont(undefined, 'bold');
+      doc.setFontSize(16); // Larger font size
+      doc.setTextColor(255, 255, 255);
+      doc.text('TOTAL DITERIMA', margin + 10, yPos + 13);
+      doc.text(`Rp ${Number(payroll.net_salary || 0).toLocaleString('id-ID')}`, pageWidth - margin - 10, yPos + 13, { align: 'right' });
+      
+      // Footer with better formatting - adjusted position
+      yPos = netSalaryY + 70; // Adjusted to be closer to TOTAL DITERIMA
       
       // Add footer background
       doc.setFillColor(245, 246, 250);
