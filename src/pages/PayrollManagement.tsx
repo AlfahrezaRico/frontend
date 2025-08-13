@@ -197,12 +197,19 @@ export default function PayrollManagement() {
 
   // Update created_by when user is available
   useEffect(() => {
+    console.log('=== USER EFFECT TRIGGERED ===');
+    console.log('user:', user);
+    console.log('user?.id:', user?.id);
+    console.log('form.created_by before update:', form.created_by);
+    
     if (user?.id) {
       setForm(prev => ({
         ...prev,
         created_by: user.id
       }));
+      console.log('Updated form.created_by to:', user.id);
     }
+    console.log('================================');
   }, [user?.id]);
 
   // Calculate payroll components based on basic salary
@@ -268,10 +275,8 @@ export default function PayrollManagement() {
 
   // Update totals calculation
   const updateTotals = (basicSalary: number, calculated: CalculatedComponent[], manual: ManualDeduction) => {
-    // Calculate total allowances (PENDAPATAN TIDAK TETAP)
-    const totalAllowances = calculated
-      .filter(c => c.type === 'income' && c.category === 'allowance')
-      .reduce((sum, c) => sum + c.amount, 0);
+    // Calculate total allowances (PENDAPATAN TIDAK TETAP) - dari form state
+    const totalAllowances = (form.position_allowance || 0) + (form.management_allowance || 0) + (form.phone_allowance || 0) + (form.incentive_allowance || 0) + (form.overtime_allowance || 0);
     
     // Calculate company contributions (PENDAPATAN TETAP - Perusahaan)
     const companyContributions = calculated
@@ -527,9 +532,7 @@ export default function PayrollManagement() {
       }
       
       // Calculate all values before submitting
-      const totalAllowances = calculatedComponents
-        .filter(c => c.type === 'income' && c.category === 'allowance')
-        .reduce((sum, c) => sum + c.amount, 0);
+      const totalAllowances = (form.position_allowance || 0) + (form.management_allowance || 0) + (form.phone_allowance || 0) + (form.incentive_allowance || 0) + (form.overtime_allowance || 0);
       
       const companyContributions = calculatedComponents
         .filter(c => c.type === 'income' && c.category === 'bpjs')
@@ -559,15 +562,29 @@ export default function PayrollManagement() {
       console.log('================================');
       
       // Map calculated components to specific fields - berdasarkan data payroll_components yang ada
+      // Gunakan type 'income' untuk komponen perusahaan (PENDAPATAN TETAP)
       const bpjsHealthCompany = calculatedComponents.find(c => c.name === 'BPJS Kesehatan (Perusahaan)' && c.type === 'income')?.amount || 0;
       const jhtCompany = calculatedComponents.find(c => c.name === 'BPJS Ketenagakerjaan JHT (Perusahaan)' && c.type === 'income')?.amount || 0;
       const jkkCompany = calculatedComponents.find(c => c.name === 'BPJS Ketenagakerjaan JKK (Perusahaan)' && c.type === 'income')?.amount || 0;
       const jkmCompany = calculatedComponents.find(c => c.name === 'BPJS Ketenagakerjaan JKM (Perusahaan)' && c.type === 'income')?.amount || 0;
       const jpCompany = calculatedComponents.find(c => c.name === 'BPJS Jaminan Pensiun (Perusahaan)' && c.type === 'income')?.amount || 0;
       
+      // Gunakan type 'deduction' untuk komponen karyawan (POTONGAN)
       const bpjsHealthEmployee = calculatedComponents.find(c => c.name === 'BPJS Kesehatan (Karyawan)' && c.type === 'deduction')?.amount || 0;
       const jhtEmployee = calculatedComponents.find(c => c.name === 'BPJS Ketenagakerjaan JHT (Karyawan)' && c.type === 'deduction')?.amount || 0;
       const jpEmployee = calculatedComponents.find(c => c.name === 'BPJS Jaminan Pensiun (Karyawan)' && c.type === 'deduction')?.amount || 0;
+      
+      // Debug: Check individual BPJS components
+      console.log('=== DEBUG INDIVIDUAL BPJS COMPONENTS ===');
+      console.log('BPJS Health Company:', bpjsHealthCompany);
+      console.log('JHT Company:', jhtCompany);
+      console.log('JKK Company:', jkkCompany);
+      console.log('JKM Company:', jkmCompany);
+      console.log('JP Company:', jpCompany);
+      console.log('BPJS Health Employee:', bpjsHealthEmployee);
+      console.log('JHT Employee:', jhtEmployee);
+      console.log('JP Employee:', jpEmployee);
+      console.log('================================');
       
       // Tunjangan dari form (sudah diisi dari salary data)
       const positionAllowance = form.position_allowance || 0;
@@ -591,6 +608,21 @@ export default function PayrollManagement() {
       console.log('=== DEBUG SUBTOTALS ===');
       console.log('subtotalCompany:', subtotalCompany);
       console.log('subtotalEmployee:', subtotalEmployee);
+      console.log('================================');
+      
+      // Debug: Check final calculations
+      console.log('=== DEBUG FINAL CALCULATIONS ===');
+      console.log('Basic Salary:', form.basic_salary);
+      console.log('Total Allowances:', totalAllowances);
+      console.log('Company Contributions:', companyContributions);
+      console.log('Employee Deductions:', employeeDeductions);
+      console.log('Total Manual Deduction:', totalManualDeduction);
+      console.log('Total Deduction:', totalDeduction);
+      console.log('Gross Salary:', grossSalary);
+      console.log('Total Pendapatan:', totalPendapatan);
+      console.log('Net Salary:', netSalary);
+      console.log('User ID:', user?.id);
+      console.log('Form created_by:', form.created_by);
       console.log('================================');
       
       // Create the complete payroll data object
