@@ -907,23 +907,7 @@ export const PayrollContent = () => {
                   )}
                 </div>
 
-                {/* Total Pendapatan - Dihitung otomatis oleh backend */}
-                <div>
-                  <Label htmlFor="gross_salary">Total Pendapatan (Gaji Pokok + Tunjangan)</Label>
-                  <Input 
-                    id="gross_salary"
-                    type="number" 
-                    value={form.gross_salary} 
-                    readOnly
-                    placeholder="Dihitung otomatis oleh backend"
-                    className="bg-gray-50 font-semibold"
-                  />
-                  {form.employee_id && (
-                    <p className="text-sm text-gray-500 mt-1">
-                      Total gaji pokok + tunjangan (dihitung otomatis oleh backend)
-                    </p>
-                  )}
-                </div>
+
 
                 {/* Salary Details from Salary Data */}
                 {form.employee_id && (() => {
