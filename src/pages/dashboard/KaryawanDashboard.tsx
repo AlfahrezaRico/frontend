@@ -15,7 +15,6 @@ import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 
 const KaryawanDashboard = () => {
   const navigate = useNavigate();
