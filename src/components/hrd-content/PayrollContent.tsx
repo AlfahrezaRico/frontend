@@ -1476,14 +1476,6 @@ export const PayrollContent = () => {
           </DialogHeader>
           {selectedPayroll && (
             <div className="space-y-6">
-              {/* Debug Info - Hapus setelah testing */}
-              <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
-                <h4 className="font-medium text-yellow-800 mb-2">Debug Info (Hapus setelah testing)</h4>
-                <pre className="text-xs text-yellow-700 overflow-auto">
-                  {JSON.stringify(selectedPayroll, null, 2)}
-                </pre>
-              </div>
-              
               {/* Employee Info */}
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h3 className="font-semibold text-lg mb-3">Informasi Karyawan</h3>
