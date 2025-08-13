@@ -612,30 +612,31 @@ export const PayrollContent = () => {
       employee_id: payroll.employee_id,
       pay_period_start: new Date(payroll.pay_period_start).toISOString().split('T')[0],
       pay_period_end: new Date(payroll.pay_period_end).toISOString().split('T')[0],
-      basic_salary: payroll.basic_salary || 0,
-      gross_salary: payroll.gross_salary || 0,
-      net_salary: payroll.net_salary || 0,
+      basic_salary: Number(payroll.basic_salary) || 0,
+      gross_salary: Number(payroll.gross_salary) || 0,
+      net_salary: Number(payroll.net_salary) || 0,
       payment_date: payroll.payment_date ? new Date(payroll.payment_date).toISOString().split('T')[0] : '',
       status: payroll.status || 'UNPAID',
-      position_allowance: payroll.position_allowance || 0,
-      management_allowance: payroll.management_allowance || 0,
-      phone_allowance: payroll.phone_allowance || 0,
-      incentive_allowance: payroll.incentive_allowance || 0,
-      overtime_allowance: payroll.overtime_allowance || 0,
-      total_allowances: payroll.total_allowances || 0,
-      bpjs_health_company: payroll.bpjs_health_company || 0,
-      jht_company: payroll.jht_company || 0,
-      jkk_company: payroll.jkk_company || 0,
-      jkm_company: payroll.jkm_company || 0,
-      jp_company: payroll.jp_company || 0,
-      bpjs_health_employee: payroll.bpjs_health_employee || 0,
-      jht_employee: payroll.jht_employee || 0,
-      jp_employee: payroll.jp_employee || 0,
-      pph21: payroll.pph21 || 0,
-      kasbon: payroll.kasbon || 0,
-      telat: payroll.telat || 0,
-      angsuran_kredit: payroll.angsuran_kredit || 0,
-      total_deductions: payroll.total_deductions || 0
+      position_allowance: Number(payroll.position_allowance) || 0,
+      management_allowance: Number(payroll.management_allowance) || 0,
+      phone_allowance: Number(payroll.phone_allowance) || 0,
+      incentive_allowance: Number(payroll.incentive_allowance) || 0,
+      overtime_allowance: Number(payroll.overtime_allowance) || 0,
+      total_allowances: Number(payroll.total_allowances) || 0,
+      bpjs_health_company: Number(payroll.bpjs_health_company) || 0,
+      jht_company: Number(payroll.jht_company) || 0,
+      jkk_company: Number(payroll.jkk_company) || 0,
+      jkm_company: Number(payroll.jkm_company) || 0,
+      jp_company: Number(payroll.jp_company) || 0,
+      bpjs_health_employee: Number(payroll.bpjs_health_employee) || 0,
+      jht_employee: Number(payroll.jht_employee) || 0,
+      jp_employee: Number(payroll.jp_employee) || 0,
+      // pph21 dihapus dari schema, jangan dipakai
+      pph21: 0,
+      kasbon: Number(payroll.kasbon) || 0,
+      telat: Number(payroll.telat) || 0,
+      angsuran_kredit: Number(payroll.angsuran_kredit) || 0,
+      total_deductions: Number(payroll.total_deductions) || 0
     });
     setEditModalOpen(true);
   };
@@ -646,16 +647,87 @@ export const PayrollContent = () => {
     if (!selectedPayroll) return;
 
     try {
+      // Hitung ulang seperti Tambah Payroll
+      const totalAllowances = (form.position_allowance || 0) + (form.management_allowance || 0) + (form.phone_allowance || 0) + (form.incentive_allowance || 0) + (form.overtime_allowance || 0);
+
+      const bpjsHealthCompany = calculatedComponents.find(c => c.name === 'BPJS Kesehatan (Perusahaan)' && c.type === 'income')?.amount || form.bpjs_health_company || 0;
+      const jhtCompany = calculatedComponents.find(c => c.name === 'BPJS Jaminan Hari Tua (Perusahaan)' && c.type === 'income')?.amount || form.jht_company || 0;
+      const jkkCompany = calculatedComponents.find(c => c.name === 'BPJS Jaminan Kecelakaan Kerja (Perusahaan)' && c.type === 'income')?.amount || form.jkk_company || 0;
+      const jkmCompany = calculatedComponents.find(c => c.name === 'BPJS Jaminan Kematian (Perusahaan)' && c.type === 'income')?.amount || form.jkm_company || 0;
+      const jpCompany = calculatedComponents.find(c => c.name === 'BPJS Jaminan Pensiun (Perusahaan)' && c.type === 'income')?.amount || form.jp_company || 0;
+
+      const bpjsHealthEmployee = calculatedComponents.find(c => c.name === 'BPJS Kesehatan (Karyawan)' && c.type === 'deduction')?.amount || form.bpjs_health_employee || 0;
+      const jhtEmployee = calculatedComponents.find(c => c.name === 'BPJS Jaminan Hari Tua (Karyawan)' && c.type === 'deduction')?.amount || form.jht_employee || 0;
+      const jpEmployee = calculatedComponents.find(c => c.name === 'BPJS Jaminan Pensiun (Karyawan)' && c.type === 'deduction')?.amount || form.jp_employee || 0;
+
+      const subtotalCompany = bpjsHealthCompany + jhtCompany + jkkCompany + jkmCompany + jpCompany;
+      const subtotalEmployee = bpjsHealthEmployee + jhtEmployee + jpEmployee;
+
+      const totalManualDeduction = (form.kasbon || 0) + (form.telat || 0) + (form.angsuran_kredit || 0);
+      const totalDeduction = subtotalEmployee + totalManualDeduction;
+
+      const grossSalary = (form.basic_salary || 0) + totalAllowances;
+      const totalPendapatan = (form.basic_salary || 0) + totalAllowances + subtotalCompany;
+      const netSalary = totalPendapatan - totalDeduction;
+
+      const payload = {
+        employee_id: form.employee_id,
+        pay_period_start: form.pay_period_start,
+        pay_period_end: form.pay_period_end,
+        basic_salary: form.basic_salary,
+        gross_salary: grossSalary,
+        net_salary: netSalary,
+        payment_date: form.payment_date,
+        status: form.status,
+
+        // Tunjangan
+        position_allowance: form.position_allowance,
+        management_allowance: form.management_allowance,
+        phone_allowance: form.phone_allowance,
+        incentive_allowance: form.incentive_allowance,
+        overtime_allowance: form.overtime_allowance,
+        total_allowances: totalAllowances,
+
+        // Komponen perusahaan
+        bpjs_health_company: bpjsHealthCompany,
+        jht_company: jhtCompany,
+        jkk_company: jkkCompany,
+        jkm_company: jkmCompany,
+        jp_company: jpCompany,
+        subtotal_company: subtotalCompany,
+
+        // Komponen karyawan
+        bpjs_health_employee: bpjsHealthEmployee,
+        jht_employee: jhtEmployee,
+        jp_employee: jpEmployee,
+        subtotal_employee: subtotalEmployee,
+
+        // Manual deductions
+        kasbon: form.kasbon,
+        telat: form.telat,
+        angsuran_kredit: form.angsuran_kredit,
+
+        // Totals
+        total_deductions: totalDeduction,
+        total_pendapatan: totalPendapatan,
+
+        // Legacy/Additional
+        bpjs_employee: subtotalEmployee,
+        bpjs_company: subtotalCompany,
+        jkk: jkkCompany,
+        jkm: jkmCompany,
+        deductions: totalDeduction
+      };
+
       const response = await fetch(`${API_URL}/api/payrolls/${selectedPayroll.id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(form)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
-        throw new Error('Gagal mengupdate payroll');
+        const errText = await response.text();
+        throw new Error(errText || 'Gagal mengupdate payroll');
       }
 
       toast({
@@ -666,45 +738,9 @@ export const PayrollContent = () => {
 
       setEditModalOpen(false);
       setSelectedPayroll(null);
-      
-      // Reset form ke default
-      setForm({
-        employee_id: "",
-        pay_period_start: "",
-        pay_period_end: "",
-        basic_salary: 0,
-        gross_salary: 0,
-        net_salary: 0,
-        payment_date: "",
-        status: "PAID",
-        position_allowance: 0,
-        management_allowance: 0,
-        phone_allowance: 0,
-        incentive_allowance: 0,
-        overtime_allowance: 0,
-        total_allowances: 0,
-        bpjs_health_company: 0,
-        jht_company: 0,
-        jkk_company: 0,
-        jkm_company: 0,
-        jp_company: 0,
-        bpjs_health_employee: 0,
-        jht_employee: 0,
-        jp_employee: 0,
-        pph21: 0,
-        kasbon: 0,
-        telat: 0,
-        angsuran_kredit: 0,
-        total_deductions: 0
-      });
-      
-      fetchPayrolls(); // Refresh data
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Gagal mengupdate payroll",
-        variant: "destructive"
-      });
+      fetchPayrolls();
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message || 'Gagal mengupdate payroll', variant: 'destructive' });
     }
   };
 
