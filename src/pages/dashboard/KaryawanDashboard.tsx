@@ -491,72 +491,122 @@ const KaryawanDashboard = () => {
       // BPJS Company Contributions
       if (Number(payroll.bpjs_health_company) > 0) {
         doc.setFillColor(240, 255, 244);
-        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'F');
+        doc.roundedRect(margin, yPos - 5, contentWidth, 15, 1, 1, 'F');
         doc.setDrawColor(167, 243, 208);
-        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'S');
+        doc.roundedRect(margin, yPos - 5, contentWidth, 15, 1, 1, 'S');
         
         doc.setTextColor(31, 41, 55);
         doc.setFont(undefined, 'bold');
         doc.text('BPJS Kesehatan (Perusahaan)', margin + 5, yPos);
+        
+        // Add description below the title - percentage from basic salary
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(75, 85, 99);
+        const bpjsHealthPercentage = ((Number(payroll.bpjs_health_company) / Number(payroll.basic_salary)) * 100).toFixed(1);
+        doc.text(`${bpjsHealthPercentage}% dari gaji pokok`, margin + 5, yPos + 7);
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
         doc.setTextColor(22, 163, 74);
         doc.text(`Rp ${Number(payroll.bpjs_health_company).toLocaleString('id-ID')}`, pageWidth - margin - 5, yPos, { align: 'right' });
-        yPos += 12;
+        yPos += 17;
       }
       
       if (Number(payroll.jht_company) > 0) {
         doc.setFillColor(240, 255, 244);
-        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'F');
+        doc.roundedRect(margin, yPos - 5, contentWidth, 15, 1, 1, 'F');
         doc.setDrawColor(167, 243, 208);
-        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'S');
+        doc.roundedRect(margin, yPos - 5, contentWidth, 15, 1, 1, 'S');
         
         doc.setTextColor(31, 41, 55);
         doc.setFont(undefined, 'bold');
         doc.text('BPJS JHT (Perusahaan)', margin + 5, yPos);
+        
+        // Add description below the title - percentage from basic salary
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(75, 85, 99);
+        const jhtPercentage = ((Number(payroll.jht_company) / Number(payroll.basic_salary)) * 100).toFixed(1);
+        doc.text(`${jhtPercentage}% dari gaji pokok`, margin + 5, yPos + 7);
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
         doc.setTextColor(22, 163, 74);
         doc.text(`Rp ${Number(payroll.jht_company).toLocaleString('id-ID')}`, pageWidth - margin - 5, yPos, { align: 'right' });
-        yPos += 12;
+        yPos += 17;
       }
       
       if (Number(payroll.jkm_company) > 0) {
         doc.setFillColor(240, 255, 244);
-        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'F');
+        doc.roundedRect(margin, yPos - 5, contentWidth, 15, 1, 1, 'F');
         doc.setDrawColor(167, 243, 208);
-        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'S');
+        doc.roundedRect(margin, yPos - 5, contentWidth, 15, 1, 1, 'S');
         
         doc.setTextColor(31, 41, 55);
         doc.setFont(undefined, 'bold');
         doc.text('BPJS JKM (Perusahaan)', margin + 5, yPos);
+        
+        // Add description below the title - percentage from basic salary
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(75, 85, 99);
+        const jkmPercentage = ((Number(payroll.jkm_company) / Number(payroll.basic_salary)) * 100).toFixed(1);
+        doc.text(`${jkmPercentage}% dari gaji pokok`, margin + 5, yPos + 7);
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
         doc.setTextColor(22, 163, 74);
         doc.text(`Rp ${Number(payroll.jkm_company).toLocaleString('id-ID')}`, pageWidth - margin - 5, yPos, { align: 'right' });
-        yPos += 12;
+        yPos += 17;
       }
       
       if (Number(payroll.jkk_company) > 0) {
         doc.setFillColor(240, 255, 244);
-        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'F');
+        doc.roundedRect(margin, yPos - 5, contentWidth, 15, 1, 1, 'F');
         doc.setDrawColor(167, 243, 208);
-        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'S');
+        doc.roundedRect(margin, yPos - 5, contentWidth, 15, 1, 1, 'S');
         
         doc.setTextColor(31, 41, 55);
         doc.setFont(undefined, 'bold');
         doc.text('BPJS JKK (Perusahaan)', margin + 5, yPos);
+        
+        // Add description below the title - percentage from basic salary
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(75, 85, 99);
+        const jkkPercentage = ((Number(payroll.jkk_company) / Number(payroll.basic_salary)) * 100).toFixed(1);
+        doc.text(`${jkkPercentage}% dari gaji pokok`, margin + 5, yPos + 7);
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
         doc.setTextColor(22, 163, 74);
         doc.text(`Rp ${Number(payroll.jkk_company).toLocaleString('id-ID')}`, pageWidth - margin - 5, yPos, { align: 'right' });
-        yPos += 12;
+        yPos += 17;
       }
       
       if (Number(payroll.jp_company) > 0) {
         doc.setFillColor(240, 255, 244);
-        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'F');
+        doc.roundedRect(margin, yPos - 5, contentWidth, 15, 1, 1, 'F');
         doc.setDrawColor(167, 243, 208);
-        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'S');
+        doc.roundedRect(margin, yPos - 5, contentWidth, 15, 1, 1, 'S');
         
         doc.setTextColor(31, 41, 55);
         doc.setFont(undefined, 'bold');
         doc.text('BPJS Jaminan Pensiun (Perusahaan)', margin + 5, yPos);
+        
+        // Add description below the title - percentage from basic salary
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(75, 85, 99);
+        const jpPercentage = ((Number(payroll.jp_company) / Number(payroll.basic_salary)) * 100).toFixed(1);
+        doc.text(`${jpPercentage}% dari gaji pokok`, margin + 5, yPos + 7);
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
         doc.setTextColor(22, 163, 74);
         doc.text(`Rp ${Number(payroll.jp_company).toLocaleString('id-ID')}`, pageWidth - margin - 5, yPos, { align: 'right' });
-        yPos += 12;
+        yPos += 17;
       }
       
       // Subtotal Fixed Income with background - like Detail Payroll
@@ -728,44 +778,74 @@ const KaryawanDashboard = () => {
       // BPJS Employee
       if (Number(payroll.bpjs_health_employee) > 0) {
         doc.setFillColor(254, 242, 242); // Light red background
-        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'F');
+        doc.roundedRect(margin, yPos - 5, contentWidth, 15, 1, 1, 'F');
         doc.setDrawColor(252, 165, 165);
-        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'S');
+        doc.roundedRect(margin, yPos - 5, contentWidth, 15, 1, 1, 'S');
         
         doc.setTextColor(31, 41, 55);
         doc.setFont(undefined, 'bold');
         doc.text('BPJS Kesehatan (Karyawan)', margin + 5, yPos);
+        
+        // Add description below the title - percentage from basic salary
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(75, 85, 99);
+        const bpjsHealthEmployeePercentage = ((Number(payroll.bpjs_health_employee) / Number(payroll.basic_salary)) * 100).toFixed(1);
+        doc.text(`${bpjsHealthEmployeePercentage}% dari gaji pokok`, margin + 5, yPos + 7);
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
         doc.setTextColor(185, 28, 28);
         doc.text(`Rp ${Number(payroll.bpjs_health_employee).toLocaleString('id-ID')}`, pageWidth - margin - 5, yPos, { align: 'right' });
-        yPos += 12;
+        yPos += 17;
       }
       
       if (Number(payroll.jht_employee) > 0) {
         doc.setFillColor(254, 242, 242);
-        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'F');
+        doc.roundedRect(margin, yPos - 5, contentWidth, 15, 1, 1, 'F');
         doc.setDrawColor(252, 165, 165);
-        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'S');
+        doc.roundedRect(margin, yPos - 5, contentWidth, 15, 1, 1, 'S');
         
         doc.setTextColor(31, 41, 55);
         doc.setFont(undefined, 'bold');
         doc.text('BPJS JHT (Karyawan)', margin + 5, yPos);
+        
+        // Add description below the title - percentage from basic salary
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(75, 85, 99);
+        const jhtEmployeePercentage = ((Number(payroll.jht_employee) / Number(payroll.basic_salary)) * 100).toFixed(1);
+        doc.text(`${jhtEmployeePercentage}% dari gaji pokok`, margin + 5, yPos + 7);
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
         doc.setTextColor(185, 28, 28);
         doc.text(`Rp ${Number(payroll.jht_employee).toLocaleString('id-ID')}`, pageWidth - margin - 5, yPos, { align: 'right' });
-        yPos += 12;
+        yPos += 17;
       }
       
       if (Number(payroll.jp_employee) > 0) {
         doc.setFillColor(254, 242, 242);
-        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'F');
+        doc.roundedRect(margin, yPos - 5, contentWidth, 15, 1, 1, 'F');
         doc.setDrawColor(252, 165, 165);
-        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'S');
+        doc.roundedRect(margin, yPos - 5, contentWidth, 15, 1, 1, 'S');
         
         doc.setTextColor(31, 41, 55);
         doc.setFont(undefined, 'bold');
         doc.text('BPJS Jaminan Pensiun (Karyawan)', margin + 5, yPos);
+        
+        // Add description below the title - percentage from basic salary
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(75, 85, 99);
+        const jpEmployeePercentage = ((Number(payroll.jp_employee) / Number(payroll.basic_salary)) * 100).toFixed(1);
+        doc.text(`${jpEmployeePercentage}% dari gaji pokok`, margin + 5, yPos + 7);
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
         doc.setTextColor(185, 28, 28);
         doc.text(`Rp ${Number(payroll.jp_employee).toLocaleString('id-ID')}`, pageWidth - margin - 5, yPos, { align: 'right' });
-        yPos += 12;
+        yPos += 17;
       }
       
       // BPJS Perusahaan Section Title
