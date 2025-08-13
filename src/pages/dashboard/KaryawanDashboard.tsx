@@ -321,8 +321,8 @@ const KaryawanDashboard = () => {
           reader.readAsDataURL(blob);
           const base64Logo = await base64Promise;
           
-          // Add logo to PDF (left side, above title)
-          doc.addImage(base64Logo, 'JPEG', margin, 8, 25, 25);
+          // Add logo to PDF (left side, above title) - make it wider
+          doc.addImage(base64Logo, 'JPEG', margin, 8, 40, 25);
           console.log('Logo loaded successfully');
         }
       } catch (logoError) {
@@ -660,8 +660,18 @@ const KaryawanDashboard = () => {
       doc.setTextColor(0, 0, 0);
       doc.text(`Rp ${Number(payroll.net_salary || 0).toLocaleString('id-ID')}`, 105, netSalaryY + 22, { align: 'center' });
       
-      // Footer with better formatting
+      // Add Total Diterima at the bottom
       yPos = netSalaryY + 40;
+      doc.setFillColor(41, 128, 185);
+      doc.rect(margin, yPos, contentWidth, 15, 'F');
+      doc.setFont(undefined, 'bold');
+      doc.setFontSize(14);
+      doc.setTextColor(255, 255, 255);
+      doc.text('TOTAL DITERIMA', 60, yPos + 10);
+      doc.text(`Rp ${Number(payroll.net_salary || 0).toLocaleString('id-ID')}`, pageWidth - margin - 10, yPos + 10, { align: 'right' });
+      
+      // Footer with better formatting
+      yPos = netSalaryY + 65;
       
       // Add footer background
       doc.setFillColor(245, 246, 250);
