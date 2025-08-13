@@ -1622,11 +1622,11 @@ export const PayrollContent = () => {
                     <span className="font-semibold text-gray-800">SUB TOTAL</span>
                     <span className="font-bold text-orange-800">
                       {formatCurrency(
-                        (selectedPayroll.bpjs_health_company || 0) + 
-                        (selectedPayroll.jht_company || 0) + 
-                        (selectedPayroll.jkk_company || 0) + 
-                        (selectedPayroll.jkm_company || 0) + 
-                        (selectedPayroll.jp_company || 0)
+                        Number(selectedPayroll.bpjs_health_company || 0) + 
+                        Number(selectedPayroll.jht_company || 0) + 
+                        Number(selectedPayroll.jkk_company || 0) + 
+                        Number(selectedPayroll.jkm_company || 0) + 
+                        Number(selectedPayroll.jp_company || 0)
                       )}
                     </span>
                   </div>
@@ -1699,13 +1699,12 @@ export const PayrollContent = () => {
                     <span className="font-semibold text-gray-800">SUB TOTAL</span>
                     <span className="font-bold text-red-800">
                       {formatCurrency(
-                        (selectedPayroll.bpjs_health_employee || 0) + 
-                        (selectedPayroll.jht_employee || 0) + 
-                        (selectedPayroll.jp_employee || 0) + 
-                        (selectedPayroll.pph21 || 0) + 
-                        (selectedPayroll.kasbon || 0) + 
-                        (selectedPayroll.telat || 0) + 
-                        (selectedPayroll.angsuran_kredit || 0)
+                        Number(selectedPayroll.bpjs_health_employee || 0) + 
+                        Number(selectedPayroll.jht_employee || 0) + 
+                        Number(selectedPayroll.jp_employee || 0) + 
+                        Number(selectedPayroll.kasbon || 0) + 
+                        Number(selectedPayroll.telat || 0) + 
+                        Number(selectedPayroll.angsuran_kredit || 0)
                       )}
                     </span>
                   </div>

@@ -44,24 +44,8 @@ export const useAuth = (): AuthState => {
   }, []);
 
   useEffect(() => {
-    if (isProd) {
-      fetchMe();
-    } else {
-      // Development: pakai Supabase client
-      // HAPUS: const getSession = async () => {
-      // HAPUS:   const { data: { session } } = await supabase.auth.getSession();
-      // HAPUS:   setSession(session);
-      // HAPUS:   setUser(session?.user ?? null);
-      // HAPUS:   setLoading(false);
-      // HAPUS: };
-      // HAPUS: getSession();
-      // HAPUS: const { data: { subscription } } = supabase.auth.onAuthStateChange((event, currentSession) => {
-      // HAPUS:   setSession(currentSession);
-      // HAPUS:   setUser(currentSession?.user ?? null);
-      // HAPUS:   setLoading(false);
-      // HAPUS: });
-      // HAPUS: return () => subscription.unsubscribe();
-    }
+    // Always fetch logged-in user regardless of environment
+    fetchMe();
   }, [fetchMe]);
 
   const login = useCallback(async (email: string, password: string) => {
@@ -87,11 +71,9 @@ export const useAuth = (): AuthState => {
         const user = await fetchMe();
         return user;
       } else {
-        // HAPUS: const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        // HAPUS: if (error) throw new Error(error.message);
-        // HAPUS: setSession(data.session);
-        // HAPUS: setUser(data.session?.user ?? null);
-        // HAPUS: return data.session?.user ?? null;
+        // Dev env: panggil /api/me setelah login via mekanisme dev Anda jika ada
+        const user = await fetchMe();
+        return user;
       }
     } catch (err: any) {
       setError(err.message || 'Terjadi kesalahan saat login.');
@@ -112,10 +94,9 @@ export const useAuth = (): AuthState => {
         await fetchMe();
         return null;
       } else {
-        // HAPUS: const { error } = await supabase.auth.signOut();
-        // HAPUS: if (error) throw error;
         setUser(null);
         setSession(null);
+        await fetchMe();
         return null;
       }
     } catch (err: any) {
