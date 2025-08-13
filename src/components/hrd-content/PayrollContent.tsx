@@ -1832,7 +1832,10 @@ export const PayrollContent = () => {
                 value={form.basic_salary} 
                 onChange={(e) => handleFormChange('basic_salary', Number(e.target.value))} 
                 required 
+                readOnly
+                className="bg-gray-50"
               />
+              <p className="text-xs text-gray-500 mt-1">Nilai ini diambil dari data salary dan tidak dapat diubah di sini.</p>
             </div>
 
             {/* Manual Deductions */}
@@ -1950,6 +1953,81 @@ export const PayrollContent = () => {
                     <span className="text-xl font-bold text-gray-800">TOTAL PENDAPATAN</span>
                     <span className="text-2xl font-bold text-green-800">
                       {formatCurrency((form.basic_salary || 0) + ((form.position_allowance || 0) + (form.management_allowance || 0) + (form.phone_allowance || 0) + (form.incentive_allowance || 0) + (form.overtime_allowance || 0)))}
+                    </span>
+                  </div>
+                </div>
+
+                {/* PEMOTONGAN */}
+                <div className="space-y-4">
+                  <div className="bg-gray-100 px-4 py-3 rounded-lg">
+                    <h3 className="text-lg font-bold text-gray-800">PEMOTONGAN</h3>
+                  </div>
+
+                  {/* PERUSAHAAN */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PERUSAHAAN</h4>
+                    <div className="space-y-2">
+                      {calculatedComponents.filter(c => c.type === 'income' && c.category === 'bpjs').map((component, index) => (
+                        <div key={index} className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
+                          <span className="font-medium text-sm text-gray-800">{component.name}</span>
+                          <span className="text-sm font-bold text-orange-700 ml-4">{formatCurrency(component.amount)}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex justify-between items-center py-3 px-4 bg-orange-100 rounded-lg border border-orange-300">
+                      <span className="font-semibold text-gray-800">SUB TOTAL</span>
+                      <span className="font-bold text-orange-800">
+                        {formatCurrency(calculatedComponents.filter(c => c.type === 'income' && c.category === 'bpjs').reduce((s, c) => s + c.amount, 0))}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* KARYAWAN */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">KARYAWAN</h4>
+                    <div className="space-y-2">
+                      {calculatedComponents.filter(c => c.type === 'deduction' && c.category === 'bpjs').map((component, index) => (
+                        <div key={index} className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
+                          <span className="font-medium text-sm text-gray-800">{component.name}</span>
+                          <span className="text-sm font-bold text-red-700 ml-4">{formatCurrency(component.amount)}</span>
+                        </div>
+                      ))}
+                      {/* Manual Deductions */}
+                      {(form.kasbon || 0) > 0 && (
+                        <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
+                          <span className="font-medium text-sm text-gray-800">KASBON</span>
+                          <span className="text-sm font-bold text-red-700 ml-4">{formatCurrency(form.kasbon || 0)}</span>
+                        </div>
+                      )}
+                      {(form.telat || 0) > 0 && (
+                        <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
+                          <span className="font-medium text-sm text-gray-800">Telat</span>
+                          <span className="text-sm font-bold text-red-700 ml-4">{formatCurrency(form.telat || 0)}</span>
+                        </div>
+                      )}
+                      {(form.angsuran_kredit || 0) > 0 && (
+                        <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
+                          <span className="font-medium text-sm text-gray-800">Angsuran Kredit</span>
+                          <span className="text-sm font-bold text-red-700 ml-4">{formatCurrency(form.angsuran_kredit || 0)}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex justify-between items-center py-3 px-4 bg-red-100 rounded-lg border border-red-300">
+                      <span className="font-semibold text-gray-800">SUB TOTAL</span>
+                      <span className="font-bold text-red-800">
+                        {formatCurrency(
+                          calculatedComponents.filter(c => c.type === 'deduction' && c.category === 'bpjs').reduce((s, c) => s + c.amount, 0) +
+                          (form.kasbon || 0) + (form.telat || 0) + (form.angsuran_kredit || 0)
+                        )}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* TOTAL PEMOTONGAN */}
+                  <div className="flex justify-between items-center py-4 px-5 bg-red-200 rounded-lg border-2 border-red-400">
+                    <span className="text-xl font-bold text-gray-800">TOTAL PEMOTONGAN</span>
+                    <span className="text-2xl font-bold text-red-800">
+                      {formatCurrency(form.total_deductions || 0)}
                     </span>
                   </div>
                 </div>
