@@ -1875,6 +1875,87 @@ export const PayrollContent = () => {
               </div>
             </div>
 
+            {/* Hasil Perhitungan (sama seperti Tambah Payroll) */}
+            {calculatedComponents.length > 0 && (
+              <div className="space-y-6">
+                {/* PENDAPATAN */}
+                <div className="space-y-4">
+                  <div className="bg-gray-100 px-4 py-3 rounded-lg">
+                    <h3 className="text-lg font-bold text-gray-800">PENDAPATAN</h3>
+                  </div>
+
+                  {/* PENDAPATAN TETAP (BPJS Perusahaan) */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PENDAPATAN TETAP</h4>
+                    <div className="space-y-2">
+                      {calculatedComponents.filter(c => c.type === 'income').map((component, index) => (
+                        <div key={index} className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
+                          <div className="flex-1">
+                            <span className="font-medium text-sm text-gray-800">{component.name}</span>
+                            {component.is_percentage && (
+                              <div className="text-xs text-gray-600 mt-1">
+                                {component.percentage}% dari gaji pokok murni
+                              </div>
+                            )}
+                          </div>
+                          <span className="text-sm font-bold text-green-700 ml-4">
+                            {formatCurrency(component.amount)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex justify-between items-center py-3 px-4 bg-green-100 rounded-lg border border-green-300">
+                      <span className="font-semibold text-gray-800">SUB TOTAL</span>
+                      <span className="font-bold text-green-800">
+                        {formatCurrency(calculatedComponents.filter(c => c.type === 'income').reduce((sum, c) => sum + c.amount, 0))}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* PENDAPATAN TIDAK TETAP (Tunjangan dari form) */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PENDAPATAN TIDAK TETAP</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center py-2 px-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <span className="font-medium text-sm text-gray-800">Tunjangan Jabatan</span>
+                        <span className="text-sm font-semibold text-blue-700">{formatCurrency(form.position_allowance || 0)}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 px-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <span className="font-medium text-sm text-gray-800">Tunjangan Pengurus</span>
+                        <span className="text-sm font-semibold text-blue-700">{formatCurrency(form.management_allowance || 0)}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 px-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <span className="font-medium text-sm text-gray-800">Tunjangan Pulsa</span>
+                        <span className="text-sm font-semibold text-blue-700">{formatCurrency(form.phone_allowance || 0)}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 px-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <span className="font-medium text-sm text-gray-800">Tunjangan Insentif</span>
+                        <span className="text-sm font-semibold text-blue-700">{formatCurrency(form.incentive_allowance || 0)}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 px-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <span className="font-medium text-sm text-gray-800">Tunjangan Lembur</span>
+                        <span className="text-sm font-semibold text-blue-700">{formatCurrency(form.overtime_allowance || 0)}</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center py-3 px-4 bg-blue-100 rounded-lg border border-blue-300">
+                      <span className="font-semibold text-gray-800">SUB TOTAL</span>
+                      <span className="font-bold text-blue-800">
+                        {formatCurrency((form.position_allowance || 0) + (form.management_allowance || 0) + (form.phone_allowance || 0) + (form.incentive_allowance || 0) + (form.overtime_allowance || 0))}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* TOTAL PENDAPATAN (Gaji + Tunjangan) */}
+                  <div className="flex justify-between items-center py-4 px-5 bg-green-200 rounded-lg border-2 border-green-400">
+                    <span className="text-xl font-bold text-gray-800">TOTAL PENDAPATAN</span>
+                    <span className="text-2xl font-bold text-green-800">
+                      {formatCurrency((form.basic_salary || 0) + ((form.position_allowance || 0) + (form.management_allowance || 0) + (form.phone_allowance || 0) + (form.incentive_allowance || 0) + (form.overtime_allowance || 0)))}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Summary */}
             <div className="grid grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg">
               <div>
