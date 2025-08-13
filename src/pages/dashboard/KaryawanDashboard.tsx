@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, Clock, Calendar, FileText, LogOut, Bell } from "lucide-react";
+import { User, Clock, Calendar, FileText, LogOut, Bell, Download, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState, useContext } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -13,6 +13,9 @@ import { IzinSakitList } from './IzinSakitList';
 import { EmployeeProfileDialog } from '@/components/EmployeeProfileDialog';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const KaryawanDashboard = () => {
   const navigate = useNavigate();
@@ -35,6 +38,13 @@ const KaryawanDashboard = () => {
   const [rejectedRequests, setRejectedRequests] = useState<any[]>([]);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [readNotifications, setReadNotifications] = useState<Set<string>>(new Set());
+
+  // State untuk slip gaji
+  const [slipGajiDialogOpen, setSlipGajiDialogOpen] = useState(false);
+  const [availablePayrolls, setAvailablePayrolls] = useState<any[]>([]);
+  const [selectedPayrollId, setSelectedPayrollId] = useState<string>('');
+  const [loadingPayrolls, setLoadingPayrolls] = useState(false);
+  const [downloadingSlip, setDownloadingSlip] = useState(false);
 
   useEffect(() => {
     // Hapus import Moon, Sun, dan DarkModeContext
@@ -213,16 +223,289 @@ const KaryawanDashboard = () => {
   const handleRiwayatAbsensi = () => {
     navigate("/attendance-management", { state: { onlyMe: true } });
   };
-  const handleDownloadSlipGaji = () => {
-    const blob = new Blob([
-      `Slip Gaji\nNama: ${profile?.first_name || "-"} ${profile?.last_name || "-"}\nPeriode: ${new Date().toLocaleDateString("id-ID", { month: "long", year: "numeric" })}\nGaji: Rp ${(profile?.salary || 0).toLocaleString("id-ID")}`
-    ], { type: "application/pdf" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `slip-gaji-${profile?.first_name || "user"}.pdf`;
-    a.click();
-    URL.revokeObjectURL(url);
+
+  // Fetch available payrolls for employee
+  const fetchAvailablePayrolls = async () => {
+    if (!profile?.id) return;
+    
+    setLoadingPayrolls(true);
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || '';
+      const res = await fetch(`${API_URL}/api/payrolls?employee_id=${profile.id}`, {
+        credentials: 'include'
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        // Filter only PAID payrolls
+        const paidPayrolls = data.filter((p: any) => p.status === 'PAID' || p.status === 'APPROVED');
+        setAvailablePayrolls(paidPayrolls);
+        
+        if (paidPayrolls.length === 0) {
+          toast({
+            title: 'Informasi',
+            description: 'Belum ada slip gaji yang tersedia untuk diunduh',
+            variant: 'default'
+          });
+        }
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Gagal mengambil data payroll',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching payrolls:', error);
+      toast({
+        title: 'Error',
+        description: 'Gagal mengambil data payroll',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoadingPayrolls(false);
+    }
+  };
+
+  // Open slip gaji dialog and fetch payrolls
+  const handleOpenSlipGajiDialog = () => {
+    setSlipGajiDialogOpen(true);
+    fetchAvailablePayrolls();
+  };
+
+  // Generate and download PDF slip gaji
+  const handleDownloadSlipGaji = async () => {
+    if (!selectedPayrollId) {
+      toast({
+        title: 'Error',
+        description: 'Silakan pilih tanggal pembayaran terlebih dahulu',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setDownloadingSlip(true);
+    try {
+      // Find selected payroll data
+      const payroll = availablePayrolls.find(p => p.id === selectedPayrollId);
+      if (!payroll) {
+        throw new Error('Data payroll tidak ditemukan');
+      }
+
+      // Create PDF using jsPDF
+      const doc = new jsPDF();
+      
+      // Header
+      doc.setFontSize(18);
+      doc.text('SLIP GAJI KARYAWAN', 105, 20, { align: 'center' });
+      doc.setFontSize(14);
+      doc.text('KSP MEKARSARI', 105, 28, { align: 'center' });
+      
+      // Line separator
+      doc.line(20, 35, 190, 35);
+      
+      // Employee Information
+      doc.setFontSize(12);
+      doc.text('INFORMASI KARYAWAN', 20, 45);
+      doc.setFontSize(10);
+      doc.text(`Nama: ${profile?.first_name || ''} ${profile?.last_name || ''}`, 20, 53);
+      doc.text(`NIK: ${profile?.nik || '-'}`, 20, 60);
+      doc.text(`Jabatan: ${profile?.position || '-'}`, 20, 67);
+      doc.text(`Departemen: ${profile?.departemen?.nama || '-'}`, 20, 74);
+      
+      // Period Information
+      doc.text(`Periode: ${format(new Date(payroll.pay_period_start), 'dd MMM yyyy', { locale: id })} - ${format(new Date(payroll.pay_period_end), 'dd MMM yyyy', { locale: id })}`, 120, 53);
+      doc.text(`Tanggal Pembayaran: ${format(new Date(payroll.payment_date), 'dd MMMM yyyy', { locale: id })}`, 120, 60);
+      doc.text(`Status: ${payroll.status}`, 120, 67);
+      
+      // Line separator
+      doc.line(20, 80, 190, 80);
+      
+      // Income Section
+      doc.setFontSize(12);
+      doc.text('PENDAPATAN', 20, 90);
+      doc.setFontSize(10);
+      
+      let yPos = 98;
+      
+      // Fixed Income
+      doc.text('PENDAPATAN TETAP:', 20, yPos);
+      yPos += 7;
+      doc.text('Gaji Pokok', 25, yPos);
+      doc.text(`Rp ${Number(payroll.basic_salary || 0).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+      yPos += 7;
+      
+      // BPJS Company
+      if (Number(payroll.bpjs_health_company) > 0) {
+        doc.text('BPJS Kesehatan (Perusahaan)', 25, yPos);
+        doc.text(`Rp ${Number(payroll.bpjs_health_company).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        yPos += 7;
+      }
+      if (Number(payroll.jht_company) > 0) {
+        doc.text('BPJS JHT (Perusahaan)', 25, yPos);
+        doc.text(`Rp ${Number(payroll.jht_company).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        yPos += 7;
+      }
+      if (Number(payroll.jkm_company) > 0) {
+        doc.text('BPJS JKM (Perusahaan)', 25, yPos);
+        doc.text(`Rp ${Number(payroll.jkm_company).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        yPos += 7;
+      }
+      if (Number(payroll.jkk_company) > 0) {
+        doc.text('BPJS JKK (Perusahaan)', 25, yPos);
+        doc.text(`Rp ${Number(payroll.jkk_company).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        yPos += 7;
+      }
+      if (Number(payroll.jp_company) > 0) {
+        doc.text('BPJS Jaminan Pensiun (Perusahaan)', 25, yPos);
+        doc.text(`Rp ${Number(payroll.jp_company).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        yPos += 7;
+      }
+      
+      // Subtotal Fixed Income
+      doc.setFont(undefined, 'bold');
+      doc.text('Subtotal Pendapatan Tetap', 25, yPos);
+      doc.text(`Rp ${Number(payroll.subtotal_company || 0).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+      doc.setFont(undefined, 'normal');
+      yPos += 10;
+      
+      // Variable Income
+      doc.text('PENDAPATAN TIDAK TETAP:', 20, yPos);
+      yPos += 7;
+      
+      if (Number(payroll.position_allowance) > 0) {
+        doc.text('Tunjangan Jabatan', 25, yPos);
+        doc.text(`Rp ${Number(payroll.position_allowance).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        yPos += 7;
+      }
+      if (Number(payroll.management_allowance) > 0) {
+        doc.text('Tunjangan Pengurus', 25, yPos);
+        doc.text(`Rp ${Number(payroll.management_allowance).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        yPos += 7;
+      }
+      if (Number(payroll.phone_allowance) > 0) {
+        doc.text('Tunjangan Pulsa', 25, yPos);
+        doc.text(`Rp ${Number(payroll.phone_allowance).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        yPos += 7;
+      }
+      if (Number(payroll.incentive_allowance) > 0) {
+        doc.text('Tunjangan Insentif', 25, yPos);
+        doc.text(`Rp ${Number(payroll.incentive_allowance).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        yPos += 7;
+      }
+      if (Number(payroll.overtime_allowance) > 0) {
+        doc.text('Tunjangan Lembur', 25, yPos);
+        doc.text(`Rp ${Number(payroll.overtime_allowance).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        yPos += 7;
+      }
+      
+      // Subtotal Variable Income
+      doc.setFont(undefined, 'bold');
+      doc.text('Subtotal Tunjangan', 25, yPos);
+      doc.text(`Rp ${Number(payroll.total_allowances || 0).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+      doc.setFont(undefined, 'normal');
+      yPos += 10;
+      
+      // Total Income
+      doc.setFontSize(11);
+      doc.setFont(undefined, 'bold');
+      doc.text('TOTAL PENDAPATAN', 20, yPos);
+      doc.text(`Rp ${Number(payroll.total_pendapatan || payroll.gross_salary || 0).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(10);
+      yPos += 10;
+      
+      // Line separator
+      doc.line(20, yPos, 190, yPos);
+      yPos += 10;
+      
+      // Deduction Section
+      doc.setFontSize(12);
+      doc.text('POTONGAN', 20, yPos);
+      doc.setFontSize(10);
+      yPos += 8;
+      
+      // BPJS Employee
+      if (Number(payroll.bpjs_health_employee) > 0) {
+        doc.text('BPJS Kesehatan (Karyawan)', 25, yPos);
+        doc.text(`Rp ${Number(payroll.bpjs_health_employee).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        yPos += 7;
+      }
+      if (Number(payroll.jht_employee) > 0) {
+        doc.text('BPJS JHT (Karyawan)', 25, yPos);
+        doc.text(`Rp ${Number(payroll.jht_employee).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        yPos += 7;
+      }
+      if (Number(payroll.jp_employee) > 0) {
+        doc.text('BPJS Jaminan Pensiun (Karyawan)', 25, yPos);
+        doc.text(`Rp ${Number(payroll.jp_employee).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        yPos += 7;
+      }
+      
+      // Manual Deductions
+      if (Number(payroll.kasbon) > 0) {
+        doc.text('Kasbon', 25, yPos);
+        doc.text(`Rp ${Number(payroll.kasbon).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        yPos += 7;
+      }
+      if (Number(payroll.telat) > 0) {
+        doc.text('Potongan Telat', 25, yPos);
+        doc.text(`Rp ${Number(payroll.telat).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        yPos += 7;
+      }
+      if (Number(payroll.angsuran_kredit) > 0) {
+        doc.text('Angsuran Kredit', 25, yPos);
+        doc.text(`Rp ${Number(payroll.angsuran_kredit).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        yPos += 7;
+      }
+      
+      // Total Deductions
+      doc.setFontSize(11);
+      doc.setFont(undefined, 'bold');
+      doc.text('TOTAL POTONGAN', 20, yPos);
+      doc.text(`Rp ${Number(payroll.total_deductions || 0).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(10);
+      yPos += 10;
+      
+      // Line separator
+      doc.line(20, yPos, 190, yPos);
+      yPos += 10;
+      
+      // Net Salary
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text('GAJI BERSIH DITERIMA', 20, yPos);
+      doc.text(`Rp ${Number(payroll.net_salary || 0).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+      
+      // Footer
+      doc.setFontSize(8);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Dicetak pada: ${format(new Date(), 'dd MMMM yyyy HH:mm', { locale: id })}`, 105, 280, { align: 'center' });
+      doc.text('Dokumen ini dicetak secara elektronik dan sah tanpa tanda tangan', 105, 285, { align: 'center' });
+      
+      // Save PDF
+      const fileName = `SlipGaji_${profile?.first_name}_${format(new Date(payroll.payment_date), 'yyyyMMdd')}.pdf`;
+      doc.save(fileName);
+      
+      toast({
+        title: 'Berhasil',
+        description: 'Slip gaji berhasil diunduh',
+      });
+      
+      // Close dialog
+      setSlipGajiDialogOpen(false);
+      setSelectedPayrollId('');
+    } catch (error) {
+      console.error('Error generating slip gaji:', error);
+      toast({
+        title: 'Error',
+        description: 'Gagal membuat slip gaji',
+        variant: 'destructive'
+      });
+    } finally {
+      setDownloadingSlip(false);
+    }
   };
 
   const handleNotificationClick = async (request: any) => {
@@ -411,7 +694,7 @@ const KaryawanDashboard = () => {
                 <CardDescription className="text-gray-500 text-center">Download slip gaji bulanan</CardDescription>
               </CardHeader>
               <CardContent>
-                <Button variant="default" className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg" onClick={handleDownloadSlipGaji}>
+                <Button variant="default" className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg" onClick={handleOpenSlipGajiDialog}>
                   Download
                 </Button>
               </CardContent>
@@ -547,6 +830,118 @@ const KaryawanDashboard = () => {
               })
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Download Slip Gaji */}
+      <Dialog open={slipGajiDialogOpen} onOpenChange={setSlipGajiDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-orange-600" />
+              Download Slip Gaji
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {loadingPayrolls ? (
+              <div className="text-center py-8">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                <p className="mt-2 text-sm text-gray-500">Memuat data payroll...</p>
+              </div>
+            ) : availablePayrolls.length === 0 ? (
+              <div className="text-center py-8">
+                <FileText className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-500">Belum ada slip gaji yang tersedia</p>
+                <p className="text-sm text-gray-400 mt-1">Slip gaji akan tersedia setelah HRD melakukan input payroll</p>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <Label htmlFor="payment_date">Pilih Tanggal Pembayaran</Label>
+                  <Select value={selectedPayrollId} onValueChange={setSelectedPayrollId}>
+                    <SelectTrigger id="payment_date" className="w-full">
+                      <SelectValue placeholder="Pilih tanggal pembayaran..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availablePayrolls.map((payroll) => (
+                        <SelectItem key={payroll.id} value={payroll.id}>
+                          <div className="flex flex-col">
+                            <span className="font-medium">
+                              {format(new Date(payroll.payment_date), 'dd MMMM yyyy', { locale: id })}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              Periode: {format(new Date(payroll.pay_period_start), 'dd/MM/yy')} - {format(new Date(payroll.pay_period_end), 'dd/MM/yy')}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {selectedPayrollId && (
+                  <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                    <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Detail Slip Gaji</h4>
+                    {(() => {
+                      const selected = availablePayrolls.find(p => p.id === selectedPayrollId);
+                      return selected ? (
+                        <div className="space-y-1 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-gray-600 dark:text-gray-400">Periode:</span>
+                            <span className="font-medium">
+                              {format(new Date(selected.pay_period_start), 'dd MMM', { locale: id })} - {format(new Date(selected.pay_period_end), 'dd MMM yyyy', { locale: id })}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600 dark:text-gray-400">Gaji Bersih:</span>
+                            <span className="font-bold text-green-600">
+                              Rp {Number(selected.net_salary || 0).toLocaleString('id-ID')}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600 dark:text-gray-400">Status:</span>
+                            <span className={`font-medium ${selected.status === 'PAID' ? 'text-green-600' : 'text-blue-600'}`}>
+                              {selected.status === 'PAID' ? 'Dibayar' : 'Disetujui'}
+                            </span>
+                          </div>
+                        </div>
+                      ) : null;
+                    })()}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setSlipGajiDialogOpen(false);
+                setSelectedPayrollId('');
+              }}
+            >
+              Batal
+            </Button>
+            <Button 
+              onClick={handleDownloadSlipGaji}
+              disabled={!selectedPayrollId || downloadingSlip || loadingPayrolls}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              {downloadingSlip ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Mengunduh...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download PDF
+                </>
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
