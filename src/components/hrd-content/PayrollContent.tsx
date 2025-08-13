@@ -447,6 +447,23 @@ export const PayrollContent = () => {
     setSubmitting(true);
     
     try {
+      // Guard: Cegah duplikasi pada kombinasi employee + periode + payment_date
+      const dup = payrolls.find(p => 
+        p.employee_id === form.employee_id &&
+        new Date(p.pay_period_start).toISOString().split('T')[0] === (form.pay_period_start || '') &&
+        new Date(p.pay_period_end).toISOString().split('T')[0] === (form.pay_period_end || '') &&
+        (p.payment_date ? new Date(p.payment_date).toISOString().split('T')[0] : '') === (form.payment_date || '')
+      );
+      if (dup) {
+        setSubmitting(false);
+        toast({
+          title: 'Tidak dapat menambah',
+          description: 'Payroll untuk karyawan dan periode yang sama dengan tanggal bayar yang sama sudah ada.',
+          variant: 'destructive'
+        });
+        return;
+      }
+
       // Siapkan data yang akan dikirim ke backend (sesuai schema database)
       const payrollData = {
         employee_id: form.employee_id,
@@ -867,6 +884,39 @@ export const PayrollContent = () => {
             setModalOpen(open);
             if (open) {
               setDefaultDates();
+            } else {
+              // Reset form ketika modal ditutup ESC/close
+              setForm({
+                employee_id: "",
+                pay_period_start: "",
+                pay_period_end: "",
+                basic_salary: 0,
+                gross_salary: 0,
+                net_salary: 0,
+                payment_date: "",
+                status: "PAID",
+                position_allowance: 0,
+                management_allowance: 0,
+                phone_allowance: 0,
+                incentive_allowance: 0,
+                overtime_allowance: 0,
+                total_allowances: 0,
+                bpjs_health_company: 0,
+                jht_company: 0,
+                jkk_company: 0,
+                jkm_company: 0,
+                jp_company: 0,
+                bpjs_health_employee: 0,
+                jht_employee: 0,
+                jp_employee: 0,
+                pph21: 0,
+                kasbon: 0,
+                telat: 0,
+                angsuran_kredit: 0,
+                total_deductions: 0
+              });
+              setCalculatedComponents([]);
+              setManualDeductions({ kasbon: 0, telat: 0, angsuran_kredit: 0 });
             }
           }}>
             <DialogTrigger asChild>
