@@ -126,10 +126,10 @@ export default function PayrollManagement() {
     // Total Pendapatan (Gaji + Tunjangan + BPJS Perusahaan)
     total_pendapatan: 0,
     
-            // Additional fields
-        created_by: user?.id,
-        approved_by: null,
-        approved_at: null
+    // Additional fields
+    created_by: "",
+    approved_by: null,
+    approved_at: null
   });
   const [submitting, setSubmitting] = useState(false);
   const [search, setSearch] = useState('');
@@ -194,6 +194,16 @@ export default function PayrollManagement() {
     fetchEmployees();
     fetchPayrollComponents();
   }, []);
+
+  // Update created_by when user is available
+  useEffect(() => {
+    if (user?.id) {
+      setForm(prev => ({
+        ...prev,
+        created_by: user.id
+      }));
+    }
+  }, [user?.id]);
 
   // Calculate payroll components based on basic salary
   const calculatePayrollComponents = (basicSalary: number) => {
@@ -285,7 +295,7 @@ export default function PayrollManagement() {
     // Calculate net salary
     const netSalary = totalPendapatan - totalDeduction;
     
-    // Map calculated components to specific fields
+    // Map calculated components to specific fields - berdasarkan data payroll_components yang ada
     const bpjsHealthCompany = calculated.find(c => c.name === 'BPJS Kesehatan (Perusahaan)' && c.type === 'income')?.amount || 0;
     const jhtCompany = calculated.find(c => c.name === 'BPJS Ketenagakerjaan JHT (Perusahaan)' && c.type === 'income')?.amount || 0;
     const jkkCompany = calculated.find(c => c.name === 'BPJS Ketenagakerjaan JKK (Perusahaan)' && c.type === 'income')?.amount || 0;
@@ -296,11 +306,12 @@ export default function PayrollManagement() {
     const jhtEmployee = calculated.find(c => c.name === 'BPJS Ketenagakerjaan JHT (Karyawan)' && c.type === 'deduction')?.amount || 0;
     const jpEmployee = calculated.find(c => c.name === 'BPJS Jaminan Pensiun (Karyawan)' && c.type === 'deduction')?.amount || 0;
     
-    const positionAllowance = calculated.find(c => c.name === 'Tunjangan Jabatan' && c.type === 'income')?.amount || 0;
-    const managementAllowance = calculated.find(c => c.name === 'Tunjangan Pengurus' && c.type === 'income')?.amount || 0;
-    const phoneAllowance = calculated.find(c => c.name === 'Tunjangan Pulsa' && c.type === 'income')?.amount || 0;
-    const incentiveAllowance = calculated.find(c => c.name === 'Tunjangan Insentif' && c.type === 'income')?.amount || 0;
-    const overtimeAllowance = calculated.find(c => c.name === 'Tunjangan Lembur' && c.type === 'income')?.amount || 0;
+    // Tunjangan dari form (sudah diisi dari salary data)
+    const positionAllowance = form.position_allowance || 0;
+    const managementAllowance = form.management_allowance || 0;
+    const phoneAllowance = form.phone_allowance || 0;
+    const incentiveAllowance = form.incentive_allowance || 0;
+    const overtimeAllowance = form.overtime_allowance || 0;
     
     // Calculate subtotals
     const subtotalCompany = bpjsHealthCompany + jhtCompany + jkkCompany + jkmCompany + jpCompany;
@@ -547,7 +558,7 @@ export default function PayrollManagement() {
       console.log('netSalary:', netSalary);
       console.log('================================');
       
-      // Map calculated components to specific fields
+      // Map calculated components to specific fields - berdasarkan data payroll_components yang ada
       const bpjsHealthCompany = calculatedComponents.find(c => c.name === 'BPJS Kesehatan (Perusahaan)' && c.type === 'income')?.amount || 0;
       const jhtCompany = calculatedComponents.find(c => c.name === 'BPJS Ketenagakerjaan JHT (Perusahaan)' && c.type === 'income')?.amount || 0;
       const jkkCompany = calculatedComponents.find(c => c.name === 'BPJS Ketenagakerjaan JKK (Perusahaan)' && c.type === 'income')?.amount || 0;
@@ -558,11 +569,12 @@ export default function PayrollManagement() {
       const jhtEmployee = calculatedComponents.find(c => c.name === 'BPJS Ketenagakerjaan JHT (Karyawan)' && c.type === 'deduction')?.amount || 0;
       const jpEmployee = calculatedComponents.find(c => c.name === 'BPJS Jaminan Pensiun (Karyawan)' && c.type === 'deduction')?.amount || 0;
       
-      const positionAllowance = calculatedComponents.find(c => c.name === 'Tunjangan Jabatan' && c.type === 'income')?.amount || 0;
-      const managementAllowance = calculatedComponents.find(c => c.name === 'Tunjangan Pengurus' && c.type === 'income')?.amount || 0;
-      const phoneAllowance = calculatedComponents.find(c => c.name === 'Tunjangan Pulsa' && c.type === 'income')?.amount || 0;
-      const incentiveAllowance = calculatedComponents.find(c => c.name === 'Tunjangan Insentif' && c.type === 'income')?.amount || 0;
-      const overtimeAllowance = calculatedComponents.find(c => c.name === 'Tunjangan Lembur' && c.type === 'income')?.amount || 0;
+      // Tunjangan dari form (sudah diisi dari salary data)
+      const positionAllowance = form.position_allowance || 0;
+      const managementAllowance = form.management_allowance || 0;
+      const phoneAllowance = form.phone_allowance || 0;
+      const incentiveAllowance = form.incentive_allowance || 0;
+      const overtimeAllowance = form.overtime_allowance || 0;
       
       // Debug: Check mapped values
       console.log('=== DEBUG MAPPED VALUES ===');
