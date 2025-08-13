@@ -1574,11 +1574,82 @@ export const PayrollContent = () => {
                         {formatCurrency(selectedPayroll.basic_salary || 0)}
                       </span>
                     </div>
+                    
+                    {/* BPJS Company Contributions */}
+                    {Number(selectedPayroll?.bpjs_health_company ?? 0) > 0 && (
+                      <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
+                        <div>
+                          <span className="font-medium text-sm text-gray-800">BPJS Kesehatan (Perusahaan)</span>
+                          <span className="text-xs text-gray-500 block">
+                            {((Number(selectedPayroll?.bpjs_health_company ?? 0) / Number(selectedPayroll?.basic_salary ?? 1)) * 100).toFixed(1)}% dari gaji pokok
+                          </span>
+                        </div>
+                        <span className="text-sm font-bold text-green-700 ml-4">
+                          {formatCurrency(Number(selectedPayroll?.bpjs_health_company ?? 0))}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {Number(selectedPayroll?.jht_company ?? 0) > 0 && (
+                      <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
+                        <div>
+                          <span className="font-medium text-sm text-gray-800">BPJS Ketenagakerjaan JHT (Perusahaan)</span>
+                          <span className="text-xs text-gray-500 block">
+                            {((Number(selectedPayroll?.jht_company ?? 0) / Number(selectedPayroll?.basic_salary ?? 1)) * 100).toFixed(1)}% dari gaji pokok
+                          </span>
+                        </div>
+                        <span className="text-sm font-bold text-green-700 ml-4">
+                          {formatCurrency(Number(selectedPayroll?.jht_company ?? 0))}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {Number(selectedPayroll?.jkm_company ?? 0) > 0 && (
+                      <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
+                        <div>
+                          <span className="font-medium text-sm text-gray-800">BPJS Ketenagakerjaan JKM (Perusahaan)</span>
+                          <span className="text-xs text-gray-500 block">
+                            {((Number(selectedPayroll?.jkm_company ?? 0) / Number(selectedPayroll?.basic_salary ?? 1)) * 100).toFixed(1)}% dari gaji pokok
+                          </span>
+                        </div>
+                        <span className="text-sm font-bold text-green-700 ml-4">
+                          {formatCurrency(Number(selectedPayroll?.jkm_company ?? 0))}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {Number(selectedPayroll?.jkk_company ?? 0) > 0 && (
+                      <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
+                        <div>
+                          <span className="font-medium text-sm text-gray-800">BPJS Ketenagakerjaan JKK (Perusahaan)</span>
+                          <span className="text-xs text-gray-500 block">
+                            {((Number(selectedPayroll?.jkk_company ?? 0) / Number(selectedPayroll?.basic_salary ?? 1)) * 100).toFixed(1)}% dari gaji pokok
+                          </span>
+                        </div>
+                        <span className="text-sm font-bold text-green-700 ml-4">
+                          {formatCurrency(Number(selectedPayroll?.jkk_company ?? 0))}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {Number(selectedPayroll?.jp_company ?? 0) > 0 && (
+                      <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
+                        <div>
+                          <span className="font-medium text-sm text-gray-800">BPJS Jaminan Pensiun (Perusahaan)</span>
+                          <span className="text-xs text-gray-500 block">
+                            {((Number(selectedPayroll?.jp_company ?? 0) / Number(selectedPayroll?.basic_salary ?? 1)) * 100).toFixed(1)}% dari gaji pokok
+                          </span>
+                        </div>
+                        <span className="text-sm font-bold text-green-700 ml-4">
+                          {formatCurrency(Number(selectedPayroll?.jp_company ?? 0))}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex justify-between items-center py-3 px-4 bg-green-100 rounded-lg border border-green-300">
                     <span className="font-semibold text-gray-800">SUB TOTAL</span>
                     <span className="font-bold text-green-800">
-                      {formatCurrency(selectedPayroll.basic_salary || 0)}
+                      {formatCurrency(Number(selectedPayroll?.subtotal_company ?? 0) || (Number(selectedPayroll?.basic_salary ?? 0) + Number(selectedPayroll?.bpjs_health_company ?? 0) + Number(selectedPayroll?.jht_company ?? 0) + Number(selectedPayroll?.jkm_company ?? 0) + Number(selectedPayroll?.jkk_company ?? 0) + Number(selectedPayroll?.jp_company ?? 0)))}
                     </span>
                   </div>
                 </div>
@@ -1640,7 +1711,7 @@ export const PayrollContent = () => {
                 <div className="flex justify-between items-center py-4 px-5 bg-green-200 rounded-lg border-2 border-green-400">
                   <span className="text-xl font-bold text-gray-800">TOTAL PENDAPATAN</span>
                   <span className="text-2xl font-bold text-green-800">
-                    {formatCurrency(selectedPayroll.gross_salary || 0)}
+                    {formatCurrency(Number(selectedPayroll?.total_pendapatan ?? 0) || Number(selectedPayroll?.gross_salary ?? 0))}
                   </span>
                 </div>
               </div>
