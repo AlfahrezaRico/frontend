@@ -181,6 +181,8 @@ export default function PayrollManagement() {
       const res = await fetch(`${API_URL}/api/payroll-components`);
       if (!res.ok) throw new Error("Gagal mengambil konfigurasi payroll");
       const data = await res.json();
+      console.log('Fetched payroll components:', data);
+      console.log('Payroll components count:', data.length);
       setPayrollComponents(data);
     } catch (error) {
       console.error('Error fetching payroll components:', error);
@@ -460,10 +462,58 @@ export default function PayrollManagement() {
       console.log('form.basic_salary:', form.basic_salary);
       console.log('calculatedComponents:', calculatedComponents);
       console.log('calculatedComponents.length:', calculatedComponents.length);
+      console.log('payrollComponents:', payrollComponents);
+      console.log('payrollComponents.length:', payrollComponents.length);
       console.log('manualDeductions:', manualDeductions);
       console.log('user:', user);
       console.log('user?.id:', user?.id);
       console.log('================================');
+      
+      // Debug: Show each calculated component
+      console.log('=== DETAILED CALCULATED COMPONENTS ===');
+      calculatedComponents.forEach((comp, index) => {
+        console.log(`Component ${index + 1}:`, {
+          name: comp.name,
+          type: comp.type,
+          category: comp.category,
+          amount: comp.amount,
+          percentage: comp.percentage
+        });
+      });
+      console.log('================================');
+      
+      // Ensure we have a user ID
+      if (!user?.id) {
+        console.error('No user ID found! User object:', user);
+        toast({
+          title: 'Error',
+          description: 'User ID tidak ditemukan. Silakan login ulang.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      // Ensure payroll components are loaded
+      if (payrollComponents.length === 0) {
+        console.error('No payroll components loaded!');
+        toast({
+          title: 'Error',
+          description: 'Konfigurasi payroll belum dimuat. Silakan refresh halaman.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      // Ensure calculated components exist
+      if (calculatedComponents.length === 0) {
+        console.error('No calculated components! Recalculating...');
+        calculatePayrollComponents(form.basic_salary);
+        toast({
+          title: 'Info',
+          description: 'Komponen payroll sedang dihitung ulang. Silakan coba lagi.',
+        });
+        return;
+      }
       
       // Calculate all values before submitting
       const totalAllowances = calculatedComponents
@@ -570,14 +620,34 @@ export default function PayrollManagement() {
         // Total Pendapatan (Gaji + Tunjangan + BPJS Perusahaan)
         total_pendapatan: totalPendapatan,
         
+        // Additional fields yang diperlukan database (tidak duplikat)
+        bpjs_employee: employeeDeductions, // Total BPJS karyawan
+        bpjs_company: companyContributions, // Total BPJS perusahaan
+        pph21: 0, // Pajak PPh21 (bisa diisi manual nanti)
+        jkk: jkkCompany, // JKK (hanya ada di perusahaan)
+        jkm: jkmCompany, // JKM (hanya ada di perusahaan)
+        deductions: totalDeduction, // Total deductions (legacy field)
+        
         // Additional fields
-        created_by: user?.id,
+        created_by: user.id,
         approved_by: null,
         approved_at: null
       };
       
-      console.log('=== CALCULATED PAYROLL DATA ===');
+      console.log('=== FINAL PAYROLL DATA TO BE SENT ===');
       console.log('Payroll data to be sent:', payrollData);
+      console.log('Key fields check:');
+      console.log('- subtotal_company:', payrollData.subtotal_company);
+      console.log('- subtotal_employee:', payrollData.subtotal_employee);
+      console.log('- total_pendapatan:', payrollData.total_pendapatan);
+      console.log('- created_by:', payrollData.created_by);
+      console.log('Additional fields check:');
+      console.log('- bpjs_employee:', payrollData.bpjs_employee);
+      console.log('- bpjs_company:', payrollData.bpjs_company);
+      console.log('- pph21:', payrollData.pph21);
+      console.log('- jkk:', payrollData.jkk);
+      console.log('- jkm:', payrollData.jkm);
+      console.log('- deductions:', payrollData.deductions);
       console.log('================================');
       
       const res = await fetch(`${API_URL}/api/payrolls`, {
