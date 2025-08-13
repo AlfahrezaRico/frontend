@@ -291,13 +291,41 @@ const KaryawanDashboard = () => {
         throw new Error('Data payroll tidak ditemukan');
       }
 
-      // Create PDF using jsPDF
+      // Create PDF using jsPDF - with multiple pages support
       const doc = new jsPDF();
       
       // Set page margins
       const margin = 15;
       const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
       const contentWidth = pageWidth - (margin * 2);
+      
+      // Function to check if we need to add a new page
+      const checkPageBreak = (yPosition, requiredSpace) => {
+        if (yPosition + requiredSpace > pageHeight - margin) {
+          doc.addPage();
+          
+          // Add simplified header to the new page
+          doc.setFontSize(12);
+          doc.setFont(undefined, 'bold');
+          doc.text('SLIP GAJI KARYAWAN - KSP MEKARSARI', 105, margin, { align: 'center' });
+          doc.setFont(undefined, 'normal');
+          
+          // Add employee name and period as reference
+          doc.setFontSize(10);
+          doc.text(`${profile?.first_name || ''} ${profile?.last_name || ''} - Periode: ${format(new Date(payroll.pay_period_start), 'MMM yyyy', { locale: id })}`, 105, margin + 8, { align: 'center' });
+          
+          // Add line separator
+          doc.setDrawColor(59, 130, 246);
+          doc.setLineWidth(0.5);
+          doc.line(margin, margin + 12, pageWidth - margin, margin + 12);
+          doc.setLineWidth(0.1);
+          doc.setDrawColor(0, 0, 0);
+          
+          return margin + 20; // Reset Y position for new page with header space
+        }
+        return yPosition;
+      };
       
       // Try to load and add logo
       try {
@@ -541,6 +569,9 @@ const KaryawanDashboard = () => {
       doc.setFont(undefined, 'normal');
       yPos += 15;
       
+      // Check if we need a page break before Variable Income section
+      yPos = checkPageBreak(yPos, 100); // Estimate space needed for variable income section
+      
       // Variable Income Section (PENDAPATAN TIDAK TETAP)
       const variableIncomeY = yPos;
       
@@ -665,6 +696,9 @@ const KaryawanDashboard = () => {
       // Small spacing
       yPos += 5;
       
+      // Check if we need a page break before Deduction section
+      yPos = checkPageBreak(yPos, 100); // Estimate space needed for deduction section
+      
       // Deduction Section
       const deductionStartY = yPos;
       
@@ -781,6 +815,9 @@ const KaryawanDashboard = () => {
       
       // Small spacing
       yPos += 5;
+      
+      // Check if we need a page break before Total Diterima section
+      yPos = checkPageBreak(yPos, 50); // Estimate space needed for Total Diterima section
       
       // TOTAL DITERIMA (Net Salary) - the most important part
       const netSalaryY = yPos;
