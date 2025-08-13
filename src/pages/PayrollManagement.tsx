@@ -949,18 +949,6 @@ export default function PayrollManagement() {
                         </div>
                       </div>
                       
-                      {/* Total Pendapatan (Gaji + Tunjangan) */}
-                      <div>
-                        <Label htmlFor="gross_salary_display">Total Pendapatan (Gaji + Tunjangan)</Label>
-                        <Input 
-                          id="gross_salary_display"
-                          type="text" 
-                          value={formatCurrency(form.gross_salary)} 
-                          readOnly
-                          className="bg-white font-semibold text-green-600"
-                        />
-                      </div>
-                      
                       {/* BPJS Perusahaan - PENDAPATAN TETAP */}
                       <div className="space-y-2">
                         <h4 className="font-medium text-gray-800">PENDAPATAN TETAP (Perusahaan)</h4>
