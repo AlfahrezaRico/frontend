@@ -296,76 +296,59 @@ const KaryawanDashboard = () => {
       
       // Try to load and add logo
       try {
-        // Try multiple logo sources
-        const logoUrls = ['/logo.png', '/logo.jpg', '/favicon.ico'];
-        let logoLoaded = false;
-        
-        for (const logoUrl of logoUrls) {
-          try {
-            const response = await fetch(logoUrl);
-            if (response.ok) {
-              const blob = await response.blob();
-              
-              // Convert blob to base64
-              const reader = new FileReader();
-              const base64Promise = new Promise<string>((resolve, reject) => {
-                reader.onloadend = () => {
-                  if (reader.result) {
-                    resolve(reader.result as string);
-                  } else {
-                    reject(new Error('Failed to read file'));
-                  }
-                };
-                reader.onerror = reject;
-              });
-              reader.readAsDataURL(blob);
-              const base64Logo = await base64Promise;
-              
-              // Determine image format
-              const format = logoUrl.endsWith('.png') ? 'PNG' : 
-                           logoUrl.endsWith('.jpg') || logoUrl.endsWith('.jpeg') ? 'JPEG' : 
-                           'PNG'; // Default to PNG for .ico
-              
-              // Add logo to PDF (centered, above title)
-              doc.addImage(base64Logo, format, 95, 5, 20, 20);
-              logoLoaded = true;
-              break;
-            }
-          } catch (err) {
-            console.log(`Could not load ${logoUrl}, trying next...`);
-          }
-        }
-        
-        // Header with adjusted position if logo loaded
-        if (logoLoaded) {
-          doc.setFontSize(18);
-          doc.text('SLIP GAJI KARYAWAN', 105, 32, { align: 'center' });
-          doc.setFontSize(14);
-          doc.text('KSP MEKARSARI', 105, 40, { align: 'center' });
-        } else {
-          // If no logo loaded, use original position
-          doc.setFontSize(18);
-          doc.text('SLIP GAJI KARYAWAN', 105, 20, { align: 'center' });
-          doc.setFontSize(14);
-          doc.text('KSP MEKARSARI', 105, 28, { align: 'center' });
+        // Try to load favicon.ico first
+        const response = await fetch('/favicon.ico');
+        if (response.ok) {
+          const blob = await response.blob();
+          
+          // Convert blob to base64
+          const reader = new FileReader();
+          const base64Promise = new Promise<string>((resolve, reject) => {
+            reader.onloadend = () => {
+              if (reader.result) {
+                resolve(reader.result as string);
+              } else {
+                reject(new Error('Failed to read file'));
+              }
+            };
+            reader.onerror = reject;
+          });
+          reader.readAsDataURL(blob);
+          const base64Logo = await base64Promise;
+          
+          // Add logo to PDF (centered, above title)
+          doc.addImage(base64Logo, 'PNG', 95, 8, 20, 20);
+          console.log('Logo loaded successfully');
         }
       } catch (logoError) {
         console.error('Error loading logo:', logoError);
-        // If logo fails to load, continue without it
-        doc.setFontSize(18);
-        doc.text('SLIP GAJI KARYAWAN', 105, 20, { align: 'center' });
-        doc.setFontSize(14);
-        doc.text('KSP MEKARSARI', 105, 28, { align: 'center' });
       }
       
+      // Header with logo consideration
+      doc.setFontSize(20);
+      doc.setFont(undefined, 'bold');
+      doc.text('SLIP GAJI KARYAWAN', 105, 35, { align: 'center' });
+      doc.setFontSize(16);
+      doc.text('KSP MEKARSARI', 105, 42, { align: 'center' });
+      doc.setFont(undefined, 'normal');
+      
+      // Add decorative line under company name
+      doc.setDrawColor(100, 149, 237);
+      doc.setLineWidth(0.5);
+      doc.line(80, 45, 130, 45);
+      doc.setLineWidth(0.1);
+      doc.setDrawColor(0, 0, 0);
+      
       // Line separator - adjusted position for logo
-      const headerLineY = 45;
+      const headerLineY = 50;
       doc.line(20, headerLineY, 190, headerLineY);
       
       // Employee Information - adjusted position
       const infoStartY = headerLineY + 10;
       doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
       doc.text('INFORMASI KARYAWAN', 20, infoStartY);
+      doc.setFont(undefined, 'normal');
       doc.setFontSize(10);
       doc.text(`Nama: ${profile?.first_name || ''} ${profile?.last_name || ''}`, 20, infoStartY + 8);
       doc.text(`NIK: ${profile?.nik || '-'}`, 20, infoStartY + 15);
@@ -383,13 +366,17 @@ const KaryawanDashboard = () => {
       
       // Income Section - adjusted position
       doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
       doc.text('PENDAPATAN', 20, contentLineY + 10);
+      doc.setFont(undefined, 'normal');
       doc.setFontSize(10);
       
       let yPos = contentLineY + 18;
       
       // Fixed Income
+      doc.setFont(undefined, 'bold');
       doc.text('PENDAPATAN TETAP:', 20, yPos);
+      doc.setFont(undefined, 'normal');
       yPos += 7;
       doc.text('Gaji Pokok', 25, yPos);
       doc.text(`Rp ${Number(payroll.basic_salary || 0).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
@@ -430,7 +417,9 @@ const KaryawanDashboard = () => {
       yPos += 10;
       
       // Variable Income
+      doc.setFont(undefined, 'bold');
       doc.text('PENDAPATAN TIDAK TETAP:', 20, yPos);
+      doc.setFont(undefined, 'normal');
       yPos += 7;
       
       if (Number(payroll.position_allowance) > 0) {
@@ -467,7 +456,7 @@ const KaryawanDashboard = () => {
       yPos += 10;
       
       // Total Income
-      doc.setFontSize(11);
+      doc.setFontSize(12);
       doc.setFont(undefined, 'bold');
       doc.text('TOTAL PENDAPATAN', 20, yPos);
       doc.text(`Rp ${Number(payroll.total_pendapatan || payroll.gross_salary || 0).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
@@ -481,7 +470,9 @@ const KaryawanDashboard = () => {
       
       // Deduction Section
       doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
       doc.text('POTONGAN', 20, yPos);
+      doc.setFont(undefined, 'normal');
       doc.setFontSize(10);
       yPos += 8;
       
@@ -520,7 +511,7 @@ const KaryawanDashboard = () => {
       }
       
       // Total Deductions
-      doc.setFontSize(11);
+      doc.setFontSize(12);
       doc.setFont(undefined, 'bold');
       doc.text('TOTAL POTONGAN', 20, yPos);
       doc.text(`Rp ${Number(payroll.total_deductions || 0).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
@@ -532,17 +523,31 @@ const KaryawanDashboard = () => {
       doc.line(20, yPos, 190, yPos);
       yPos += 10;
       
-      // Net Salary
-      doc.setFontSize(14);
+      // Net Salary with background box
+      const netSalaryY = yPos - 5;
+      doc.setFillColor(240, 248, 255); // Light blue background
+      doc.rect(15, netSalaryY, 180, 15, 'F');
+      doc.setDrawColor(100, 149, 237); // Border color
+      doc.rect(15, netSalaryY, 180, 15, 'S');
+      
+      doc.setFontSize(16);
       doc.setFont(undefined, 'bold');
       doc.text('GAJI BERSIH DITERIMA', 20, yPos);
       doc.text(`Rp ${Number(payroll.net_salary || 0).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
       
-      // Footer
+      // Footer with better formatting
+      yPos += 20;
+      doc.setDrawColor(200, 200, 200);
+      doc.line(20, yPos, 190, yPos);
+      yPos += 10;
+      
       doc.setFontSize(8);
       doc.setFont(undefined, 'normal');
-      doc.text(`Dicetak pada: ${format(new Date(), 'dd MMMM yyyy HH:mm', { locale: id })}`, 105, 280, { align: 'center' });
-      doc.text('Dokumen ini dicetak secara elektronik dan sah tanpa tanda tangan', 105, 285, { align: 'center' });
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Dicetak pada: ${format(new Date(), 'dd MMMM yyyy HH:mm', { locale: id })}`, 105, yPos, { align: 'center' });
+      yPos += 5;
+      doc.text('Dokumen ini dicetak secara elektronik dan sah tanpa tanda tangan', 105, yPos, { align: 'center' });
+      doc.setTextColor(0, 0, 0);
       
       // Save PDF
       const fileName = `SlipGaji_${profile?.first_name}_${format(new Date(payroll.payment_date), 'yyyyMMdd')}.pdf`;
