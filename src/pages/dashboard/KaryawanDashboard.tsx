@@ -294,38 +294,99 @@ const KaryawanDashboard = () => {
       // Create PDF using jsPDF
       const doc = new jsPDF();
       
-      // Header
-      doc.setFontSize(18);
-      doc.text('SLIP GAJI KARYAWAN', 105, 20, { align: 'center' });
-      doc.setFontSize(14);
-      doc.text('KSP MEKARSARI', 105, 28, { align: 'center' });
+      // Try to load and add logo
+      try {
+        // Try multiple logo sources
+        const logoUrls = ['/logo.png', '/logo.jpg', '/favicon.ico'];
+        let logoLoaded = false;
+        
+        for (const logoUrl of logoUrls) {
+          try {
+            const response = await fetch(logoUrl);
+            if (response.ok) {
+              const blob = await response.blob();
+              
+              // Convert blob to base64
+              const reader = new FileReader();
+              const base64Promise = new Promise<string>((resolve, reject) => {
+                reader.onloadend = () => {
+                  if (reader.result) {
+                    resolve(reader.result as string);
+                  } else {
+                    reject(new Error('Failed to read file'));
+                  }
+                };
+                reader.onerror = reject;
+              });
+              reader.readAsDataURL(blob);
+              const base64Logo = await base64Promise;
+              
+              // Determine image format
+              const format = logoUrl.endsWith('.png') ? 'PNG' : 
+                           logoUrl.endsWith('.jpg') || logoUrl.endsWith('.jpeg') ? 'JPEG' : 
+                           'PNG'; // Default to PNG for .ico
+              
+              // Add logo to PDF (centered, above title)
+              doc.addImage(base64Logo, format, 95, 5, 20, 20);
+              logoLoaded = true;
+              break;
+            }
+          } catch (err) {
+            console.log(`Could not load ${logoUrl}, trying next...`);
+          }
+        }
+        
+        // Header with adjusted position if logo loaded
+        if (logoLoaded) {
+          doc.setFontSize(18);
+          doc.text('SLIP GAJI KARYAWAN', 105, 32, { align: 'center' });
+          doc.setFontSize(14);
+          doc.text('KSP MEKARSARI', 105, 40, { align: 'center' });
+        } else {
+          // If no logo loaded, use original position
+          doc.setFontSize(18);
+          doc.text('SLIP GAJI KARYAWAN', 105, 20, { align: 'center' });
+          doc.setFontSize(14);
+          doc.text('KSP MEKARSARI', 105, 28, { align: 'center' });
+        }
+      } catch (logoError) {
+        console.error('Error loading logo:', logoError);
+        // If logo fails to load, continue without it
+        doc.setFontSize(18);
+        doc.text('SLIP GAJI KARYAWAN', 105, 20, { align: 'center' });
+        doc.setFontSize(14);
+        doc.text('KSP MEKARSARI', 105, 28, { align: 'center' });
+      }
       
-      // Line separator
-      doc.line(20, 35, 190, 35);
+      // Line separator - adjusted position for logo
+      const headerLineY = 45;
+      doc.line(20, headerLineY, 190, headerLineY);
       
-      // Employee Information
+      // Employee Information - adjusted position
+      const infoStartY = headerLineY + 10;
       doc.setFontSize(12);
-      doc.text('INFORMASI KARYAWAN', 20, 45);
+      doc.text('INFORMASI KARYAWAN', 20, infoStartY);
       doc.setFontSize(10);
-      doc.text(`Nama: ${profile?.first_name || ''} ${profile?.last_name || ''}`, 20, 53);
-      doc.text(`NIK: ${profile?.nik || '-'}`, 20, 60);
-      doc.text(`Jabatan: ${profile?.position || '-'}`, 20, 67);
-      doc.text(`Departemen: ${profile?.departemen?.nama || '-'}`, 20, 74);
+      doc.text(`Nama: ${profile?.first_name || ''} ${profile?.last_name || ''}`, 20, infoStartY + 8);
+      doc.text(`NIK: ${profile?.nik || '-'}`, 20, infoStartY + 15);
+      doc.text(`Jabatan: ${profile?.position || '-'}`, 20, infoStartY + 22);
+      doc.text(`Departemen: ${profile?.departemen?.nama || '-'}`, 20, infoStartY + 29);
       
-      // Period Information
-      doc.text(`Periode: ${format(new Date(payroll.pay_period_start), 'dd MMM yyyy', { locale: id })} - ${format(new Date(payroll.pay_period_end), 'dd MMM yyyy', { locale: id })}`, 120, 53);
-      doc.text(`Tanggal Pembayaran: ${format(new Date(payroll.payment_date), 'dd MMMM yyyy', { locale: id })}`, 120, 60);
-      doc.text(`Status: ${payroll.status}`, 120, 67);
+      // Period Information - adjusted position
+      doc.text(`Periode: ${format(new Date(payroll.pay_period_start), 'dd MMM yyyy', { locale: id })} - ${format(new Date(payroll.pay_period_end), 'dd MMM yyyy', { locale: id })}`, 120, infoStartY + 8);
+      doc.text(`Tanggal Pembayaran: ${format(new Date(payroll.payment_date), 'dd MMMM yyyy', { locale: id })}`, 120, infoStartY + 15);
+      doc.text(`Status: ${payroll.status}`, 120, infoStartY + 22);
       
-      // Line separator
-      doc.line(20, 80, 190, 80);
+      // Line separator - adjusted position
+      const contentLineY = infoStartY + 35;
+      doc.line(20, contentLineY, 190, contentLineY);
       
-      // Income Section
+      // Income Section - adjusted position
       doc.setFontSize(12);
-      doc.text('PENDAPATAN', 20, 90);
+      doc.text('PENDAPATAN', 20, contentLineY + 10);
       doc.setFontSize(10);
       
-      let yPos = 98;
+      let yPos = contentLineY + 18;
       
       // Fixed Income
       doc.text('PENDAPATAN TETAP:', 20, yPos);
