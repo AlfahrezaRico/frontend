@@ -311,18 +311,19 @@ const KaryawanDashboard = () => {
           doc.text('SLIP GAJI KARYAWAN - KSP MEKARSARI', 105, margin, { align: 'center' });
           doc.setFont(undefined, 'normal');
           
-          // Add employee name and period as reference
+          // Add employee name and period as reference - with more space
           doc.setFontSize(10);
-          doc.text(`${profile?.first_name || ''} ${profile?.last_name || ''} - Periode: ${format(new Date(payroll.pay_period_start), 'MMM yyyy', { locale: id })}`, 105, margin + 8, { align: 'center' });
+          doc.text(`${profile?.first_name || ''} ${profile?.last_name || ''}`, 105, margin + 8, { align: 'center' });
+          doc.text(`Periode: ${format(new Date(payroll.pay_period_start), 'MMM yyyy', { locale: id })}`, 105, margin + 14, { align: 'center' });
           
-          // Add line separator
+          // Add line separator - after the text
           doc.setDrawColor(59, 130, 246);
           doc.setLineWidth(0.5);
-          doc.line(margin, margin + 12, pageWidth - margin, margin + 12);
+          doc.line(margin, margin + 20, pageWidth - margin, margin + 20);
           doc.setLineWidth(0.1);
           doc.setDrawColor(0, 0, 0);
           
-          return margin + 20; // Reset Y position for new page with header space
+          return margin + 25; // Reset Y position for new page with header space
         }
         return yPosition;
       };
@@ -425,7 +426,12 @@ const KaryawanDashboard = () => {
       doc.setFont(undefined, 'bold');
       doc.text('Tanggal Pembayaran:', rightColX, infoStartY + 26);
       doc.setFont(undefined, 'normal');
-      doc.text(`${format(new Date(payroll.payment_date), 'dd MMMM yyyy', { locale: id })}`, rightColX + 30, infoStartY + 26);
+      // Format tanggal dengan spasi yang cukup dan font yang lebih kecil jika terlalu panjang
+      const paymentDateText = format(new Date(payroll.payment_date), 'dd MMMM yyyy', { locale: id });
+      if (paymentDateText.length > 20) {
+        doc.setFontSize(8);
+      }
+      doc.text(paymentDateText, rightColX + 45, infoStartY + 26);
       
       // Row 3
       doc.setFont(undefined, 'bold');
@@ -711,6 +717,14 @@ const KaryawanDashboard = () => {
       
       yPos = deductionStartY + 10;
       
+      // BPJS Employee Section Title
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(31, 41, 55);
+      doc.text('BPJS Karyawan', margin + 5, yPos);
+      doc.setFont(undefined, 'normal');
+      yPos += 8;
+      
       // BPJS Employee
       if (Number(payroll.bpjs_health_employee) > 0) {
         doc.setFillColor(254, 242, 242); // Light red background
@@ -752,6 +766,98 @@ const KaryawanDashboard = () => {
         doc.setTextColor(185, 28, 28);
         doc.text(`Rp ${Number(payroll.jp_employee).toLocaleString('id-ID')}`, pageWidth - margin - 5, yPos, { align: 'right' });
         yPos += 12;
+      }
+      
+      // BPJS Perusahaan Section Title
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(31, 41, 55);
+      doc.text('BPJS Perusahaan', margin + 5, yPos);
+      doc.setFont(undefined, 'normal');
+      yPos += 8;
+      
+      // BPJS Company
+      if (Number(payroll.bpjs_health_company) > 0) {
+        doc.setFillColor(254, 242, 242); // Light red background
+        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'F');
+        doc.setDrawColor(252, 165, 165);
+        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'S');
+        
+        doc.setTextColor(31, 41, 55);
+        doc.setFont(undefined, 'bold');
+        doc.text('BPJS Kesehatan (Perusahaan)', margin + 5, yPos);
+        doc.setTextColor(185, 28, 28);
+        doc.text(`Rp ${Number(payroll.bpjs_health_company).toLocaleString('id-ID')}`, pageWidth - margin - 5, yPos, { align: 'right' });
+        yPos += 12;
+      }
+      
+      if (Number(payroll.jht_company) > 0) {
+        doc.setFillColor(254, 242, 242);
+        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'F');
+        doc.setDrawColor(252, 165, 165);
+        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'S');
+        
+        doc.setTextColor(31, 41, 55);
+        doc.setFont(undefined, 'bold');
+        doc.text('BPJS JHT (Perusahaan)', margin + 5, yPos);
+        doc.setTextColor(185, 28, 28);
+        doc.text(`Rp ${Number(payroll.jht_company).toLocaleString('id-ID')}`, pageWidth - margin - 5, yPos, { align: 'right' });
+        yPos += 12;
+      }
+      
+      if (Number(payroll.jkm_company) > 0) {
+        doc.setFillColor(254, 242, 242);
+        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'F');
+        doc.setDrawColor(252, 165, 165);
+        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'S');
+        
+        doc.setTextColor(31, 41, 55);
+        doc.setFont(undefined, 'bold');
+        doc.text('BPJS JKM (Perusahaan)', margin + 5, yPos);
+        doc.setTextColor(185, 28, 28);
+        doc.text(`Rp ${Number(payroll.jkm_company).toLocaleString('id-ID')}`, pageWidth - margin - 5, yPos, { align: 'right' });
+        yPos += 12;
+      }
+      
+      if (Number(payroll.jkk_company) > 0) {
+        doc.setFillColor(254, 242, 242);
+        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'F');
+        doc.setDrawColor(252, 165, 165);
+        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'S');
+        
+        doc.setTextColor(31, 41, 55);
+        doc.setFont(undefined, 'bold');
+        doc.text('BPJS JKK (Perusahaan)', margin + 5, yPos);
+        doc.setTextColor(185, 28, 28);
+        doc.text(`Rp ${Number(payroll.jkk_company).toLocaleString('id-ID')}`, pageWidth - margin - 5, yPos, { align: 'right' });
+        yPos += 12;
+      }
+      
+      if (Number(payroll.jp_company) > 0) {
+        doc.setFillColor(254, 242, 242);
+        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'F');
+        doc.setDrawColor(252, 165, 165);
+        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'S');
+        
+        doc.setTextColor(31, 41, 55);
+        doc.setFont(undefined, 'bold');
+        doc.text('BPJS Jaminan Pensiun (Perusahaan)', margin + 5, yPos);
+        doc.setTextColor(185, 28, 28);
+        doc.text(`Rp ${Number(payroll.jp_company).toLocaleString('id-ID')}`, pageWidth - margin - 5, yPos, { align: 'right' });
+        yPos += 12;
+      }
+      
+      // Check if we need a page break before Manual Deductions
+      yPos = checkPageBreak(yPos, 80); // Estimate space needed for manual deductions
+      
+      // Manual Deductions Section Title
+      if (Number(payroll.kasbon) > 0 || Number(payroll.telat) > 0 || Number(payroll.angsuran_kredit) > 0) {
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(31, 41, 55);
+        doc.text('Potongan Lainnya', margin + 5, yPos);
+        doc.setFont(undefined, 'normal');
+        yPos += 8;
       }
       
       // Manual Deductions
