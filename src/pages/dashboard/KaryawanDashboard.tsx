@@ -294,6 +294,11 @@ const KaryawanDashboard = () => {
       // Create PDF using jsPDF
       const doc = new jsPDF();
       
+      // Set page margins
+      const margin = 15;
+      const pageWidth = doc.internal.pageSize.width;
+      const contentWidth = pageWidth - (margin * 2);
+      
       // Try to load and add logo
       try {
         // Try to load logo.jpg first
@@ -317,357 +322,357 @@ const KaryawanDashboard = () => {
           const base64Logo = await base64Promise;
           
           // Add logo to PDF (left side, above title)
-          doc.addImage(base64Logo, 'JPEG', 20, 8, 30, 30);
+          doc.addImage(base64Logo, 'JPEG', margin, 8, 25, 25);
           console.log('Logo loaded successfully');
         }
       } catch (logoError) {
         console.error('Error loading logo:', logoError);
       }
       
+      // Add document number and date with better styling
+      doc.setFontSize(8);
+      doc.setTextColor(75, 85, 99);
+      doc.text(`No: ${payroll.id.slice(0, 8).toUpperCase()}`, pageWidth - margin, 10, { align: 'right' });
+      doc.text(`Tanggal: ${format(new Date(), 'dd/MM/yyyy', { locale: id })}`, pageWidth - margin, 15, { align: 'right' });
+      
       // Header with logo consideration - adjusted for left logo
-      doc.setFontSize(22);
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(16);
       doc.setFont(undefined, 'bold');
-      doc.text('SLIP GAJI KARYAWAN', 105, 30, { align: 'center' });
-      doc.setFontSize(18);
-      doc.text('KSP MEKARSARI', 105, 38, { align: 'center' });
+      doc.text('SLIP GAJI KARYAWAN', 105, 20, { align: 'center' });
+      doc.setFontSize(12);
+      doc.text('KSP MEKARSARI', 105, 27, { align: 'center' });
       doc.setFont(undefined, 'normal');
       
       // Add decorative line under company name
       doc.setDrawColor(59, 130, 246);
-      doc.setLineWidth(0.8);
-      doc.line(70, 42, 140, 42);
+      doc.setLineWidth(0.5);
+      doc.line(margin, 32, pageWidth - margin, 32);
       doc.setLineWidth(0.1);
       doc.setDrawColor(0, 0, 0);
-      
-      // Add document number and date with better styling
-      doc.setFontSize(9);
-      doc.setTextColor(75, 85, 99);
-      doc.text(`No: ${payroll.id.slice(0, 8).toUpperCase()}`, 170, 18, { align: 'right' });
-      doc.text(`Tanggal: ${format(new Date(), 'dd/MM/yyyy', { locale: id })}`, 170, 24, { align: 'right' });
-      doc.setTextColor(0, 0, 0);
-      
-      // Add subtle watermark pattern
-      doc.setTextColor(248, 250, 252);
-      doc.setFontSize(80);
-      doc.text('KSP', 105, 130, { align: 'center', angle: 45 });
-      doc.setTextColor(0, 0, 0);
       
       // Line separator - adjusted position for logo
       const headerLineY = 45;
       doc.line(20, headerLineY, 190, headerLineY);
       
-      // Employee Information - adjusted position with background
-      const infoStartY = headerLineY + 10;
+      // Employee Information section
+      const infoStartY = headerLineY + 5;
       
-      // Add background for employee info section
-      doc.setFillColor(255, 255, 255);
-      doc.rect(15, infoStartY - 5, 180, 50, 'F');
-      doc.setDrawColor(226, 232, 240);
-      doc.rect(15, infoStartY - 5, 180, 50, 'S');
+      // Add section header background - green header
+      doc.setFillColor(39, 174, 96);
+      doc.rect(margin, infoStartY, contentWidth, 8, 'F');
       
-      // Add section header background
-      doc.setFillColor(34, 197, 94);
-      doc.rect(15, infoStartY - 5, 180, 10, 'F');
-      doc.setDrawColor(22, 163, 74);
-      doc.rect(15, infoStartY - 5, 180, 10, 'S');
-      
-      doc.setFontSize(12);
-      doc.setFont(undefined, 'bold');
-      doc.text('INFORMASI KARYAWAN', 20, infoStartY);
-      doc.setFont(undefined, 'normal');
+      // Add text to header
+      doc.setTextColor(255, 255, 255);
       doc.setFontSize(10);
+      doc.setFont(undefined, 'bold');
+      doc.text('INFORMASI KARYAWAN', margin + 5, infoStartY + 5.5);
+      
+      // Add background for content
+      doc.setFillColor(235, 255, 241); // Light green background
+      doc.rect(margin, infoStartY + 8, contentWidth, 30, 'F');
+      
+      // Reset text color
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(9);
+      doc.setFont(undefined, 'normal');
       
       // Left column - Employee details
-      doc.text(`Nama: ${profile?.first_name || ''} ${profile?.last_name || ''}`, 20, infoStartY + 12);
-      doc.text(`NIK: ${profile?.nik || '-'}`, 20, infoStartY + 20);
-      doc.text(`Jabatan: ${profile?.position || '-'}`, 20, infoStartY + 28);
-      doc.text(`Departemen: ${profile?.departemen?.nama || '-'}`, 20, infoStartY + 36);
+      const leftColX = margin + 5;
+      doc.text(`Nama: ${profile?.first_name || ''} ${profile?.last_name || ''}`, leftColX, infoStartY + 15);
+      doc.text(`NIK: ${profile?.nik || '-'}`, leftColX, infoStartY + 22);
+      doc.text(`Jabatan: ${profile?.position || '-'}`, leftColX, infoStartY + 29);
+      doc.text(`Departemen: ${profile?.departemen?.nama || '-'}`, leftColX, infoStartY + 36);
       
       // Right column - Period details
-      doc.text(`Periode: ${format(new Date(payroll.pay_period_start), 'dd MMM yyyy', { locale: id })} - ${format(new Date(payroll.pay_period_end), 'dd MMM yyyy', { locale: id })}`, 120, infoStartY + 12);
-      doc.text(`Tanggal Pembayaran: ${format(new Date(payroll.payment_date), 'dd MMMM yyyy', { locale: id })}`, 120, infoStartY + 20);
-      doc.text(`Status: ${payroll.status}`, 120, infoStartY + 28);
+      const rightColX = pageWidth / 2 + 10;
+      doc.text(`Periode: ${format(new Date(payroll.pay_period_start), 'dd MMM yyyy', { locale: id })} - ${format(new Date(payroll.pay_period_end), 'dd MMM yyyy', { locale: id })}`, rightColX, infoStartY + 15);
+      doc.text(`Tanggal Pembayaran: ${format(new Date(payroll.payment_date), 'dd MMMM yyyy', { locale: id })}`, rightColX, infoStartY + 22);
+      
+      // Status with badge
+      doc.text(`Status:`, rightColX, infoStartY + 29);
       
       // Add status badge
-      const statusColor = payroll.status === 'PAID' ? [34, 197, 94] : payroll.status === 'APPROVED' ? [59, 130, 246] : [239, 68, 68];
+      const statusColor = payroll.status === 'PAID' ? [39, 174, 96] : payroll.status === 'APPROVED' ? [41, 128, 185] : [231, 76, 60];
+      const statusText = payroll.status === 'PAID' ? 'PAID' : payroll.status === 'APPROVED' ? 'APPROVED' : 'UNPAID';
+      
       doc.setFillColor(...statusColor);
-      doc.rect(120, infoStartY + 30, 30, 8, 'F');
-      doc.setDrawColor(...statusColor);
-      doc.rect(120, infoStartY + 30, 30, 8, 'S');
+      doc.rect(rightColX + 25, infoStartY + 25, 25, 6, 'F');
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(8);
-      doc.text(payroll.status, 135, infoStartY + 35, { align: 'center' });
+      doc.setFont(undefined, 'bold');
+      doc.text(statusText, rightColX + 37.5, infoStartY + 29, { align: 'center' });
+      
+      // Reset text color
       doc.setTextColor(0, 0, 0);
       
       // Line separator - adjusted position
-      const contentLineY = infoStartY + 35;
-      doc.line(20, contentLineY, 190, contentLineY);
+      const contentLineY = infoStartY + 40;
       
-      // Income Section - adjusted position with background
-      doc.setFontSize(12);
-      doc.setFont(undefined, 'bold');
-      doc.text('PENDAPATAN', 20, contentLineY + 10);
-      doc.setFont(undefined, 'normal');
+      // Income Section - Fixed Income
+      const fixedIncomeY = contentLineY + 5;
+      
+      // Add section header background - blue header for fixed income
+      doc.setFillColor(41, 128, 185);
+      doc.rect(margin, fixedIncomeY, contentWidth, 8, 'F');
+      
+      // Add text to header
+      doc.setTextColor(255, 255, 255);
       doc.setFontSize(10);
-      
-      // Add background for income section
-      doc.setFillColor(255, 255, 255);
-      doc.rect(15, contentLineY + 5, 180, 140, 'F');
-      doc.setDrawColor(219, 234, 254);
-      doc.rect(15, contentLineY + 5, 180, 140, 'S');
-      
-      // Add section header background
-      doc.setFillColor(59, 130, 246);
-      doc.rect(15, contentLineY + 5, 180, 10, 'F');
-      doc.setDrawColor(37, 99, 235);
-      doc.rect(15, contentLineY + 5, 180, 10, 'S');
-      
-      let yPos = contentLineY + 18;
-      
-      // Fixed Income
       doc.setFont(undefined, 'bold');
-      doc.text('PENDAPATAN TETAP', 20, yPos);
-      doc.setFont(undefined, 'normal');
-      yPos += 8;
+      doc.text('PENDAPATAN TETAP', margin + 5, fixedIncomeY + 5.5);
       
-      // Basic Salary with highlight
-      doc.setFillColor(240, 249, 255);
-      doc.rect(20, yPos - 3, 160, 8, 'F');
-      doc.setDrawColor(219, 234, 254);
-      doc.rect(20, yPos - 3, 160, 8, 'S');
-      doc.text('Gaji Pokok', 25, yPos);
-      doc.text(`Rp ${Number(payroll.basic_salary || 0).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
-      yPos += 10;
+      // Add background for content
+      doc.setFillColor(235, 245, 251); // Light blue background
+      doc.rect(margin, fixedIncomeY + 8, contentWidth, 45, 'F');
+      
+      // Reset text color and set font for content
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(9);
+      doc.setFont(undefined, 'normal');
+      
+      let yPos = fixedIncomeY + 15;
+      
+      // Basic Salary
+      doc.text('Gaji Pokok', margin + 10, yPos);
+      doc.text(`Rp ${Number(payroll.basic_salary || 0).toLocaleString('id-ID')}`, pageWidth - margin - 10, yPos, { align: 'right' });
+      yPos += 7;
       
       // BPJS Company
       if (Number(payroll.bpjs_health_company) > 0) {
-        doc.text('BPJS Kesehatan (Perusahaan)', 25, yPos);
-        doc.text(`Rp ${Number(payroll.bpjs_health_company).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        doc.text('BPJS Kesehatan (Perusahaan)', margin + 10, yPos);
+        doc.text(`Rp ${Number(payroll.bpjs_health_company).toLocaleString('id-ID')}`, pageWidth - margin - 10, yPos, { align: 'right' });
         yPos += 7;
       }
       if (Number(payroll.jht_company) > 0) {
-        doc.text('BPJS JHT (Perusahaan)', 25, yPos);
-        doc.text(`Rp ${Number(payroll.jht_company).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        doc.text('BPJS JHT (Perusahaan)', margin + 10, yPos);
+        doc.text(`Rp ${Number(payroll.jht_company).toLocaleString('id-ID')}`, pageWidth - margin - 10, yPos, { align: 'right' });
         yPos += 7;
       }
       if (Number(payroll.jkm_company) > 0) {
-        doc.text('BPJS JKM (Perusahaan)', 25, yPos);
-        doc.text(`Rp ${Number(payroll.jkm_company).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        doc.text('BPJS JKM (Perusahaan)', margin + 10, yPos);
+        doc.text(`Rp ${Number(payroll.jkm_company).toLocaleString('id-ID')}`, pageWidth - margin - 10, yPos, { align: 'right' });
         yPos += 7;
       }
       if (Number(payroll.jkk_company) > 0) {
-        doc.text('BPJS JKK (Perusahaan)', 25, yPos);
-        doc.text(`Rp ${Number(payroll.jkk_company).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        doc.text('BPJS JKK (Perusahaan)', margin + 10, yPos);
+        doc.text(`Rp ${Number(payroll.jkk_company).toLocaleString('id-ID')}`, pageWidth - margin - 10, yPos, { align: 'right' });
         yPos += 7;
       }
       if (Number(payroll.jp_company) > 0) {
-        doc.text('BPJS Jaminan Pensiun (Perusahaan)', 25, yPos);
-        doc.text(`Rp ${Number(payroll.jp_company).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        doc.text('BPJS Jaminan Pensiun (Perusahaan)', margin + 10, yPos);
+        doc.text(`Rp ${Number(payroll.jp_company).toLocaleString('id-ID')}`, pageWidth - margin - 10, yPos, { align: 'right' });
         yPos += 7;
       }
       
       // Subtotal Fixed Income with background
       yPos += 3;
-      doc.setFillColor(59, 130, 246);
-      doc.rect(20, yPos - 3, 160, 8, 'F');
-      doc.setDrawColor(37, 99, 235);
-      doc.rect(20, yPos - 3, 160, 8, 'S');
+      doc.setFillColor(41, 128, 185);
+      doc.rect(margin + 5, yPos - 3, contentWidth - 10, 8, 'F');
       doc.setFont(undefined, 'bold');
       doc.setTextColor(255, 255, 255);
-      doc.text('Subtotal Pendapatan Tetap', 25, yPos);
-      doc.text(`Rp ${Number(payroll.subtotal_company || 0).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+      doc.text('Subtotal Pendapatan Tetap', margin + 10, yPos);
+      doc.text(`Rp ${Number(payroll.subtotal_company || 0).toLocaleString('id-ID')}`, pageWidth - margin - 10, yPos, { align: 'right' });
       doc.setTextColor(0, 0, 0);
       doc.setFont(undefined, 'normal');
       yPos += 12;
       
-      // Variable Income
+      // Variable Income Section
+      const variableIncomeY = yPos;
+      
+      // Add section header background - blue header for variable income
+      doc.setFillColor(52, 152, 219);
+      doc.rect(margin, variableIncomeY, contentWidth, 8, 'F');
+      
+      // Add text to header
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(10);
       doc.setFont(undefined, 'bold');
-      doc.text('PENDAPATAN TIDAK TETAP', 20, yPos);
+      doc.text('PENDAPATAN TIDAK TETAP', margin + 5, variableIncomeY + 5.5);
+      
+      // Add background for content
+      doc.setFillColor(235, 245, 251); // Light blue background
+      doc.rect(margin, variableIncomeY + 8, contentWidth, 40, 'F');
+      
+      // Reset text color and set font for content
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(9);
       doc.setFont(undefined, 'normal');
-      yPos += 8;
+      
+      yPos = variableIncomeY + 15;
       
       if (Number(payroll.position_allowance) > 0) {
-        doc.text('Tunjangan Jabatan', 25, yPos);
-        doc.text(`Rp ${Number(payroll.position_allowance).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        doc.text('Tunjangan Jabatan', margin + 10, yPos);
+        doc.text(`Rp ${Number(payroll.position_allowance).toLocaleString('id-ID')}`, pageWidth - margin - 10, yPos, { align: 'right' });
         yPos += 7;
       }
       if (Number(payroll.management_allowance) > 0) {
-        doc.text('Tunjangan Pengurus', 25, yPos);
-        doc.text(`Rp ${Number(payroll.management_allowance).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        doc.text('Tunjangan Pengurus', margin + 10, yPos);
+        doc.text(`Rp ${Number(payroll.management_allowance).toLocaleString('id-ID')}`, pageWidth - margin - 10, yPos, { align: 'right' });
         yPos += 7;
       }
       if (Number(payroll.phone_allowance) > 0) {
-        doc.text('Tunjangan Pulsa', 25, yPos);
-        doc.text(`Rp ${Number(payroll.phone_allowance).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        doc.text('Tunjangan Pulsa', margin + 10, yPos);
+        doc.text(`Rp ${Number(payroll.phone_allowance).toLocaleString('id-ID')}`, pageWidth - margin - 10, yPos, { align: 'right' });
         yPos += 7;
       }
       if (Number(payroll.incentive_allowance) > 0) {
-        doc.text('Tunjangan Insentif', 25, yPos);
-        doc.text(`Rp ${Number(payroll.incentive_allowance).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        doc.text('Tunjangan Insentif', margin + 10, yPos);
+        doc.text(`Rp ${Number(payroll.incentive_allowance).toLocaleString('id-ID')}`, pageWidth - margin - 10, yPos, { align: 'right' });
         yPos += 7;
       }
       if (Number(payroll.overtime_allowance) > 0) {
-        doc.text('Tunjangan Lembur', 25, yPos);
-        doc.text(`Rp ${Number(payroll.overtime_allowance).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        doc.text('Tunjangan Lembur', margin + 10, yPos);
+        doc.text(`Rp ${Number(payroll.overtime_allowance).toLocaleString('id-ID')}`, pageWidth - margin - 10, yPos, { align: 'right' });
         yPos += 7;
       }
       
       // Subtotal Variable Income with background
       yPos += 3;
-      doc.setFillColor(59, 130, 246);
-      doc.rect(20, yPos - 3, 160, 8, 'F');
-      doc.setDrawColor(37, 99, 235);
-      doc.rect(20, yPos - 3, 160, 8, 'S');
+      doc.setFillColor(52, 152, 219);
+      doc.rect(margin + 5, yPos - 3, contentWidth - 10, 8, 'F');
       doc.setFont(undefined, 'bold');
       doc.setTextColor(255, 255, 255);
-      doc.text('Subtotal Tunjangan', 25, yPos);
-      doc.text(`Rp ${Number(payroll.total_allowances || 0).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+      doc.text('Subtotal Tunjangan', margin + 10, yPos);
+      doc.text(`Rp ${Number(payroll.total_allowances || 0).toLocaleString('id-ID')}`, pageWidth - margin - 10, yPos, { align: 'right' });
       doc.setTextColor(0, 0, 0);
       doc.setFont(undefined, 'normal');
       yPos += 12;
       
       // Total Income with highlight
-      doc.setFillColor(59, 130, 246);
-      doc.rect(15, yPos - 3, 180, 12, 'F');
-      doc.setDrawColor(37, 99, 235);
-      doc.rect(15, yPos - 3, 180, 12, 'S');
-      doc.setFontSize(12);
+      const totalIncomeY = yPos;
+      
+      // Add total income background
+      doc.setFillColor(41, 128, 185);
+      doc.rect(margin, totalIncomeY - 3, contentWidth, 12, 'F');
+      
+      // Add text to total
+      doc.setFontSize(11);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(255, 255, 255);
-      doc.text('TOTAL PENDAPATAN', 20, yPos);
-      doc.text(`Rp ${Number(payroll.total_pendapatan || payroll.gross_salary || 0).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+      doc.text('TOTAL PENDAPATAN', margin + 5, totalIncomeY + 3);
+      doc.text(`Rp ${Number(payroll.total_pendapatan || payroll.gross_salary || 0).toLocaleString('id-ID')}`, pageWidth - margin - 5, totalIncomeY + 3, { align: 'right' });
+      
+      // Reset text color
       doc.setTextColor(0, 0, 0);
       doc.setFont(undefined, 'normal');
       doc.setFontSize(10);
       yPos += 15;
       
-      // Line separator
-      doc.line(20, yPos, 190, yPos);
-      yPos += 10;
+      // Small spacing
+      yPos += 5;
       
-      // Deduction Section with background
-      doc.setFontSize(12);
-      doc.setFont(undefined, 'bold');
-      doc.text('POTONGAN', 20, yPos);
-      doc.setFont(undefined, 'normal');
+      // Deduction Section
+      const deductionStartY = yPos;
+      
+      // Add section header background - red header for deductions
+      doc.setFillColor(231, 76, 60);
+      doc.rect(margin, deductionStartY, contentWidth, 8, 'F');
+      
+      // Add text to header
+      doc.setTextColor(255, 255, 255);
       doc.setFontSize(10);
+      doc.setFont(undefined, 'bold');
+      doc.text('POTONGAN', margin + 5, deductionStartY + 5.5);
       
-      // Add background for deduction section
-      const deductionStartY = yPos - 5;
-      doc.setFillColor(255, 255, 255);
-      doc.rect(15, deductionStartY, 180, 90, 'F');
-      doc.setDrawColor(254, 226, 226);
-      doc.rect(15, deductionStartY, 180, 90, 'S');
+      // Add background for content
+      doc.setFillColor(253, 237, 236); // Light red background
+      doc.rect(margin, deductionStartY + 8, contentWidth, 40, 'F');
       
-      // Add section header background
-      doc.setFillColor(239, 68, 68);
-      doc.rect(15, deductionStartY, 180, 10, 'F');
-      doc.setDrawColor(220, 38, 38);
-      doc.rect(15, deductionStartY, 180, 10, 'S');
+      // Reset text color and set font for content
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(9);
+      doc.setFont(undefined, 'normal');
       
-      yPos += 8;
+      yPos = deductionStartY + 15;
       
       // BPJS Employee
       if (Number(payroll.bpjs_health_employee) > 0) {
-        doc.text('BPJS Kesehatan (Karyawan)', 25, yPos);
-        doc.text(`Rp ${Number(payroll.bpjs_health_employee).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        doc.text('BPJS Kesehatan (Karyawan)', margin + 10, yPos);
+        doc.text(`Rp ${Number(payroll.bpjs_health_employee).toLocaleString('id-ID')}`, pageWidth - margin - 10, yPos, { align: 'right' });
         yPos += 7;
       }
       if (Number(payroll.jht_employee) > 0) {
-        doc.text('BPJS JHT (Karyawan)', 25, yPos);
-        doc.text(`Rp ${Number(payroll.jht_employee).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        doc.text('BPJS JHT (Karyawan)', margin + 10, yPos);
+        doc.text(`Rp ${Number(payroll.jht_employee).toLocaleString('id-ID')}`, pageWidth - margin - 10, yPos, { align: 'right' });
         yPos += 7;
       }
       if (Number(payroll.jp_employee) > 0) {
-        doc.text('BPJS Jaminan Pensiun (Karyawan)', 25, yPos);
-        doc.text(`Rp ${Number(payroll.jp_employee).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        doc.text('BPJS Jaminan Pensiun (Karyawan)', margin + 10, yPos);
+        doc.text(`Rp ${Number(payroll.jp_employee).toLocaleString('id-ID')}`, pageWidth - margin - 10, yPos, { align: 'right' });
         yPos += 7;
       }
       
       // Manual Deductions
       if (Number(payroll.kasbon) > 0) {
-        doc.text('Kasbon', 25, yPos);
-        doc.text(`Rp ${Number(payroll.kasbon).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        doc.text('Kasbon', margin + 10, yPos);
+        doc.text(`Rp ${Number(payroll.kasbon).toLocaleString('id-ID')}`, pageWidth - margin - 10, yPos, { align: 'right' });
         yPos += 7;
       }
       if (Number(payroll.telat) > 0) {
-        doc.text('Potongan Telat', 25, yPos);
-        doc.text(`Rp ${Number(payroll.telat).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        doc.text('Potongan Telat', margin + 10, yPos);
+        doc.text(`Rp ${Number(payroll.telat).toLocaleString('id-ID')}`, pageWidth - margin - 10, yPos, { align: 'right' });
         yPos += 7;
       }
       if (Number(payroll.angsuran_kredit) > 0) {
-        doc.text('Angsuran Kredit', 25, yPos);
-        doc.text(`Rp ${Number(payroll.angsuran_kredit).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+        doc.text('Angsuran Kredit', margin + 10, yPos);
+        doc.text(`Rp ${Number(payroll.angsuran_kredit).toLocaleString('id-ID')}`, pageWidth - margin - 10, yPos, { align: 'right' });
         yPos += 7;
       }
       
       // Total Deductions with background
       yPos += 3;
-      doc.setFillColor(239, 68, 68);
-      doc.rect(15, yPos - 3, 180, 12, 'F');
-      doc.setDrawColor(220, 38, 38);
-      doc.rect(15, yPos - 3, 180, 12, 'S');
-      doc.setFontSize(12);
+      doc.setFillColor(231, 76, 60);
+      doc.rect(margin, yPos - 3, contentWidth, 12, 'F');
+      doc.setFontSize(11);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(255, 255, 255);
-      doc.text('TOTAL POTONGAN', 20, yPos);
-      doc.text(`Rp ${Number(payroll.total_deductions || 0).toLocaleString('id-ID')}`, 170, yPos, { align: 'right' });
+      doc.text('TOTAL POTONGAN', margin + 5, yPos + 3);
+      doc.text(`Rp ${Number(payroll.total_deductions || 0).toLocaleString('id-ID')}`, pageWidth - margin - 5, yPos + 3, { align: 'right' });
       doc.setTextColor(0, 0, 0);
       doc.setFont(undefined, 'normal');
       doc.setFontSize(10);
       yPos += 15;
       
-      // Line separator
-      doc.line(20, yPos, 190, yPos);
-      yPos += 10;
+      // Small spacing
+      yPos += 5;
       
-      // Net Salary with enhanced background box
-      const netSalaryY = yPos - 5;
+      // Net Salary - the most important part
+      const netSalaryY = yPos;
       
-      // Add gradient-like effect with multiple layers
-      doc.setFillColor(240, 248, 255); // Light blue background
-      doc.rect(15, netSalaryY, 180, 25, 'F');
-      doc.setDrawColor(59, 130, 246); // Border color
-      doc.rect(15, netSalaryY, 180, 25, 'S');
+      // Create a box with border
+      doc.setFillColor(235, 245, 251);
+      doc.rect(margin, netSalaryY, contentWidth, 30, 'F');
+      doc.setDrawColor(41, 128, 185);
+      doc.setLineWidth(1);
+      doc.rect(margin, netSalaryY, contentWidth, 30, 'S');
+      doc.setLineWidth(0.1);
       
-      // Add inner highlight
-      doc.setFillColor(255, 255, 255);
-      doc.rect(17, netSalaryY + 2, 176, 21, 'F');
-      doc.setDrawColor(59, 130, 246);
-      doc.rect(17, netSalaryY + 2, 176, 21, 'S');
+      // Add title
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(41, 128, 185);
+      doc.text('GAJI BERSIH DITERIMA', 105, netSalaryY + 10, { align: 'center' });
       
-      // Add decorative elements
-      doc.setFillColor(59, 130, 246);
-      doc.circle(25, netSalaryY + 12, 2, 'F');
-      doc.circle(185, netSalaryY + 12, 2, 'F');
-      
+      // Add amount with larger font
       doc.setFontSize(16);
       doc.setFont(undefined, 'bold');
-      doc.setTextColor(59, 130, 246);
-      doc.text('GAJI BERSIH DITERIMA', 105, yPos + 8, { align: 'center' });
       doc.setTextColor(0, 0, 0);
-      doc.setFontSize(14);
-      doc.text(`Rp ${Number(payroll.net_salary || 0).toLocaleString('id-ID')}`, 105, yPos + 20, { align: 'center' });
+      doc.text(`Rp ${Number(payroll.net_salary || 0).toLocaleString('id-ID')}`, 105, netSalaryY + 22, { align: 'center' });
       
       // Footer with better formatting
-      yPos += 20;
+      yPos = netSalaryY + 40;
       
       // Add footer background
-      doc.setFillColor(249, 250, 251);
-      doc.rect(15, yPos - 5, 180, 25, 'F');
-      doc.setDrawColor(229, 231, 235);
-      doc.rect(15, yPos - 5, 180, 25, 'S');
+      doc.setFillColor(245, 246, 250);
+      doc.rect(margin, yPos, contentWidth, 20, 'F');
       
-      doc.setDrawColor(200, 200, 200);
-      doc.line(20, yPos, 190, yPos);
-      yPos += 10;
-      
+      // Add footer text
       doc.setFontSize(8);
       doc.setFont(undefined, 'normal');
       doc.setTextColor(100, 100, 100);
-      doc.text(`Dicetak pada: ${format(new Date(), 'dd MMMM yyyy HH:mm', { locale: id })}`, 105, yPos, { align: 'center' });
-      yPos += 5;
-      doc.text('Dokumen ini dicetak secara elektronik dan sah tanpa tanda tangan', 105, yPos, { align: 'center' });
+      doc.text(`Dicetak pada: ${format(new Date(), 'dd MMMM yyyy HH:mm', { locale: id })}`, 105, yPos + 8, { align: 'center' });
+      doc.text('Dokumen ini dicetak secara elektronik dan sah tanpa tanda tangan', 105, yPos + 15, { align: 'center' });
       doc.setTextColor(0, 0, 0);
       
       // Save PDF
