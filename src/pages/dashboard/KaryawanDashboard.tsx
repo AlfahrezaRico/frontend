@@ -296,8 +296,8 @@ const KaryawanDashboard = () => {
       
       // Try to load and add logo
       try {
-        // Try to load favicon.ico first
-        const response = await fetch('/favicon.ico');
+        // Try to load logo.jpg first
+        const response = await fetch('/logo.jpg');
         if (response.ok) {
           const blob = await response.blob();
           
@@ -316,35 +316,61 @@ const KaryawanDashboard = () => {
           reader.readAsDataURL(blob);
           const base64Logo = await base64Promise;
           
-          // Add logo to PDF (centered, above title)
-          doc.addImage(base64Logo, 'PNG', 95, 8, 20, 20);
+          // Add logo to PDF (left side, above title)
+          doc.addImage(base64Logo, 'JPEG', 20, 8, 25, 25);
           console.log('Logo loaded successfully');
         }
       } catch (logoError) {
         console.error('Error loading logo:', logoError);
       }
       
-      // Header with logo consideration
+      // Header with logo consideration - adjusted for left logo
       doc.setFontSize(20);
       doc.setFont(undefined, 'bold');
-      doc.text('SLIP GAJI KARYAWAN', 105, 35, { align: 'center' });
+      doc.text('SLIP GAJI KARYAWAN', 105, 25, { align: 'center' });
       doc.setFontSize(16);
-      doc.text('KSP MEKARSARI', 105, 42, { align: 'center' });
+      doc.text('KSP MEKARSARI', 105, 32, { align: 'center' });
       doc.setFont(undefined, 'normal');
       
       // Add decorative line under company name
       doc.setDrawColor(100, 149, 237);
       doc.setLineWidth(0.5);
-      doc.line(80, 45, 130, 45);
+      doc.line(80, 38, 130, 38);
       doc.setLineWidth(0.1);
       doc.setDrawColor(0, 0, 0);
       
+      // Add document number and date
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`No: ${payroll.id.slice(0, 8).toUpperCase()}`, 170, 15, { align: 'right' });
+      doc.text(`Tanggal: ${format(new Date(), 'dd/MM/yyyy', { locale: id })}`, 170, 20, { align: 'right' });
+      doc.setTextColor(0, 0, 0);
+      
+      // Add subtle watermark pattern
+      doc.setTextColor(245, 245, 245);
+      doc.setFontSize(60);
+      doc.text('KSP', 105, 120, { align: 'center', angle: 45 });
+      doc.setTextColor(0, 0, 0);
+      
       // Line separator - adjusted position for logo
-      const headerLineY = 50;
+      const headerLineY = 45;
       doc.line(20, headerLineY, 190, headerLineY);
       
-      // Employee Information - adjusted position
+      // Employee Information - adjusted position with background
       const infoStartY = headerLineY + 10;
+      
+      // Add background for employee info section
+      doc.setFillColor(248, 250, 252);
+      doc.rect(15, infoStartY - 5, 180, 40, 'F');
+      doc.setDrawColor(226, 232, 240);
+      doc.rect(15, infoStartY - 5, 180, 40, 'S');
+      
+      // Add section header background
+      doc.setFillColor(34, 197, 94);
+      doc.rect(15, infoStartY - 5, 180, 8, 'F');
+      doc.setDrawColor(22, 163, 74);
+      doc.rect(15, infoStartY - 5, 180, 8, 'S');
+      
       doc.setFontSize(12);
       doc.setFont(undefined, 'bold');
       doc.text('INFORMASI KARYAWAN', 20, infoStartY);
@@ -364,12 +390,24 @@ const KaryawanDashboard = () => {
       const contentLineY = infoStartY + 35;
       doc.line(20, contentLineY, 190, contentLineY);
       
-      // Income Section - adjusted position
+      // Income Section - adjusted position with background
       doc.setFontSize(12);
       doc.setFont(undefined, 'bold');
       doc.text('PENDAPATAN', 20, contentLineY + 10);
       doc.setFont(undefined, 'normal');
       doc.setFontSize(10);
+      
+      // Add background for income section
+      doc.setFillColor(240, 249, 255);
+      doc.rect(15, contentLineY + 5, 180, 120, 'F');
+      doc.setDrawColor(219, 234, 254);
+      doc.rect(15, contentLineY + 5, 180, 120, 'S');
+      
+      // Add section header background
+      doc.setFillColor(59, 130, 246);
+      doc.rect(15, contentLineY + 5, 180, 8, 'F');
+      doc.setDrawColor(37, 99, 235);
+      doc.rect(15, contentLineY + 5, 180, 8, 'S');
       
       let yPos = contentLineY + 18;
       
@@ -468,12 +506,26 @@ const KaryawanDashboard = () => {
       doc.line(20, yPos, 190, yPos);
       yPos += 10;
       
-      // Deduction Section
+      // Deduction Section with background
       doc.setFontSize(12);
       doc.setFont(undefined, 'bold');
       doc.text('POTONGAN', 20, yPos);
       doc.setFont(undefined, 'normal');
       doc.setFontSize(10);
+      
+      // Add background for deduction section
+      const deductionStartY = yPos - 5;
+      doc.setFillColor(255, 248, 248);
+      doc.rect(15, deductionStartY, 180, 80, 'F');
+      doc.setDrawColor(254, 226, 226);
+      doc.rect(15, deductionStartY, 180, 80, 'S');
+      
+      // Add section header background
+      doc.setFillColor(239, 68, 68);
+      doc.rect(15, deductionStartY, 180, 8, 'F');
+      doc.setDrawColor(220, 38, 38);
+      doc.rect(15, deductionStartY, 180, 8, 'S');
+      
       yPos += 8;
       
       // BPJS Employee
@@ -523,12 +575,20 @@ const KaryawanDashboard = () => {
       doc.line(20, yPos, 190, yPos);
       yPos += 10;
       
-      // Net Salary with background box
+      // Net Salary with enhanced background box
       const netSalaryY = yPos - 5;
       doc.setFillColor(240, 248, 255); // Light blue background
-      doc.rect(15, netSalaryY, 180, 15, 'F');
+      doc.rect(15, netSalaryY, 180, 20, 'F');
       doc.setDrawColor(100, 149, 237); // Border color
-      doc.rect(15, netSalaryY, 180, 15, 'S');
+      doc.rect(15, netSalaryY, 180, 20, 'S');
+      
+      // Add gradient effect with darker border
+      doc.setDrawColor(59, 130, 246);
+      doc.setLineWidth(0.3);
+      doc.line(15, netSalaryY, 195, netSalaryY);
+      doc.line(15, netSalaryY + 20, 195, netSalaryY + 20);
+      doc.setLineWidth(0.1);
+      doc.setDrawColor(0, 0, 0);
       
       doc.setFontSize(16);
       doc.setFont(undefined, 'bold');
@@ -537,6 +597,13 @@ const KaryawanDashboard = () => {
       
       // Footer with better formatting
       yPos += 20;
+      
+      // Add footer background
+      doc.setFillColor(249, 250, 251);
+      doc.rect(15, yPos - 5, 180, 25, 'F');
+      doc.setDrawColor(229, 231, 235);
+      doc.rect(15, yPos - 5, 180, 25, 'S');
+      
       doc.setDrawColor(200, 200, 200);
       doc.line(20, yPos, 190, yPos);
       yPos += 10;
