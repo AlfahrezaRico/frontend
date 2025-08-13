@@ -268,7 +268,7 @@ export default function PayrollManagement() {
 
     console.log('Final calculated components:', calculated);
     console.log('==========================================');
-    
+
     setCalculatedComponents(calculated);
     updateTotals(basicSalary, calculated, manualDeductions);
   };
@@ -1041,21 +1041,21 @@ export default function PayrollManagement() {
                       
                       {/* Basic Salary and Allowances */}
                       <div className="grid grid-cols-2 gap-4">
-                        <div>
+                      <div>
                           <Label htmlFor="basic_salary_display">Gaji Pokok</Label>
-                          <Input 
+                        <Input 
                             id="basic_salary_display"
-                            type="text" 
+                          type="text" 
                             value={formatCurrency(form.basic_salary)} 
-                            readOnly
-                            className="bg-white font-semibold"
-                          />
-                        </div>
-                        <div>
+                          readOnly
+                          className="bg-white font-semibold"
+                        />
+                      </div>
+                      <div>
                           <Label htmlFor="total_allowances_display">Total Tunjangan</Label>
-                          <Input 
+                        <Input 
                             id="total_allowances_display"
-                            type="text" 
+                          type="text" 
                             value={formatCurrency(form.total_allowances)} 
                             readOnly
                             className="bg-white font-semibold text-blue-600"
@@ -1159,19 +1159,19 @@ export default function PayrollManagement() {
                             id="total_deductions"
                             type="text" 
                             value={formatCurrency(form.total_deductions)} 
-                            readOnly
-                            className="bg-white font-semibold text-red-600"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="net_salary">Total Diterima</Label>
-                          <Input 
-                            id="net_salary"
-                            type="text" 
-                            value={formatCurrency(form.net_salary)} 
-                            readOnly
-                            className="bg-white font-semibold text-green-600"
-                          />
+                          readOnly
+                          className="bg-white font-semibold text-red-600"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="net_salary">Total Diterima</Label>
+                        <Input 
+                          id="net_salary"
+                          type="text" 
+                          value={formatCurrency(form.net_salary)} 
+                          readOnly
+                          className="bg-white font-semibold text-green-600"
+                        />
                         </div>
                       </div>
                     </div>

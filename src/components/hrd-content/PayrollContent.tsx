@@ -1621,13 +1621,7 @@ export const PayrollContent = () => {
                   <div className="flex justify-between items-center py-3 px-4 bg-orange-100 rounded-lg border border-orange-300">
                     <span className="font-semibold text-gray-800">SUB TOTAL</span>
                     <span className="font-bold text-orange-800">
-                      {formatCurrency(
-                        Number(selectedPayroll.bpjs_health_company || 0) + 
-                        Number(selectedPayroll.jht_company || 0) + 
-                        Number(selectedPayroll.jkk_company || 0) + 
-                        Number(selectedPayroll.jkm_company || 0) + 
-                        Number(selectedPayroll.jp_company || 0)
-                      )}
+                      {formatCurrency(Number(selectedPayroll.subtotal_company ?? 0))}
                     </span>
                   </div>
                 </div>
@@ -1698,14 +1692,7 @@ export const PayrollContent = () => {
                   <div className="flex justify-between items-center py-3 px-4 bg-red-100 rounded-lg border border-red-300">
                     <span className="font-semibold text-gray-800">SUB TOTAL</span>
                     <span className="font-bold text-red-800">
-                      {formatCurrency(
-                        Number(selectedPayroll.bpjs_health_employee || 0) + 
-                        Number(selectedPayroll.jht_employee || 0) + 
-                        Number(selectedPayroll.jp_employee || 0) + 
-                        Number(selectedPayroll.kasbon || 0) + 
-                        Number(selectedPayroll.telat || 0) + 
-                        Number(selectedPayroll.angsuran_kredit || 0)
-                      )}
+                      {formatCurrency(Number(selectedPayroll.subtotal_employee ?? 0))}
                     </span>
                   </div>
                 </div>
