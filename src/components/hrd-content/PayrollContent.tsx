@@ -107,14 +107,61 @@ export const PayrollContent = () => {
           return payrollDate.getMonth() === thisMonth && payrollDate.getFullYear() === thisYear;
         });
         
-        const totalAmount = data.reduce((sum: number, p: any) => sum + (p.net_salary || 0), 0);
+        // Debug: Log data payroll yang di-fetch
+        console.log('=== PAYROLL DATA DEBUG ===');
+        console.log('Raw payroll data:', data);
+        console.log('Payroll records count:', data.length);
+        
+        // Perbaikan perhitungan dengan validasi tipe data dan nilai
+        const totalAmount = data.reduce((sum: number, p: any) => {
+          let netSalary = 0;
+          
+          // Handle berbagai kemungkinan tipe data
+          if (typeof p.net_salary === 'string') {
+            netSalary = parseFloat(p.net_salary) || 0;
+          } else if (typeof p.net_salary === 'number') {
+            netSalary = p.net_salary;
+          } else if (p.net_salary && typeof p.net_salary === 'object' && p.net_salary.toString) {
+            // Handle Decimal type dari Prisma
+            netSalary = parseFloat(p.net_salary.toString()) || 0;
+          }
+          
+          // Validasi nilai yang masuk akal (maksimal 1 milyar per gaji)
+          if (netSalary > 1000000000) {
+            console.warn(`Warning: Net salary too high for payroll ${p.id}: ${netSalary}`);
+            console.warn(`Raw value:`, p.net_salary);
+            console.warn(`Payroll data:`, p);
+            netSalary = 0; // Set ke 0 jika nilai tidak masuk akal
+          }
+          
+          // Validasi nilai negatif
+          if (netSalary < 0) {
+            console.warn(`Warning: Negative net salary for payroll ${p.id}: ${netSalary}`);
+            netSalary = 0;
+          }
+          
+          console.log(`Payroll ${p.id}: net_salary = ${p.net_salary}, converted = ${netSalary}, type: ${typeof p.net_salary}`);
+          return sum + netSalary;
+        }, 0);
+        
         const avgSalary = data.length > 0 ? totalAmount / data.length : 0;
+        
+        // Validasi final untuk memastikan nilai yang masuk akal
+        const finalTotalAmount = isNaN(totalAmount) || totalAmount > 1000000000000 ? 0 : totalAmount;
+        const finalAvgSalary = isNaN(avgSalary) || avgSalary > 1000000000000 ? 0 : avgSalary;
+        
+        console.log('Calculated stats:');
+        console.log('- Raw total amount:', totalAmount);
+        console.log('- Raw average salary:', avgSalary);
+        console.log('- Final total amount:', finalTotalAmount);
+        console.log('- Final average salary:', finalAvgSalary);
+        console.log('- This month payrolls:', thisMonthPayrolls.length);
         
         setStats({
           total: data.length,
           thisMonth: thisMonthPayrolls.length,
-          totalAmount,
-          avgSalary
+          totalAmount: finalTotalAmount,
+          avgSalary: finalAvgSalary
         });
       }
     } catch (error) {
