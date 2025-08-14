@@ -733,7 +733,7 @@ export const SalaryContent = () => {
 
              {/* Add Salary Dialog */}
        <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-          <DialogContent className="max-w-2xl mx-4 overflow-hidden">
+          <DialogContent className="max-w-2xl mx-4 max-h-[85vh] overflow-y-auto overflow-x-hidden">
            <DialogHeader>
              <DialogTitle>Tambah Data Gaji</DialogTitle>
            </DialogHeader>
@@ -1139,12 +1139,14 @@ export const SalaryContent = () => {
                 <div className="space-y-2">
                   <div className="text-sm font-medium">Preview (maks 5 baris)</div>
                   <div className="border rounded-lg overflow-hidden">
-                    <div className="max-h-48 overflow-auto">
-                      <Table>
+                    <div className="max-h-48 overflow-y-auto overflow-x-hidden">
+                      <Table className="table-fixed w-full">
                         <TableHeader>
                           <TableRow>
                             {parsedHeaders.map((key) => (
-                              <TableHead key={key} className="text-xs sticky top-0 bg-white whitespace-nowrap">{key}</TableHead>
+                              <TableHead key={key} className="text-xs sticky top-0 bg-white whitespace-nowrap px-3 py-2 truncate max-w-[150px]">
+                                {key}
+                              </TableHead>
                             ))}
                           </TableRow>
                         </TableHeader>
@@ -1152,7 +1154,9 @@ export const SalaryContent = () => {
                           {csvRows.slice(0,5).map((row, idx) => (
                             <TableRow key={idx}>
                               {parsedHeaders.map((key) => (
-                                <TableCell key={key} className="text-xs whitespace-nowrap">{row[key] ?? '-'}</TableCell>
+                                <TableCell key={key} className="text-xs whitespace-nowrap px-3 py-2 truncate max-w-[150px]">
+                                  {String(row[key] ?? '-')}
+                                </TableCell>
                               ))}
                             </TableRow>
                           ))}
