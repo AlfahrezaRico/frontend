@@ -506,21 +506,23 @@ export const PayrollContent = () => {
     setSubmitting(true);
     
     try {
-      // Guard: Cegah duplikasi pada kombinasi employee + periode + payment_date
-      const dup = payrolls.find(p => 
-        p.employee_id === form.employee_id &&
-        new Date(p.pay_period_start).toISOString().split('T')[0] === (form.pay_period_start || '') &&
-        new Date(p.pay_period_end).toISOString().split('T')[0] === (form.pay_period_end || '') &&
-        (p.payment_date ? new Date(p.payment_date).toISOString().split('T')[0] : '') === (form.payment_date || '')
-      );
-      if (dup) {
-        setSubmitting(false);
-        toast({
-          title: 'Tidak dapat menambah',
-          description: 'Payroll untuk karyawan dan periode yang sama dengan tanggal bayar yang sama sudah ada.',
-          variant: 'destructive'
+      // Guard di frontend: larang satu karyawan memiliki payroll >= 1 dalam bulan yang sama (berdasarkan payment_date)
+      if (form.employee_id && form.payment_date) {
+        const payDate = new Date(form.payment_date);
+        const sameMonthExists = payrolls.some(p => {
+          if (p.employee_id !== form.employee_id || !p.payment_date) return false;
+          const d = new Date(p.payment_date);
+          return d.getMonth() === payDate.getMonth() && d.getFullYear() === payDate.getFullYear();
         });
-        return;
+        if (sameMonthExists) {
+          setSubmitting(false);
+          toast({
+            title: 'Tidak dapat menambah',
+            description: 'Tanggal Bayar untuk karyawan ini sudah ada pada bulan yang sama. Satu payroll per bulan per karyawan.',
+            variant: 'destructive'
+          });
+          return;
+        }
       }
 
       // Siapkan data yang akan dikirim ke backend (sesuai schema database)
@@ -574,7 +576,8 @@ export const PayrollContent = () => {
       
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP ${res.status}: Gagal tambah payroll`);
+        const msg = errorData?.error || `HTTP ${res.status}: Gagal tambah payroll`;
+        throw new Error(msg);
       }
       
       const result = await res.json();
