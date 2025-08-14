@@ -2428,6 +2428,7 @@ export const PayrollContent = () => {
                     <TableHead>Total Deductions</TableHead>
                     <TableHead>Gaji Bersih</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Tanggal Bayar</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -2475,6 +2476,15 @@ export const PayrollContent = () => {
                         }`}>
                           {payroll.status}
                         </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {payroll.payment_date ? (
+                            new Date(payroll.payment_date).toLocaleDateString('id-ID')
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
