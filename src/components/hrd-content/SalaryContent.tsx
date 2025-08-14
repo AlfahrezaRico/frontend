@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import Papa from 'papaparse';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileText, Search, Plus, Upload, Edit, Trash2, DollarSign, Users, TrendingUp, Eye, Building2, Calendar } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
@@ -57,6 +58,8 @@ export const SalaryContent = () => {
   const [selectedRecord, setSelectedRecord] = useState<SalaryRecord | null>(null);
   const [processing, setProcessing] = useState(false);
   const [csvData, setCsvData] = useState<string>('');
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [csvRows, setCsvRows] = useState<any[]>([]);
   
   const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -416,11 +419,29 @@ export const SalaryContent = () => {
     setViewDialogOpen(true);
   };
 
+  const handleCsvFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setCsvFile(file);
+    setCsvRows([]);
+    if (!file) return;
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (res) => {
+        const rows = Array.isArray(res.data) ? (res.data as any[]) : [];
+        setCsvRows(rows);
+      },
+      error: () => {
+        setCsvRows([]);
+      }
+    });
+  };
+
   const handleBulkUpload = async () => {
-    if (!csvData.trim()) {
+    if ((!csvFile && !csvData.trim()) && csvRows.length === 0) {
       toast({
         title: "Error",
-        description: "Data CSV tidak boleh kosong",
+        description: "File CSV belum dipilih",
         variant: "destructive"
       });
       return;
@@ -428,22 +449,32 @@ export const SalaryContent = () => {
 
     try {
       setProcessing(true);
-      
-      // Parse CSV data (simple parsing for demonstration)
-      const lines = csvData.trim().split('\n');
-      const headers = lines[0].split(',').map(h => h.trim());
-      const salaryData = [];
-
-      for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',').map(v => v.trim());
-        const row: any = {};
-        
-        headers.forEach((header, index) => {
-          row[header] = values[index] || '';
-        });
-        
-        salaryData.push(row);
+      // Gunakan hasil parse Papa (csvRows). Jika user tetap paste manual, fallback parse sederhana
+      let rows: any[] = csvRows;
+      if (rows.length === 0 && csvData.trim()) {
+        const lines = csvData.trim().split('\n');
+        const headers = lines[0].split(',').map(h => h.trim());
+        rows = [];
+        for (let i = 1; i < lines.length; i++) {
+          const values = lines[i].split(',').map(v => v.trim());
+          const row: any = {};
+          headers.forEach((header, index) => {
+            row[header] = values[index] || '';
+          });
+          rows.push(row);
+        }
       }
+
+      // Mapping field yang didukung: wajib nik,basic_salary; opsional allowances
+      const salaryData = rows.map((r) => ({
+        nik: (r.nik ?? r.NIK ?? r.Nik ?? '').toString().trim(),
+        basic_salary: (r.basic_salary ?? r.gaji_pokok ?? '').toString().trim(),
+        position_allowance: (r.position_allowance ?? '').toString().trim(),
+        management_allowance: (r.management_allowance ?? '').toString().trim(),
+        phone_allowance: (r.phone_allowance ?? '').toString().trim(),
+        incentive_allowance: (r.incentive_allowance ?? '').toString().trim(),
+        overtime_allowance: (r.overtime_allowance ?? '').toString().trim(),
+      }));
 
       const response = await fetch(`${API_URL}/api/salary/bulk-upload`, {
         method: 'POST',
@@ -458,10 +489,12 @@ export const SalaryContent = () => {
         const result = await response.json();
         toast({
           title: "Berhasil",
-          description: `${result.success} data berhasil diupload, ${result.errors} error`
+          description: `${result.success} data berhasil diupload, ${result.errorCount || result.errors} error`
         });
         setUploadDialogOpen(false);
         setCsvData('');
+        setCsvFile(null);
+        setCsvRows([]);
         fetchSalaryData();
       } else {
         const error = await response.json();
@@ -673,7 +706,7 @@ export const SalaryContent = () => {
 
              {/* Add Salary Dialog */}
        <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-         <DialogContent className="max-w-2xl mx-4">
+          <DialogContent className="max-w-2xl mx-4">
            <DialogHeader>
              <DialogTitle>Tambah Data Gaji</DialogTitle>
            </DialogHeader>
@@ -1047,22 +1080,18 @@ export const SalaryContent = () => {
           </DialogHeader>
           <div className="py-4">
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="csv_data">Data CSV</Label>
-                <Textarea
-                  id="csv_data"
-                  value={csvData}
-                  onChange={(e) => setCsvData(e.target.value)}
-                  placeholder="Paste data CSV di sini..."
-                  rows={10}
-                  className="font-mono text-sm"
-                />
+              <div className="space-y-2">
+                <Label htmlFor="csv_file">File CSV</Label>
+                <input id="csv_file" type="file" accept=".csv" onChange={handleCsvFileChange} />
+                {csvRows.length > 0 && (
+                  <div className="text-xs text-gray-600">{csvRows.length} baris terdeteksi dari file.</div>
+                )}
               </div>
               <div className="text-sm text-gray-600">
-                <p>Format CSV yang diharapkan:</p>
-                <p className="font-mono">employee_id,nik,basic_salary,position_allowance,management_allowance,phone_allowance,incentive_allowance,overtime_allowance</p>
-                <p className="mt-2">Contoh:</p>
-                <p className="font-mono">uuid-123,EMP001,5000000,500000,300000,100000,200000,150000</p>
+                <p>Format header CSV yang diharapkan:</p>
+                <p className="font-mono">nik,basic_salary,position_allowance,management_allowance,phone_allowance,incentive_allowance,overtime_allowance</p>
+                <p className="mt-2">Contoh baris:</p>
+                <p className="font-mono">EMP001,5000000,500000,300000,100000,200000,150000</p>
               </div>
             </div>
           </div>
