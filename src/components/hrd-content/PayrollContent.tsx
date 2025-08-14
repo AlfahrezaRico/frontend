@@ -2457,6 +2457,7 @@ export const PayrollContent = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>No</TableHead>
                     <TableHead>Karyawan</TableHead>
                     <TableHead>Periode</TableHead>
                     <TableHead>Gaji Pokok</TableHead>
@@ -2469,8 +2470,11 @@ export const PayrollContent = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {pagedPayrolls.map((payroll) => (
+                  {pagedPayrolls.map((payroll, index) => (
                     <TableRow key={payroll.id}>
+                      <TableCell>
+                        {(page - 1) * pageSize + index + 1}
+                      </TableCell>
                       <TableCell>
                         <div>
                           <div className="font-medium">
