@@ -954,11 +954,27 @@ export const PayrollContent = () => {
 
     const avgSalary = filteredPayrolls.length > 0 ? totalAmount / filteredPayrolls.length : 0;
 
+    const bpjsTotal = filteredPayrolls.reduce((sum: number, p: any) => {
+      const parts = [
+        p.bpjs_health_employee,
+        p.jht_employee,
+        p.jp_employee,
+        p.bpjs_health_company,
+        p.jht_company,
+        p.jkk_company,
+        p.jkm_company,
+        p.jp_company,
+      ];
+      const subtotal = parts.reduce((s: number, v: any) => s + toNumber(v), 0);
+      return sum + subtotal;
+    }, 0);
+
     return {
       total: filteredPayrolls.length,
       thisMonth: thisMonthCount,
       totalAmount: isNaN(totalAmount) ? 0 : totalAmount,
-      avgSalary: isNaN(avgSalary) ? 0 : avgSalary
+      avgSalary: isNaN(avgSalary) ? 0 : avgSalary,
+      bpjsTotal: isNaN(bpjsTotal) ? 0 : bpjsTotal
     };
   }, [filteredPayrolls]);
 
@@ -2354,12 +2370,12 @@ export const PayrollContent = () => {
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Bulan Ini</CardTitle>
+            <CardTitle className="text-sm font-medium">TOTAL POTONGAN BPJS</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{filteredStats.thisMonth}</div>
-            <p className="text-xs text-muted-foreground">Payroll processed</p>
+            <div className="text-2xl font-bold">{formatCurrency(filteredStats.bpjsTotal)}</div>
+            <p className="text-xs text-muted-foreground">Karyawan + Perusahaan</p>
           </CardContent>
         </Card>
 
