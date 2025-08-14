@@ -35,7 +35,8 @@ export const PayrollContent = () => {
   // New state for table functionality
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [dateFilter, setDateFilter] = useState("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   const [salaryData, setSalaryData] = useState<any[]>([]);
   const [manualDeductions, setManualDeductions] = useState({
@@ -895,26 +896,17 @@ export const PayrollContent = () => {
 
     // Date filter
     let dateMatch = true;
-    if (dateFilter !== "all") {
-      const today = new Date();
+    if (startDate || endDate) {
       const payrollDate = new Date(payroll.pay_period_start);
       
-      switch (dateFilter) {
-        case "today":
-          dateMatch = payrollDate.toDateString() === today.toDateString();
-          break;
-        case "thisWeek":
-          const weekStart = new Date(today.setDate(today.getDate() - today.getDay()));
-          const weekEnd = new Date(today.setDate(today.getDate() - today.getDay() + 6));
-          dateMatch = payrollDate >= weekStart && payrollDate <= weekEnd;
-          break;
-        case "thisMonth":
-          dateMatch = payrollDate.getMonth() === today.getMonth() && 
-                     payrollDate.getFullYear() === today.getFullYear();
-          break;
-        case "thisYear":
-          dateMatch = payrollDate.getFullYear() === today.getFullYear();
-          break;
+      if (startDate) {
+        const start = new Date(startDate);
+        dateMatch = dateMatch && payrollDate >= start;
+      }
+      
+      if (endDate) {
+        const end = new Date(endDate);
+        dateMatch = dateMatch && payrollDate <= end;
       }
     }
 
@@ -924,7 +916,8 @@ export const PayrollContent = () => {
   const clearFilters = () => {
     setSearchTerm("");
     setStatusFilter("all");
-    setDateFilter("all");
+    setStartDate("");
+    setEndDate("");
   };
 
   return (
@@ -2387,21 +2380,31 @@ export const PayrollContent = () => {
             </Select>
             
             {/* Date Filter */}
-            <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filter Tanggal" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Tanggal</SelectItem>
-                <SelectItem value="today">Hari Ini</SelectItem>
-                <SelectItem value="thisWeek">Minggu Ini</SelectItem>
-                <SelectItem value="thisMonth">Bulan Ini</SelectItem>
-                <SelectItem value="thisYear">Tahun Ini</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="startDate" className="text-sm whitespace-nowrap">Dari:</Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-40"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="endDate" className="text-sm whitespace-nowrap">Sampai:</Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-40"
+                />
+              </div>
+            </div>
             
             {/* Clear Filters */}
-            {(searchTerm !== "" || statusFilter !== "all" || dateFilter !== "all") && (
+            {(searchTerm !== "" || statusFilter !== "all" || startDate !== "" || endDate !== "") && (
               <Button variant="outline" onClick={clearFilters} size="sm">
                 Clear Filters
               </Button>
