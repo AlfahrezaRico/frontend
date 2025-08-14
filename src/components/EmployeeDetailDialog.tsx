@@ -48,6 +48,29 @@ export const EmployeeDetailDialog = ({ employee }: EmployeeDetailDialogProps) =>
     }
   };
 
+  const getMasaKerja = (hireDateStr: string) => {
+    if (!hireDateStr) return '-';
+    const start = new Date(hireDateStr);
+    if (isNaN(start.getTime())) return '-';
+    const now = new Date();
+    let years = now.getFullYear() - start.getFullYear();
+    let months = now.getMonth() - start.getMonth();
+    let days = now.getDate() - start.getDate();
+    if (days < 0) {
+      months -= 1;
+      // tidak perlu hitung detail hari, kita fokus tahun/bulan
+    }
+    if (months < 0) {
+      years -= 1;
+      months += 12;
+    }
+    if (years < 0) return '-';
+    if (years === 0 && months === 0) return '< 1 bulan';
+    if (years === 0) return `${months} bulan`;
+    if (months === 0) return `${years} tahun`;
+    return `${years} tahun ${months} bulan`;
+  };
+
   const handleCopy = (text: string, label: string) => {
     if (text && text !== '-') {
       try {
@@ -119,10 +142,12 @@ export const EmployeeDetailDialog = ({ employee }: EmployeeDetailDialogProps) =>
                       <Building2 className="w-3 h-3 mr-1" />
                       {employee.departemen?.nama || employee.department || 'Departemen tidak tersedia'}
                     </Badge>
-                    <Badge className="border-green-200 text-green-700 border">
-                      <UserCheck className="w-3 h-3 mr-1" />
-                      Aktif
-                    </Badge>
+                    {employee.status_label && (
+                      <Badge className="border-green-200 text-green-700 border">
+                        <UserCheck className="w-3 h-3 mr-1" />
+                        {employee.status_label}
+                      </Badge>
+                    )}
                     <span className="text-sm text-gray-500 font-mono">{employee.nik || '-'}</span>
                   </div>
                 </div>
@@ -144,7 +169,9 @@ export const EmployeeDetailDialog = ({ employee }: EmployeeDetailDialogProps) =>
                       <Mail className="w-4 h-4 text-gray-500" />
                       <div>
                         <p className="text-xs text-gray-500 font-medium">Email</p>
-                        <p className="text-sm font-medium text-gray-800">{employee.email || '-'}</p>
+                        <p className="text-sm font-medium text-gray-800 max-w-[220px] truncate" title={employee.email || '-'}>
+                          {employee.email || '-'}
+                        </p>
                       </div>
                     </div>
                     {employee.email && employee.email !== '-' && (
@@ -198,6 +225,13 @@ export const EmployeeDetailDialog = ({ employee }: EmployeeDetailDialogProps) =>
                     <div>
                       <p className="text-xs text-gray-500 font-medium">Tanggal Bergabung</p>
                       <p className="text-sm font-medium text-gray-800">{formatDate(employee.hire_date)}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <CalendarDays className="w-4 h-4 text-gray-500" />
+                    <div>
+                      <p className="text-xs text-gray-500 font-medium">Masa Kerja</p>
+                      <p className="text-sm font-medium text-gray-800">{getMasaKerja(employee.hire_date)}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
