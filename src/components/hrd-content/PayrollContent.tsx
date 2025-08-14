@@ -1907,12 +1907,12 @@ export const PayrollContent = () => {
                 <div>
                   <span className="text-sm font-medium text-gray-600">Total Pendapatan</span>
                   <p className="text-lg font-bold text-green-600">{formatCurrency(selectedPayroll.gross_salary || 0)}</p>
-                  <p className="text-xs text-gray-500">Gaji + Tunjangan</p>
+                  <p className="text-xs text-gray-500">Gaji Pokok + Tunjangan + BPJS Perusahaan</p>
                 </div>
                 <div>
                   <span className="text-sm font-medium text-gray-600">Total Potongan</span>
                   <p className="text-lg font-bold text-red-600">{formatCurrency(selectedPayroll.total_deductions || 0)}</p>
-                  <p className="text-xs text-gray-500">BPJS + PPH21 + Manual</p>
+                  <p className="text-xs text-gray-500">BPJS + Potongan Lainnya</p>
                 </div>
                 <div>
                   <span className="text-sm font-medium text-gray-600">Total Diterima</span>
