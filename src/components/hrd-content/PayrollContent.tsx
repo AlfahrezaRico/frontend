@@ -939,8 +939,11 @@ export const PayrollContent = () => {
     const thisYear = today.getFullYear();
 
     const thisMonthCount = filteredPayrolls.filter((p: any) => {
-      const payrollDate = new Date(p.pay_period_start);
-      return payrollDate.getMonth() === thisMonth && payrollDate.getFullYear() === thisYear;
+      // Hitung berdasarkan Tanggal Bayar agar konsisten dengan filter baru
+      const refDate = p.payment_date
+        ? new Date(p.payment_date)
+        : new Date(p.pay_period_end || p.pay_period_start);
+      return refDate.getMonth() === thisMonth && refDate.getFullYear() === thisYear;
     }).length;
 
     const totalAmount = filteredPayrolls.reduce((sum: number, p: any) => {
