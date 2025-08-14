@@ -733,7 +733,7 @@ export const SalaryContent = () => {
 
              {/* Add Salary Dialog */}
        <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-          <DialogContent className="max-w-2xl mx-4">
+          <DialogContent className="max-w-2xl mx-4 overflow-hidden">
            <DialogHeader>
              <DialogTitle>Tambah Data Gaji</DialogTitle>
            </DialogHeader>
@@ -1109,7 +1109,7 @@ export const SalaryContent = () => {
             <div className="space-y-4">
               <div className="space-y-3">
                 <Label htmlFor="csv_file">File CSV</Label>
-                <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-gray-400 transition-colors bg-gray-50 min-h-[120px] flex flex-col items-center justify-center">
+                <div className="w-full max-w-full border-2 border-dashed rounded-lg p-6 text-center hover:border-gray-400 transition-colors bg-gray-50 min-h-[120px] flex flex-col items-center justify-center box-border">
                   <input id="csv_file" type="file" accept=".csv" onChange={handleCsvFileChange} className="hidden" />
                   <label htmlFor="csv_file" className="cursor-pointer block">
                     <div className="text-sm font-medium text-gray-700 mb-1">{csvFile ? csvFile.name : 'Pilih file CSV'}</div>
@@ -1164,9 +1164,9 @@ export const SalaryContent = () => {
               )}
               <div className="text-sm text-gray-600">
                 <p>Format header CSV yang diharapkan:</p>
-                <p className="font-mono">nik,basic_salary,position_allowance,management_allowance,phone_allowance,incentive_allowance,overtime_allowance</p>
+                <p className="font-mono break-all">nik,basic_salary,position_allowance,management_allowance,phone_allowance,incentive_allowance,overtime_allowance</p>
                 <p className="mt-2">Contoh baris:</p>
-                <p className="font-mono">EMP001,5000000,500000,300000,100000,200000,150000</p>
+                <p className="font-mono break-all">EMP001,5000000,500000,300000,100000,200000,150000</p>
               </div>
             </div>
           </div>
