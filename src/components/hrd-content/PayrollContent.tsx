@@ -35,8 +35,7 @@ export const PayrollContent = () => {
   // New state for table functionality
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [paymentDate, setPaymentDate] = useState("");
 
   const [salaryData, setSalaryData] = useState<any[]>([]);
   const [manualDeductions, setManualDeductions] = useState({
@@ -896,18 +895,12 @@ export const PayrollContent = () => {
 
     // Date filter
     let dateMatch = true;
-    if (startDate || endDate) {
-      const payrollDate = new Date(payroll.pay_period_start);
+    if (paymentDate) {
+      const selectedDate = new Date(paymentDate);
+      const payrollPaymentDate = new Date(payroll.payment_date);
       
-      if (startDate) {
-        const start = new Date(startDate);
-        dateMatch = dateMatch && payrollDate >= start;
-      }
-      
-      if (endDate) {
-        const end = new Date(endDate);
-        dateMatch = dateMatch && payrollDate <= end;
-      }
+      // Filter by payment date (exact date match)
+      dateMatch = payrollPaymentDate.toDateString() === selectedDate.toDateString();
     }
 
     return searchMatch && statusMatch && dateMatch;
@@ -916,8 +909,7 @@ export const PayrollContent = () => {
   const clearFilters = () => {
     setSearchTerm("");
     setStatusFilter("all");
-    setStartDate("");
-    setEndDate("");
+    setPaymentDate("");
   };
 
   return (
@@ -2354,19 +2346,19 @@ export const PayrollContent = () => {
           {/* Search and Filter Controls */}
           <div className="flex flex-col sm:flex-row gap-4 mt-4">
             {/* Search */}
-            <div className="relative flex-1 max-w-md">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Cari nama, posisi, atau ID payroll..."
+                placeholder="Cari karyawan, posisi, atau ID..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 w-48"
               />
             </div>
             
             {/* Status Filter */}
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-36">
                 <SelectValue placeholder="Filter Status" />
               </SelectTrigger>
               <SelectContent>
@@ -2379,32 +2371,20 @@ export const PayrollContent = () => {
               </SelectContent>
             </Select>
             
-            {/* Date Filter */}
+            {/* Date Filter - Single Field */}
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2">
-                <Label htmlFor="startDate" className="text-sm whitespace-nowrap">Dari:</Label>
-                <Input
-                  id="startDate"
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-40"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <Label htmlFor="endDate" className="text-sm whitespace-nowrap">Sampai:</Label>
-                <Input
-                  id="endDate"
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="w-40"
-                />
-              </div>
+              <Label htmlFor="paymentDate" className="text-sm whitespace-nowrap">Tanggal Bayar:</Label>
+              <Input
+                id="paymentDate"
+                type="date"
+                value={paymentDate}
+                onChange={(e) => setPaymentDate(e.target.value)}
+                className="w-40"
+              />
             </div>
             
             {/* Clear Filters */}
-            {(searchTerm !== "" || statusFilter !== "all" || startDate !== "" || endDate !== "") && (
+            {(searchTerm !== "" || statusFilter !== "all" || paymentDate !== "") && (
               <Button variant="outline" onClick={clearFilters} size="sm">
                 Clear Filters
               </Button>
