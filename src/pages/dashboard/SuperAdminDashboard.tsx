@@ -81,6 +81,16 @@ const SuperAdminDashboard = () => {
     }
   };
 
+  const [userCount, setUserCount] = useState<number | null>(null);
+  useEffect(() => {
+    const API_URL = import.meta.env.VITE_API_URL || '';
+    fetch(`${API_URL}/api/users`).then(async (r) => {
+      if (!r.ok) return;
+      const data = await r.json();
+      setUserCount(Array.isArray(data) ? data.length : 0);
+    }).catch(() => {});
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* Header */}
@@ -116,8 +126,21 @@ const SuperAdminDashboard = () => {
             </button>
           </div>
 
-          {/* Action Cards */}
+          {/* Summary + Action Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Total Users */}
+            <Card className="rounded-xl shadow-lg bg-white border border-gray-200">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                <Users className="h-5 w-5 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{userCount ?? '-'}</div>
+                <p className="text-xs text-muted-foreground">Akun terdaftar</p>
+              </CardContent>
+            </Card>
+
+            {/* User Management */}
             {/* User Management */}
             <Card className="rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-200 bg-white border border-gray-200">
               <CardHeader>

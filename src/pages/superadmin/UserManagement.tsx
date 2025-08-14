@@ -601,6 +601,7 @@ const UserManagement = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>No</TableHead>
                     <TableHead>Username</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Role</TableHead>
@@ -610,8 +611,9 @@ const UserManagement = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {pagedUsers.map((user) => (
+                  {pagedUsers.map((user, index) => (
                     <TableRow key={user.id}>
+                      <TableCell>{(page - 1) * pageSize + index + 1}</TableCell>
                       <TableCell className="font-medium">{user.username}</TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
