@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -60,6 +60,33 @@ export const SalaryContent = () => {
   const [csvData, setCsvData] = useState<string>('');
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [csvRows, setCsvRows] = useState<any[]>([]);
+
+  const parsedHeaders = useMemo(() => {
+    if (csvRows.length > 0) return Object.keys(csvRows[0] || {});
+    if (csvData.trim()) {
+      const first = csvData.trim().split('\n')[0] || '';
+      return first.split(',').map((h) => h.trim());
+    }
+    return [] as string[];
+  }, [csvRows, csvData]);
+
+  const requiredHeaders = ['nik', 'basic_salary'];
+  const optionalHeaders = ['position_allowance','management_allowance','phone_allowance','incentive_allowance','overtime_allowance'];
+  const lowerHeaders = parsedHeaders.map((h) => h.toLowerCase());
+  const missingRequired = requiredHeaders.filter((h) => !lowerHeaders.includes(h));
+
+  const handleDownloadTemplate = () => {
+    const headers = ['nik','basic_salary','position_allowance','management_allowance','phone_allowance','incentive_allowance','overtime_allowance'];
+    const example = ['EMP001','5000000','500000','300000','100000','200000','150000'];
+    const csv = `${headers.join(',')}\n${example.join(',')}\n`;
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'template-upload-salary.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
   
   const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -706,7 +733,7 @@ export const SalaryContent = () => {
 
              {/* Add Salary Dialog */}
        <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-          <DialogContent className="max-w-2xl mx-4">
+          <DialogContent className="max-w-3xl mx-4">
            <DialogHeader>
              <DialogTitle>Tambah Data Gaji</DialogTitle>
            </DialogHeader>
@@ -1080,13 +1107,61 @@ export const SalaryContent = () => {
           </DialogHeader>
           <div className="py-4">
             <div className="space-y-4">
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label htmlFor="csv_file">File CSV</Label>
-                <input id="csv_file" type="file" accept=".csv" onChange={handleCsvFileChange} />
-                {csvRows.length > 0 && (
-                  <div className="text-xs text-gray-600">{csvRows.length} baris terdeteksi dari file.</div>
-                )}
+                <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                  <input id="csv_file" type="file" accept=".csv" onChange={handleCsvFileChange} className="hidden" />
+                  <label htmlFor="csv_file" className="cursor-pointer block">
+                    <div className="text-sm font-medium text-gray-700 mb-1">{csvFile ? csvFile.name : 'Pilih file CSV'}</div>
+                    <div className="text-xs text-gray-500">Klik untuk memilih file CSV atau drag & drop</div>
+                    {csvRows.length > 0 && (
+                      <div className="mt-2 text-xs text-gray-600">{csvRows.length} baris terdeteksi dari file</div>
+                    )}
+                  </label>
+                </div>
               </div>
+
+              {parsedHeaders.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Header terdeteksi:</div>
+                  <div className="flex flex-wrap gap-2">
+                    {parsedHeaders.map((h) => (
+                      <Badge key={h} variant={lowerHeaders.includes(h.toLowerCase()) ? 'secondary' : 'outline'}>{h}</Badge>
+                    ))}
+                  </div>
+                  {missingRequired.length > 0 && (
+                    <div className="text-xs text-red-600">Header wajib belum lengkap: {missingRequired.join(', ')}</div>
+                  )}
+                </div>
+              )}
+
+              {csvRows.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Preview (maks 5 baris)</div>
+                  <div className="border rounded-lg overflow-hidden">
+                    <div className="max-h-48 overflow-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            {parsedHeaders.map((key) => (
+                              <TableHead key={key} className="text-xs sticky top-0 bg-white whitespace-nowrap">{key}</TableHead>
+                            ))}
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {csvRows.slice(0,5).map((row, idx) => (
+                            <TableRow key={idx}>
+                              {parsedHeaders.map((key) => (
+                                <TableCell key={key} className="text-xs whitespace-nowrap">{row[key] ?? '-'}</TableCell>
+                              ))}
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="text-sm text-gray-600">
                 <p>Format header CSV yang diharapkan:</p>
                 <p className="font-mono">nik,basic_salary,position_allowance,management_allowance,phone_allowance,incentive_allowance,overtime_allowance</p>
@@ -1096,10 +1171,13 @@ export const SalaryContent = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setUploadDialogOpen(false)}>
+            <Button variant="outline" onClick={handleDownloadTemplate}>
+              Download Template
+            </Button>
+            <Button variant="outline" onClick={() => { setUploadDialogOpen(false); setCsvFile(null); setCsvRows([]); setCsvData(''); }}>
               Batal
             </Button>
-            <Button onClick={handleBulkUpload} disabled={processing}>
+            <Button onClick={handleBulkUpload} disabled={processing || missingRequired.length > 0 || (csvRows.length === 0 && !csvData.trim())}>
               {processing ? 'Mengupload...' : 'Upload Data'}
             </Button>
           </DialogFooter>
