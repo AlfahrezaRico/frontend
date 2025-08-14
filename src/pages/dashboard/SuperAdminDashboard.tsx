@@ -58,14 +58,27 @@ const SuperAdminDashboard = () => {
         },
         body: JSON.stringify(csvEmployees),
       });
-      
-      if (!res.ok) {
+      // Selalu coba parse JSON agar bisa menampilkan daftar gagal dari backend
+      let data: any = null;
+      try {
+        data = await res.json();
+      } catch (e) {
+        // fallback ke text jika bukan JSON
         const errorText = await res.text();
-        console.error('Upload error:', errorText);
-        throw new Error(`Upload failed: ${res.status} ${errorText}`);
+        data = { error: errorText };
       }
-      
-      const data = await res.json();
+
+      if (!res.ok) {
+        console.error('Upload error payload:', data);
+        // Jika backend mengirimkan results, gunakan langsung agar UI bisa tampilkan daftar yang gagal
+        if (data && Array.isArray(data.results)) {
+          setCsvResult({ ...data, success: false });
+        } else {
+          setCsvResult({ error: data?.error || `Upload failed (${res.status})`, success: false });
+        }
+        return;
+      }
+
       setCsvResult(data);
       
       if (data.success) {
@@ -358,70 +371,31 @@ const SuperAdminDashboard = () => {
                             </Alert>
                           )}
 
-                          {/* Detailed Results */}
+                          {/* Detailed Results: tampilkan hanya yang gagal */}
                           {csvResult.results && csvResult.results.length > 0 && (
                             <div className="space-y-3">
                               <div className="flex items-center justify-between">
-                                <h3 className="text-lg font-medium">Detail Hasil Upload</h3>
+                                <h3 className="text-lg font-medium">Data Gagal</h3>
                                 <div className="flex gap-2">
                                   <Badge variant="destructive">
                                     {csvResult.results.filter((r: any) => r.error).length} Error
                                   </Badge>
-                                  <Badge variant="default">
-                                    {csvResult.results.filter((r: any) => !r.error).length} Sukses
-                                  </Badge>
                                 </div>
                               </div>
-                              {csvResult.summary && (
-                                <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border">
-                                  <div className="font-medium mb-1">📊 Ringkasan Upload:</div>
-                                  <div className="grid grid-cols-3 gap-4 text-center">
-                                    <div>
-                                      <div className="text-lg font-bold text-blue-600">{csvResult.summary.total}</div>
-                                      <div className="text-xs text-gray-500">Total</div>
-                                    </div>
-                                    <div>
-                                      <div className="text-lg font-bold text-green-600">{csvResult.summary.success}</div>
-                                      <div className="text-xs text-gray-500">Sukses</div>
-                                    </div>
-                                    <div>
-                                      <div className="text-lg font-bold text-red-600">{csvResult.summary.error}</div>
-                                      <div className="text-xs text-gray-500">Error</div>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                              
                               <div className="border rounded-lg bg-white">
                                 <div className="max-h-64 overflow-auto p-4 space-y-2">
-                                  {csvResult.results.map((r: any, i: number) => (
-                                    <div 
-                                      key={i} 
-                                      className={`flex items-center gap-3 p-3 rounded-lg ${
-                                        r.error 
-                                          ? 'bg-red-50 border border-red-200' 
-                                          : 'bg-green-50 border border-green-200'
-                                      }`}
-                                    >
-                                      {r.error ? (
-                                        <XCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
-                                      ) : (
-                                        <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                                      )}
+                                  {csvResult.results.filter((r: any) => r.error).map((r: any, i: number) => (
+                                    <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-red-50 border border-red-200">
+                                      <XCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
                                       <div className="flex-1">
                                         <div className="font-medium text-sm">
-                                          {r.emp?.email || `${r.emp?.first_name} ${r.emp?.last_name}` || `Baris ${i + 1}`}
+                                          {(r.emp?.first_name || r.emp?.last_name)
+                                            ? `${r.emp?.first_name || ''} ${r.emp?.last_name || ''}`.trim()
+                                            : (r.emp?.email || `Baris ${i + 1}`)}
                                         </div>
-                                        <div className={`text-xs ${
-                                          r.error ? 'text-red-600' : 'text-green-600'
-                                        }`}>
-                                          {r.error || 'Berhasil ditambahkan'}
+                                        <div className="text-xs text-red-600">
+                                          {r.error}
                                         </div>
-                                        {!r.error && r.emp?.department && (
-                                          <div className="text-xs text-gray-500">
-                                            Departemen: {r.emp.department}
-                                          </div>
-                                        )}
                                       </div>
                                     </div>
                                   ))}
