@@ -911,11 +911,9 @@ export default function PayrollManagement() {
                               <div key={index} className="flex justify-between items-center p-2 border rounded">
                                 <div>
                                   <span className="font-medium text-sm">{component.name}</span>
-                                  {component.is_percentage && (
-                                    <div className="text-xs text-gray-500">
-                                      {component.percentage}% dari gaji pokok
-                                    </div>
-                                  )}
+                                  <div className="text-xs text-gray-500">
+                                    {component.percentage}% dari gaji pokok
+                                  </div>
                                 </div>
                                 <span className="text-sm font-semibold text-red-600">
                                   - {formatCurrency(component.amount)}
@@ -931,11 +929,9 @@ export default function PayrollManagement() {
                               <div key={index} className="flex justify-between items-center p-2 border rounded">
                                 <div>
                                   <span className="font-medium text-sm">{component.name}</span>
-                                  {component.is_percentage && (
-                                    <div className="text-xs text-gray-500">
-                                      {component.percentage}% dari gaji pokok
-                                    </div>
-                                  )}
+                                  <div className="text-xs text-gray-500">
+                                    {component.percentage}% dari gaji pokok
+                                  </div>
                                 </div>
                                 <span className="text-sm font-semibold text-green-600">
                                   + {formatCurrency(component.amount)}

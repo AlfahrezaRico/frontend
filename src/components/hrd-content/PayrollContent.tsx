@@ -1098,11 +1098,9 @@ export const PayrollContent = () => {
                              <div key={index} className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
                                <div className="flex-1">
                                  <span className="font-medium text-sm text-gray-800">{component.name}</span>
-                                 {component.is_percentage && (
-                                   <div className="text-xs text-gray-600 mt-1">
-                                     {component.percentage}% dari gaji pokok murni
-                                   </div>
-                                 )}
+                                 <div className="text-xs text-gray-600 mt-1">
+                                   {component.percentage}% dari gaji pokok murni
+                                 </div>
                                </div>
                                <span className="text-sm font-bold text-green-700 ml-4">
                                  {formatCurrency(component.amount)}
@@ -1242,11 +1240,9 @@ export const PayrollContent = () => {
                               <div key={index} className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
                                 <div className="flex-1">
                                   <span className="font-medium text-sm text-gray-800">{component.name}</span>
-                                  {component.is_percentage && (
-                                    <div className="text-xs text-gray-600 mt-1">
-                                      {component.percentage}% dari gaji pokok murni
-                                    </div>
-                                  )}
+                                  <div className="text-xs text-gray-600 mt-1">
+                                    {component.percentage}% dari gaji pokok murni
+                                  </div>
                                 </div>
                                 <span className="text-sm font-bold text-orange-700 ml-4">
                                   {formatCurrency(component.amount)}
@@ -1270,11 +1266,9 @@ export const PayrollContent = () => {
                               <div key={index} className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
                                 <div className="flex-1">
                                   <span className="font-medium text-sm text-gray-800">{component.name}</span>
-                                  {component.is_percentage && (
-                                    <div className="text-xs text-gray-600 mt-1">
-                                      {component.percentage}% dari gaji pokok murni
-                                    </div>
-                                  )}
+                                  <div className="text-xs text-gray-600 mt-1">
+                                    {component.percentage}% dari gaji pokok murni
+                                  </div>
                                 </div>
                                 <span className="text-sm font-bold text-red-700 ml-4">
                                   {formatCurrency(component.amount)}
@@ -1342,11 +1336,9 @@ export const PayrollContent = () => {
                                     <div key={index} className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg border border-gray-200">
                                       <div className="flex-1">
                                         <span className="font-medium text-sm text-gray-800">{component.name}</span>
-                                        {component.is_percentage && (
-                                          <div className="text-xs text-gray-600 mt-1">
-                                            {component.percentage}% dari gaji pokok murni
-                                          </div>
-                                        )}
+                                        <div className="text-xs text-gray-600 mt-1">
+                                          {component.percentage}% dari gaji pokok murni
+                                        </div>
                                       </div>
                                       <span className="text-sm font-bold text-gray-700 ml-4">
                                         {formatCurrency(component.amount)}
@@ -2008,11 +2000,9 @@ export const PayrollContent = () => {
                         <div key={index} className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
                           <div className="flex-1">
                             <span className="font-medium text-sm text-gray-800">{component.name}</span>
-                            {component.is_percentage && (
-                              <div className="text-xs text-gray-600 mt-1">
-                                {component.percentage}% dari gaji pokok murni
-                              </div>
-                            )}
+                            <div className="text-xs text-gray-600 mt-1">
+                              {component.percentage}% dari gaji pokok murni
+                            </div>
                           </div>
                           <span className="text-sm font-bold text-green-700 ml-4">
                             {formatCurrency(component.amount)}
