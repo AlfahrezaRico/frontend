@@ -127,7 +127,7 @@ export const EmployeeDetailDialog = ({ employee }: EmployeeDetailDialogProps) =>
         <div className="space-y-6">
           {/* Header Profile */}
           <Card className="border-0 shadow-sm bg-gradient-to-r from-blue-50 to-indigo-50">
-            <CardContent className="p-6">
+            <CardContent className="px-6 pt-8 pb-6">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
                   <User className="w-6 h-6 text-white" />
@@ -157,7 +157,7 @@ export const EmployeeDetailDialog = ({ employee }: EmployeeDetailDialogProps) =>
 
           {/* Personal Information */}
           <Card>
-            <CardContent className="px-6 pt-8 pb-6">
+            <CardContent className="px-6 pt-6 pb-6">
               <div className="flex items-center gap-2 mb-4">
                 <User className="w-5 h-5 text-blue-600" />
                 <h3 className="text-lg font-semibold text-gray-800">Profil Karyawan</h3>
