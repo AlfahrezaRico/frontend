@@ -1735,7 +1735,12 @@ export const PayrollContent = () => {
                   <div className="space-y-2">
                     {selectedPayroll.bpjs_health_company > 0 && (
                       <div className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
-                        <span className="font-medium text-sm text-gray-800">BPJS Kesehatan (Perusahaan)</span>
+                        <div className="flex-1">
+                          <span className="font-medium text-sm text-gray-800">BPJS Kesehatan (Perusahaan)</span>
+                          <div className="text-xs text-gray-600 mt-1">
+                            {((Number(selectedPayroll?.bpjs_health_company ?? 0) / Number(selectedPayroll?.basic_salary ?? 1)) * 100).toFixed(1)}% dari gaji pokok
+                          </div>
+                        </div>
                         <span className="text-sm font-bold text-orange-700 ml-4">
                           {formatCurrency(selectedPayroll.bpjs_health_company)}
                         </span>
@@ -1743,7 +1748,12 @@ export const PayrollContent = () => {
                     )}
                     {selectedPayroll.jht_company > 0 && (
                       <div className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
-                        <span className="font-medium text-sm text-gray-800">BPJS Jaminan Hari Tua (Perusahaan)</span>
+                        <div className="flex-1">
+                          <span className="font-medium text-sm text-gray-800">BPJS Jaminan Hari Tua (Perusahaan)</span>
+                          <div className="text-xs text-gray-600 mt-1">
+                            {((Number(selectedPayroll?.jht_company ?? 0) / Number(selectedPayroll?.basic_salary ?? 1)) * 100).toFixed(1)}% dari gaji pokok
+                          </div>
+                        </div>
                         <span className="text-sm font-bold text-orange-700 ml-4">
                           {formatCurrency(selectedPayroll.jht_company)}
                         </span>
@@ -1751,7 +1761,12 @@ export const PayrollContent = () => {
                     )}
                     {selectedPayroll.jkk_company > 0 && (
                       <div className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
-                        <span className="font-medium text-sm text-gray-800">BPJS Jaminan Kecelakaan Kerja (Perusahaan)</span>
+                        <div className="flex-1">
+                          <span className="font-medium text-sm text-gray-800">BPJS Jaminan Kecelakaan Kerja (Perusahaan)</span>
+                          <div className="text-xs text-gray-600 mt-1">
+                            {((Number(selectedPayroll?.jkk_company ?? 0) / Number(selectedPayroll?.basic_salary ?? 1)) * 100).toFixed(1)}% dari gaji pokok
+                          </div>
+                        </div>
                         <span className="text-sm font-bold text-orange-700 ml-4">
                           {formatCurrency(selectedPayroll.jkk_company)}
                         </span>
@@ -1759,7 +1774,12 @@ export const PayrollContent = () => {
                     )}
                     {selectedPayroll.jkm_company > 0 && (
                       <div className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
-                        <span className="font-medium text-sm text-gray-800">BPJS Jaminan Kematian (Perusahaan)</span>
+                        <div className="flex-1">
+                          <span className="font-medium text-sm text-gray-800">BPJS Jaminan Kematian (Perusahaan)</span>
+                          <div className="text-xs text-gray-600 mt-1">
+                            {((Number(selectedPayroll?.jkm_company ?? 0) / Number(selectedPayroll?.basic_salary ?? 1)) * 100).toFixed(1)}% dari gaji pokok
+                          </div>
+                        </div>
                         <span className="text-sm font-bold text-orange-700 ml-4">
                           {formatCurrency(selectedPayroll.jkm_company)}
                         </span>
@@ -1767,7 +1787,12 @@ export const PayrollContent = () => {
                     )}
                     {selectedPayroll.jp_company > 0 && (
                       <div className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
-                        <span className="font-medium text-sm text-gray-800">BPJS Jaminan Pensiun (Perusahaan)</span>
+                        <div className="flex-1">
+                          <span className="font-medium text-sm text-gray-800">BPJS Jaminan Pensiun (Perusahaan)</span>
+                          <div className="text-xs text-gray-600 mt-1">
+                            {((Number(selectedPayroll?.jp_company ?? 0) / Number(selectedPayroll?.basic_salary ?? 1)) * 100).toFixed(1)}% dari gaji pokok
+                          </div>
+                        </div>
                         <span className="text-sm font-bold text-orange-700 ml-4">
                           {formatCurrency(selectedPayroll.jp_company)}
                         </span>
@@ -1788,7 +1813,12 @@ export const PayrollContent = () => {
                   <div className="space-y-2">
                     {selectedPayroll.bpjs_health_employee > 0 && (
                       <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
-                        <span className="font-medium text-sm text-gray-800">BPJS Kesehatan (Karyawan)</span>
+                        <div className="flex-1">
+                          <span className="font-medium text-sm text-gray-800">BPJS Kesehatan (Karyawan)</span>
+                          <div className="text-xs text-gray-600 mt-1">
+                            {((Number(selectedPayroll?.bpjs_health_employee ?? 0) / Number(selectedPayroll?.basic_salary ?? 1)) * 100).toFixed(1)}% dari gaji pokok
+                          </div>
+                        </div>
                         <span className="text-sm font-bold text-red-700 ml-4">
                           {formatCurrency(selectedPayroll.bpjs_health_employee)}
                         </span>
@@ -1796,7 +1826,12 @@ export const PayrollContent = () => {
                     )}
                     {selectedPayroll.jht_employee > 0 && (
                       <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
-                        <span className="font-medium text-sm text-gray-800">BPJS Jaminan Hari Tua (Karyawan)</span>
+                        <div className="flex-1">
+                          <span className="font-medium text-sm text-gray-800">BPJS Jaminan Hari Tua (Karyawan)</span>
+                          <div className="text-xs text-gray-600 mt-1">
+                            {((Number(selectedPayroll?.jht_employee ?? 0) / Number(selectedPayroll?.basic_salary ?? 1)) * 100).toFixed(1)}% dari gaji pokok
+                          </div>
+                        </div>
                         <span className="text-sm font-bold text-red-700 ml-4">
                           {formatCurrency(selectedPayroll.jht_employee)}
                         </span>
@@ -1804,7 +1839,12 @@ export const PayrollContent = () => {
                     )}
                     {selectedPayroll.jp_employee > 0 && (
                       <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
-                        <span className="font-medium text-sm text-gray-800">BPJS Jaminan Pensiun (Karyawan)</span>
+                        <div className="flex-1">
+                          <span className="font-medium text-sm text-gray-800">BPJS Jaminan Pensiun (Karyawan)</span>
+                          <div className="text-xs text-gray-600 mt-1">
+                            {((Number(selectedPayroll?.jp_employee ?? 0) / Number(selectedPayroll?.basic_salary ?? 1)) * 100).toFixed(1)}% dari gaji pokok
+                          </div>
+                        </div>
                         <span className="text-sm font-bold text-red-700 ml-4">
                           {formatCurrency(selectedPayroll.jp_employee)}
                         </span>
