@@ -733,7 +733,7 @@ export const SalaryContent = () => {
 
              {/* Add Salary Dialog */}
        <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-          <DialogContent className="max-w-3xl mx-4">
+          <DialogContent className="max-w-2xl mx-4">
            <DialogHeader>
              <DialogTitle>Tambah Data Gaji</DialogTitle>
            </DialogHeader>
@@ -1109,7 +1109,7 @@ export const SalaryContent = () => {
             <div className="space-y-4">
               <div className="space-y-3">
                 <Label htmlFor="csv_file">File CSV</Label>
-                <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-gray-400 transition-colors bg-gray-50 min-h-[120px] flex flex-col items-center justify-center">
                   <input id="csv_file" type="file" accept=".csv" onChange={handleCsvFileChange} className="hidden" />
                   <label htmlFor="csv_file" className="cursor-pointer block">
                     <div className="text-sm font-medium text-gray-700 mb-1">{csvFile ? csvFile.name : 'Pilih file CSV'}</div>
