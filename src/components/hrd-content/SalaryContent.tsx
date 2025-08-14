@@ -140,6 +140,18 @@ export const SalaryContent = () => {
     item.employee?.departemen?.nama?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Pagination state & derived values
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, filteredData.length);
+  const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   const totalSalary = salaryData.reduce((sum, item) => sum + (typeof item.basic_salary === 'string' ? parseFloat(item.basic_salary) || 0 : item.basic_salary || 0), 0);
   const totalAllowances = salaryData.reduce((sum, item) => {
     const posAllowance = typeof item.position_allowance === 'string' ? parseFloat(item.position_allowance) || 0 : item.position_allowance || 0;
@@ -661,14 +673,14 @@ export const SalaryContent = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredData.length === 0 ? (
+                   {filteredData.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                         {searchTerm ? 'Tidak ada data yang sesuai dengan pencarian' : 'Tidak ada data gaji'}
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredData.map((item) => {
+                    paginatedData.map((item) => {
                       // Convert string to number if needed
                       const basicSalary = typeof item.basic_salary === 'string' ? parseFloat(item.basic_salary) || 0 : item.basic_salary || 0;
                       const posAllowance = typeof item.position_allowance === 'string' ? parseFloat(item.position_allowance) || 0 : item.position_allowance || 0;
@@ -729,6 +741,34 @@ export const SalaryContent = () => {
             </div>
           )}
         </CardContent>
+        {filteredData.length > itemsPerPage && (
+          <div className="flex items-center justify-between px-6 pb-6">
+            <div className="text-sm text-muted-foreground">
+              Menampilkan {startIndex + 1}-{endIndex} dari {filteredData.length} data
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="flex items-center gap-2"
+              >
+                Prev
+              </Button>
+              <span className="text-sm text-muted-foreground">Halaman {currentPage} dari {totalPages}</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="flex items-center gap-2"
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
       </Card>
 
              {/* Add Salary Dialog */}
