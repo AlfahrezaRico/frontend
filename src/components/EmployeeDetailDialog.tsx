@@ -157,7 +157,7 @@ export const EmployeeDetailDialog = ({ employee }: EmployeeDetailDialogProps) =>
 
           {/* Personal Information */}
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="px-6 pt-8 pb-6">
               <div className="flex items-center gap-2 mb-4">
                 <User className="w-5 h-5 text-blue-600" />
                 <h3 className="text-lg font-semibold text-gray-800">Profil Karyawan</h3>
@@ -165,11 +165,14 @@ export const EmployeeDetailDialog = ({ employee }: EmployeeDetailDialogProps) =>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
                       <Mail className="w-4 h-4 text-gray-500" />
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-xs text-gray-500 font-medium">Email</p>
-                        <p className="text-sm font-medium text-gray-800 max-w-[220px] truncate" title={employee.email || '-'}>
+                        <p
+                          className="text-sm font-medium text-gray-800 truncate"
+                          title={employee.email || '-'}
+                        >
                           {employee.email || '-'}
                         </p>
                       </div>
@@ -179,7 +182,7 @@ export const EmployeeDetailDialog = ({ employee }: EmployeeDetailDialogProps) =>
                         variant="ghost"
                         size="sm"
                         onClick={() => handleCopy(employee.email, 'Email')}
-                        className="p-1 h-6 w-6 hover:bg-gray-200"
+                        className="p-1 h-6 w-6 hover:bg-gray-200 shrink-0"
                       >
                         <Copy className="w-3 h-3" />
                       </Button>
