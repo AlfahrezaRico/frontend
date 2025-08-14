@@ -8,7 +8,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 import { DollarSign, Plus, TrendingUp, Users, Eye, Edit, Check, Trash2, Search, Filter } from "lucide-react";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { useToast } from '@/hooks/use-toast';
 
 const API_URL = import.meta.env.VITE_API_URL || "";
@@ -36,6 +37,8 @@ export const PayrollContent = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [paymentDate, setPaymentDate] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(10);
 
   const [salaryData, setSalaryData] = useState<any[]>([]);
   const [manualDeductions, setManualDeductions] = useState({
@@ -905,6 +908,56 @@ export const PayrollContent = () => {
 
     return searchMatch && statusMatch && dateMatch;
   });
+
+  // Reset ke halaman pertama saat filter berubah
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, statusFilter, paymentDate]);
+
+  // Pagination data
+  const totalPages = Math.max(1, Math.ceil(filteredPayrolls.length / pageSize));
+  const pagedPayrolls = useMemo(() => {
+    const startIndex = (page - 1) * pageSize;
+    return filteredPayrolls.slice(startIndex, startIndex + pageSize);
+  }, [filteredPayrolls, page, pageSize]);
+
+  // Helper konversi angka yang aman
+  const toNumber = (value: unknown): number => {
+    if (typeof value === "number") return value;
+    if (typeof value === "string") return parseFloat(value) || 0;
+    if (value && typeof value === "object" && (value as any).toString) {
+      const parsed = parseFloat((value as any).toString());
+      return isNaN(parsed) ? 0 : parsed;
+    }
+    return 0;
+  };
+
+  // Stats berdasarkan data yang tampil (filtered)
+  const filteredStats = useMemo(() => {
+    const today = new Date();
+    const thisMonth = today.getMonth();
+    const thisYear = today.getFullYear();
+
+    const thisMonthCount = filteredPayrolls.filter((p: any) => {
+      const payrollDate = new Date(p.pay_period_start);
+      return payrollDate.getMonth() === thisMonth && payrollDate.getFullYear() === thisYear;
+    }).length;
+
+    const totalAmount = filteredPayrolls.reduce((sum: number, p: any) => {
+      const net = toNumber(p.net_salary);
+      if (net > 1000000000 || net < 0) return sum; // abaikan nilai tidak masuk akal
+      return sum + net;
+    }, 0);
+
+    const avgSalary = filteredPayrolls.length > 0 ? totalAmount / filteredPayrolls.length : 0;
+
+    return {
+      total: filteredPayrolls.length,
+      thisMonth: thisMonthCount,
+      totalAmount: isNaN(totalAmount) ? 0 : totalAmount,
+      avgSalary: isNaN(avgSalary) ? 0 : avgSalary
+    };
+  }, [filteredPayrolls]);
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -2291,7 +2344,7 @@ export const PayrollContent = () => {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
+            <div className="text-2xl font-bold">{filteredStats.total}</div>
             <p className="text-xs text-muted-foreground">Records payroll</p>
           </CardContent>
         </Card>
@@ -2302,7 +2355,7 @@ export const PayrollContent = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.thisMonth}</div>
+            <div className="text-2xl font-bold">{filteredStats.thisMonth}</div>
             <p className="text-xs text-muted-foreground">Payroll processed</p>
           </CardContent>
         </Card>
@@ -2313,7 +2366,7 @@ export const PayrollContent = () => {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(stats.totalAmount)}</div>
+            <div className="text-2xl font-bold">{formatCurrency(filteredStats.totalAmount)}</div>
             <p className="text-xs text-muted-foreground">Total amount</p>
           </CardContent>
         </Card>
@@ -2324,7 +2377,7 @@ export const PayrollContent = () => {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(stats.avgSalary)}</div>
+            <div className="text-2xl font-bold">{formatCurrency(filteredStats.avgSalary)}</div>
             <p className="text-xs text-muted-foreground">Average salary</p>
           </CardContent>
         </Card>
@@ -2416,7 +2469,7 @@ export const PayrollContent = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredPayrolls.map((payroll) => (
+                  {pagedPayrolls.map((payroll) => (
                     <TableRow key={payroll.id}>
                       <TableCell>
                         <div>
@@ -2526,6 +2579,21 @@ export const PayrollContent = () => {
                   ))}
                 </TableBody>
               </Table>
+              <div className="py-3">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious onClick={(e) => { e.preventDefault(); setPage(p => Math.max(1, p - 1)); }} />
+                    </PaginationItem>
+                    <PaginationItem>
+                      <span className="px-3 text-sm text-muted-foreground">Halaman {page} dari {totalPages}</span>
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationNext onClick={(e) => { e.preventDefault(); setPage(p => Math.min(totalPages, p + 1)); }} />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
             </div>
           )}
         </CardContent>
