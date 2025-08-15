@@ -291,44 +291,23 @@ const KaryawanDashboard = () => {
         throw new Error('Data payroll tidak ditemukan');
       }
 
-      // Create PDF using jsPDF - with multiple pages support
+      // Create PDF using jsPDF - optimized for single A4 page
       const doc = new jsPDF();
       
-      // Set page margins
-      const margin = 15;
+      // Set page margins - reduced for better space usage
+      const margin = 10;
       const pageWidth = doc.internal.pageSize.width;
       const pageHeight = doc.internal.pageSize.height;
       const contentWidth = pageWidth - (margin * 2);
       
-      // Function to check if we need to add a new page
-      const checkPageBreak = (yPosition, requiredSpace) => {
-        if (yPosition + requiredSpace > pageHeight - margin) {
-          doc.addPage();
-          
-          // Add simplified header to the new page
-          doc.setFontSize(12);
-          doc.setFont(undefined, 'bold');
-          doc.text('SLIP GAJI KARYAWAN - KSP MEKARSARI', 105, margin, { align: 'center' });
-          doc.setFont(undefined, 'normal');
-          
-          // Add employee name and period as reference - with more space
-          doc.setFontSize(10);
-          doc.text(`${profile?.first_name || ''} ${profile?.last_name || ''}`, 105, margin + 8, { align: 'center' });
-          doc.text(`Periode: ${format(new Date(payroll.pay_period_start), 'MMM yyyy', { locale: id })}`, 105, margin + 14, { align: 'center' });
-          
-          // Add line separator - after the text
-          doc.setDrawColor(59, 130, 246);
-          doc.setLineWidth(0.5);
-          doc.line(margin, margin + 20, pageWidth - margin, margin + 20);
-          doc.setLineWidth(0.1);
-          doc.setDrawColor(0, 0, 0);
-          
-          return margin + 25; // Reset Y position for new page with header space
-        }
+      // Function to check if content might overflow - for layout optimization
+      const checkContentFit = (yPosition, requiredSpace) => {
+        // We're optimizing for single page, so just return the position
+        // This function is kept for compatibility with the rest of the code
         return yPosition;
       };
       
-      // Try to load and add logo
+      // Try to load and add logo - more compact
       try {
         // Try to load logo.jpg first
         const response = await fetch('/logo.jpg');
@@ -350,97 +329,94 @@ const KaryawanDashboard = () => {
           reader.readAsDataURL(blob);
           const base64Logo = await base64Promise;
           
-          // Add logo to PDF (left side, similar to Detail Payroll)
-          doc.addImage(base64Logo, 'JPEG', margin, 5, 30, 20);
+          // Add logo to PDF - smaller size for better space usage
+          doc.addImage(base64Logo, 'JPEG', margin, 5, 25, 15);
           console.log('Logo loaded successfully');
         }
       } catch (logoError) {
         console.error('Error loading logo:', logoError);
       }
       
-      // Add document number and date with better styling
-      doc.setFontSize(8);
+      // Add document number and date with compact styling
+      doc.setFontSize(7);
       doc.setTextColor(75, 85, 99);
-      doc.text(`No: ${payroll.id.slice(0, 8).toUpperCase()}`, pageWidth - margin, 8, { align: 'right' });
-      doc.text(`Tanggal: ${format(new Date(), 'dd/MM/yyyy', { locale: id })}`, pageWidth - margin, 12, { align: 'right' });
+      doc.text(`No: ${payroll.id.slice(0, 8).toUpperCase()}`, pageWidth - margin, 6, { align: 'right' });
+      doc.text(`Tanggal: ${format(new Date(), 'dd/MM/yyyy', { locale: id })}`, pageWidth - margin, 10, { align: 'right' });
       
-      // Header with logo consideration
+      // Header with logo consideration - more compact
       doc.setTextColor(0, 0, 0);
-      doc.setFontSize(16);
+      doc.setFontSize(14);
       doc.setFont(undefined, 'bold');
-      doc.text('SLIP GAJI KARYAWAN', 105, 15, { align: 'center' });
-      doc.setFontSize(12);
-      doc.text('KSP MEKARSARI', 105, 22, { align: 'center' });
+      doc.text('SLIP GAJI KARYAWAN', 105, 13, { align: 'center' });
+      doc.setFontSize(10);
+      doc.text('KSP MEKARSARI', 105, 18, { align: 'center' });
       doc.setFont(undefined, 'normal');
       
       // Add decorative line under company name
       doc.setDrawColor(59, 130, 246);
       doc.setLineWidth(0.5);
-      doc.line(margin, 27, pageWidth - margin, 27);
+      doc.line(margin, 22, pageWidth - margin, 22);
       doc.setLineWidth(0.1);
       doc.setDrawColor(0, 0, 0);
       
-      // Set header line position
-      const headerLineY = 35;
+      // Set header line position - more compact
+      const headerLineY = 25;
       
-      // Employee Information section - similar to Detail Payroll
-      const infoStartY = headerLineY + 5;
+      // Employee Information section - more compact
+      const infoStartY = headerLineY + 3;
       
       // Add background for employee info section
       doc.setFillColor(248, 250, 252); // Light gray background like Detail Payroll
-      doc.rect(margin, infoStartY, contentWidth, 40, 'F');
+      doc.rect(margin, infoStartY, contentWidth, 30, 'F');
       doc.setDrawColor(226, 232, 240);
-      doc.rect(margin, infoStartY, contentWidth, 40, 'S');
+      doc.rect(margin, infoStartY, contentWidth, 30, 'S');
       
       // Add header
-      doc.setFontSize(12);
+      doc.setFontSize(9);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(31, 41, 55);
-      doc.text('Informasi Karyawan', margin + 5, infoStartY + 8);
+      doc.text('Informasi Karyawan', margin + 5, infoStartY + 6);
       doc.setFont(undefined, 'normal');
       
       // Create grid layout for employee info
-      doc.setFontSize(10);
+      doc.setFontSize(8);
       
       // Left column - Employee details
       const leftColX = margin + 5;
-      const rightColX = pageWidth / 2 + 10;
+      const rightColX = pageWidth / 2 + 5;
       
       // Row 1
       doc.setFont(undefined, 'bold');
-      doc.text('Nama:', leftColX, infoStartY + 18);
+      doc.text('Nama:', leftColX, infoStartY + 14);
       doc.setFont(undefined, 'normal');
-      doc.text(`${profile?.first_name || ''} ${profile?.last_name || ''}`, leftColX + 30, infoStartY + 18);
+      doc.text(`${profile?.first_name || ''} ${profile?.last_name || ''}`, leftColX + 25, infoStartY + 14);
       
       doc.setFont(undefined, 'bold');
-      doc.text('Periode:', rightColX, infoStartY + 18);
+      doc.text('Periode:', rightColX, infoStartY + 14);
       doc.setFont(undefined, 'normal');
-      doc.text(`${format(new Date(payroll.pay_period_start), 'dd MMM yyyy', { locale: id })} - ${format(new Date(payroll.pay_period_end), 'dd MMM yyyy', { locale: id })}`, rightColX + 30, infoStartY + 18);
+      doc.text(`${format(new Date(payroll.pay_period_start), 'dd MMM', { locale: id })} - ${format(new Date(payroll.pay_period_end), 'dd MMM yyyy', { locale: id })}`, rightColX + 25, infoStartY + 14);
       
       // Row 2
       doc.setFont(undefined, 'bold');
-      doc.text('Jabatan:', leftColX, infoStartY + 26);
+      doc.text('Jabatan:', leftColX, infoStartY + 20);
       doc.setFont(undefined, 'normal');
-      doc.text(`${profile?.position || '-'}`, leftColX + 30, infoStartY + 26);
+      doc.text(`${profile?.position || '-'}`, leftColX + 25, infoStartY + 20);
       
       doc.setFont(undefined, 'bold');
-      doc.text('Tanggal Pembayaran:', rightColX, infoStartY + 26);
+      doc.text('Tgl Bayar:', rightColX, infoStartY + 20);
       doc.setFont(undefined, 'normal');
-      // Format tanggal dengan spasi yang cukup dan font yang lebih kecil jika terlalu panjang
-      const paymentDateText = format(new Date(payroll.payment_date), 'dd MMMM yyyy', { locale: id });
-      if (paymentDateText.length > 20) {
-        doc.setFontSize(8);
-      }
-      doc.text(paymentDateText, rightColX + 45, infoStartY + 26);
+      // Format tanggal dengan lebih singkat
+      const paymentDateText = format(new Date(payroll.payment_date), 'dd MMM yyyy', { locale: id });
+      doc.text(paymentDateText, rightColX + 25, infoStartY + 20);
       
       // Row 3
       doc.setFont(undefined, 'bold');
-      doc.text('NIK:', leftColX, infoStartY + 34);
+      doc.text('NIK:', leftColX, infoStartY + 26);
       doc.setFont(undefined, 'normal');
-      doc.text(`${profile?.nik || '-'}`, leftColX + 30, infoStartY + 34);
+      doc.text(`${profile?.nik || '-'}`, leftColX + 25, infoStartY + 26);
       
       doc.setFont(undefined, 'bold');
-      doc.text('Status:', rightColX, infoStartY + 34);
+      doc.text('Status:', rightColX, infoStartY + 26);
       
       // Add status badge
       const statusColor = payroll.status === 'PAID' ? [16, 185, 129] : payroll.status === 'APPROVED' ? [59, 130, 246] : [239, 68, 68];
@@ -448,101 +424,103 @@ const KaryawanDashboard = () => {
       const statusTextColor = payroll.status === 'PAID' ? [6, 95, 70] : payroll.status === 'APPROVED' ? [30, 64, 175] : [185, 28, 28];
       
       // Draw status pill
-      doc.setFillColor(...statusBgColor);
-      doc.roundedRect(rightColX + 30, infoStartY + 30, 25, 7, 3.5, 3.5, 'F');
+      doc.setFillColor(statusBgColor[0], statusBgColor[1], statusBgColor[2]);
+      doc.roundedRect(rightColX + 25, infoStartY + 23, 20, 6, 3, 3, 'F');
       
-      doc.setTextColor(...statusTextColor);
-      doc.setFontSize(8);
+      doc.setTextColor(statusTextColor[0], statusTextColor[1], statusTextColor[2]);
+      doc.setFontSize(7);
       doc.setFont(undefined, 'bold');
-      doc.text(payroll.status, rightColX + 42.5, infoStartY + 34.5, { align: 'center' });
+      doc.text(payroll.status, rightColX + 35, infoStartY + 26.5, { align: 'center' });
       
       // Reset text color
       doc.setTextColor(0, 0, 0);
       
       // Line separator - adjusted position
-      const contentLineY = infoStartY + 45;
+      const contentLineY = infoStartY + 35;
       
       // Income Section - Fixed Income (PENDAPATAN TETAP)
       const fixedIncomeY = contentLineY;
       
-      // Combined Income Section Title
-      doc.setFontSize(12);
+      // Combined Income Section Title - more compact
+      doc.setFontSize(10);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(31, 41, 55);
       doc.text('PENDAPATAN', margin + 5, fixedIncomeY);
       doc.setFont(undefined, 'normal');
       
-      let yPos = fixedIncomeY + 10;
+      let yPos = fixedIncomeY + 6;
       
-      // Add a subheader for Pendapatan Tetap
-      doc.setFontSize(9);
-      doc.setFont(undefined, 'bold');
+      // Add a subheader for Pendapatan Tetap - smaller font
+      doc.setFontSize(8);
+      doc.setFont(undefined, 'italic');
       doc.setTextColor(75, 85, 99);
       doc.text('Pendapatan Tetap', margin + 5, yPos);
       doc.setFont(undefined, 'normal');
-      yPos += 8;
+      yPos += 6;
       
-      // Basic Salary - styled like Detail Payroll
+      // Basic Salary - more compact styling
       doc.setFillColor(240, 255, 244); // Light green background
-      doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'F');
+      doc.roundedRect(margin, yPos - 4, contentWidth, 8, 1, 1, 'F');
       doc.setDrawColor(167, 243, 208);
-      doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'S');
+      doc.roundedRect(margin, yPos - 4, contentWidth, 8, 1, 1, 'S');
       
-      doc.setFontSize(10);
+      doc.setFontSize(8);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(31, 41, 55);
       doc.text('Gaji Pokok', margin + 5, yPos);
       doc.setTextColor(22, 163, 74);
       doc.text(`Rp ${Number(payroll.basic_salary || 0).toLocaleString('id-ID')}`, pageWidth - margin - 5, yPos, { align: 'right' });
-      yPos += 12;
+      yPos += 10;
       
-      // BPJS Company Contributions
+      // BPJS Company Contributions - more compact
       if (Number(payroll.bpjs_health_company) > 0) {
         doc.setFillColor(240, 255, 244);
-        doc.roundedRect(margin, yPos - 5, contentWidth, 15, 1, 1, 'F');
+        doc.roundedRect(margin, yPos - 4, contentWidth, 10, 1, 1, 'F');
         doc.setDrawColor(167, 243, 208);
-        doc.roundedRect(margin, yPos - 5, contentWidth, 15, 1, 1, 'S');
+        doc.roundedRect(margin, yPos - 4, contentWidth, 10, 1, 1, 'S');
         
         doc.setTextColor(31, 41, 55);
         doc.setFont(undefined, 'bold');
+        doc.setFontSize(8);
         doc.text('BPJS Kesehatan (Perusahaan)', margin + 5, yPos);
         
-        // Add description below the title - percentage from basic salary
-        doc.setFont(undefined, 'normal');
-        doc.setFontSize(8);
-        doc.setTextColor(75, 85, 99);
+        // Add percentage inline instead of below
         const bpjsHealthPercentage = ((Number(payroll.bpjs_health_company) / Number(payroll.basic_salary)) * 100).toFixed(1);
-        doc.text(`${bpjsHealthPercentage}% dari gaji pokok`, margin + 5, yPos + 7);
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(7);
+        doc.setTextColor(75, 85, 99);
+        doc.text(`(${bpjsHealthPercentage}%)`, margin + 65, yPos);
         
-        doc.setFontSize(10);
+        doc.setFontSize(8);
         doc.setFont(undefined, 'bold');
         doc.setTextColor(22, 163, 74);
         doc.text(`Rp ${Number(payroll.bpjs_health_company).toLocaleString('id-ID')}`, pageWidth - margin - 5, yPos, { align: 'right' });
-        yPos += 17;
+        yPos += 11;
       }
       
       if (Number(payroll.jht_company) > 0) {
         doc.setFillColor(240, 255, 244);
-        doc.roundedRect(margin, yPos - 5, contentWidth, 15, 1, 1, 'F');
+        doc.roundedRect(margin, yPos - 4, contentWidth, 10, 1, 1, 'F');
         doc.setDrawColor(167, 243, 208);
-        doc.roundedRect(margin, yPos - 5, contentWidth, 15, 1, 1, 'S');
+        doc.roundedRect(margin, yPos - 4, contentWidth, 10, 1, 1, 'S');
         
         doc.setTextColor(31, 41, 55);
         doc.setFont(undefined, 'bold');
+        doc.setFontSize(8);
         doc.text('BPJS JHT (Perusahaan)', margin + 5, yPos);
         
-        // Add description below the title - percentage from basic salary
-        doc.setFont(undefined, 'normal');
-        doc.setFontSize(8);
-        doc.setTextColor(75, 85, 99);
+        // Add percentage inline
         const jhtPercentage = ((Number(payroll.jht_company) / Number(payroll.basic_salary)) * 100).toFixed(1);
-        doc.text(`${jhtPercentage}% dari gaji pokok`, margin + 5, yPos + 7);
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(7);
+        doc.setTextColor(75, 85, 99);
+        doc.text(`(${jhtPercentage}%)`, margin + 55, yPos);
         
-        doc.setFontSize(10);
+        doc.setFontSize(8);
         doc.setFont(undefined, 'bold');
         doc.setTextColor(22, 163, 74);
         doc.text(`Rp ${Number(payroll.jht_company).toLocaleString('id-ID')}`, pageWidth - margin - 5, yPos, { align: 'right' });
-        yPos += 17;
+        yPos += 11;
       }
       
       if (Number(payroll.jkm_company) > 0) {
@@ -617,12 +595,13 @@ const KaryawanDashboard = () => {
         yPos += 17;
       }
       
-      // Subtotal Fixed Income with background - like Detail Payroll
+      // Subtotal Fixed Income - more compact
       doc.setFillColor(220, 252, 231); // Light green background
-      doc.roundedRect(margin, yPos - 5, contentWidth, 12, 1, 1, 'F');
+      doc.roundedRect(margin, yPos - 4, contentWidth, 9, 1, 1, 'F');
       doc.setDrawColor(134, 239, 172);
-      doc.roundedRect(margin, yPos - 5, contentWidth, 12, 1, 1, 'S');
+      doc.roundedRect(margin, yPos - 4, contentWidth, 9, 1, 1, 'S');
       
+      doc.setFontSize(8);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(31, 41, 55);
       doc.text('SUB TOTAL', margin + 5, yPos);
@@ -631,32 +610,30 @@ const KaryawanDashboard = () => {
       
       doc.setTextColor(0, 0, 0);
       doc.setFont(undefined, 'normal');
-      yPos += 15;
+      yPos += 10;
       
-      // Check if we need a page break before Variable Income section
-      yPos = checkPageBreak(yPos, 100); // Estimate space needed for variable income section
-      
-      // Add a subheader for Pendapatan Tidak Tetap
-      doc.setFontSize(9);
-      doc.setFont(undefined, 'bold');
+      // Add a subheader for Pendapatan Tidak Tetap - more compact
+      doc.setFontSize(8);
+      doc.setFont(undefined, 'italic');
       doc.setTextColor(75, 85, 99);
       doc.text('Pendapatan Tidak Tetap', margin + 5, yPos);
       doc.setFont(undefined, 'normal');
-      yPos += 8;
+      yPos += 6;
       
-      // Allowances
+      // Allowances - more compact
       if (Number(payroll.position_allowance) > 0) {
         doc.setFillColor(240, 255, 244);
-        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'F');
+        doc.roundedRect(margin, yPos - 4, contentWidth, 8, 1, 1, 'F');
         doc.setDrawColor(167, 243, 208);
-        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 1, 1, 'S');
+        doc.roundedRect(margin, yPos - 4, contentWidth, 8, 1, 1, 'S');
         
         doc.setTextColor(31, 41, 55);
+        doc.setFontSize(8);
         doc.setFont(undefined, 'bold');
         doc.text('Tunjangan Jabatan', margin + 5, yPos);
         doc.setTextColor(22, 163, 74);
         doc.text(`Rp ${Number(payroll.position_allowance).toLocaleString('id-ID')}`, pageWidth - margin - 5, yPos, { align: 'right' });
-        yPos += 12;
+        yPos += 9;
       }
       
       if (Number(payroll.management_allowance) > 0) {
@@ -715,12 +692,13 @@ const KaryawanDashboard = () => {
         yPos += 12;
       }
       
-      // Subtotal Variable Income with background - like Detail Payroll
+      // Subtotal Variable Income - more compact
       doc.setFillColor(220, 252, 231); // Light green background
-      doc.roundedRect(margin, yPos - 5, contentWidth, 12, 1, 1, 'F');
+      doc.roundedRect(margin, yPos - 4, contentWidth, 9, 1, 1, 'F');
       doc.setDrawColor(134, 239, 172);
-      doc.roundedRect(margin, yPos - 5, contentWidth, 12, 1, 1, 'S');
+      doc.roundedRect(margin, yPos - 4, contentWidth, 9, 1, 1, 'S');
       
+      doc.setFontSize(8);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(31, 41, 55);
       doc.text('Subtotal Tunjangan', margin + 5, yPos);
@@ -729,19 +707,19 @@ const KaryawanDashboard = () => {
       
       doc.setTextColor(0, 0, 0);
       doc.setFont(undefined, 'normal');
-      yPos += 15;
+      yPos += 10;
       
-      // Total Income with highlight - like Detail Payroll
+      // Total Income with highlight - more compact
       const totalIncomeY = yPos;
       
       // Add total income background
       doc.setFillColor(37, 99, 235); // Blue background
-      doc.roundedRect(margin, totalIncomeY - 5, contentWidth, 12, 1, 1, 'F');
+      doc.roundedRect(margin, totalIncomeY - 4, contentWidth, 10, 1, 1, 'F');
       doc.setDrawColor(29, 78, 216);
-      doc.roundedRect(margin, totalIncomeY - 5, contentWidth, 12, 1, 1, 'S');
+      doc.roundedRect(margin, totalIncomeY - 4, contentWidth, 10, 1, 1, 'S');
       
       // Add text to total
-      doc.setFontSize(12);
+      doc.setFontSize(9);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(255, 255, 255);
       doc.text('TOTAL PENDAPATAN', margin + 5, totalIncomeY + 2);
@@ -750,50 +728,45 @@ const KaryawanDashboard = () => {
       // Reset text color
       doc.setTextColor(0, 0, 0);
       doc.setFont(undefined, 'normal');
-      doc.setFontSize(10);
-      yPos += 15;
+      doc.setFontSize(8);
+      yPos += 12;
       
-      // Small spacing
-      yPos += 5;
-      
-      // Check if we need a page break before Deduction section
-      yPos = checkPageBreak(yPos, 100); // Estimate space needed for deduction section
-      
-      // Deduction Section
+      // Deduction Section - more compact
       const deductionStartY = yPos;
       
       // Add section title
-      doc.setFontSize(12);
+      doc.setFontSize(10);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(31, 41, 55);
       doc.text('POTONGAN', margin + 5, deductionStartY);
       doc.setFont(undefined, 'normal');
       
-      yPos = deductionStartY + 10;
+      yPos = deductionStartY + 6;
       
-      // BPJS Employee
+      // BPJS Employee - more compact
       if (Number(payroll.bpjs_health_employee) > 0) {
         doc.setFillColor(254, 242, 242); // Light red background
-        doc.roundedRect(margin, yPos - 5, contentWidth, 15, 1, 1, 'F');
+        doc.roundedRect(margin, yPos - 4, contentWidth, 10, 1, 1, 'F');
         doc.setDrawColor(252, 165, 165);
-        doc.roundedRect(margin, yPos - 5, contentWidth, 15, 1, 1, 'S');
+        doc.roundedRect(margin, yPos - 4, contentWidth, 10, 1, 1, 'S');
         
         doc.setTextColor(31, 41, 55);
+        doc.setFontSize(8);
         doc.setFont(undefined, 'bold');
         doc.text('BPJS Kesehatan (Karyawan)', margin + 5, yPos);
         
-        // Add description below the title - percentage from basic salary
-        doc.setFont(undefined, 'normal');
-        doc.setFontSize(8);
-        doc.setTextColor(75, 85, 99);
+        // Add percentage inline
         const bpjsHealthEmployeePercentage = ((Number(payroll.bpjs_health_employee) / Number(payroll.basic_salary)) * 100).toFixed(1);
-        doc.text(`${bpjsHealthEmployeePercentage}% dari gaji pokok`, margin + 5, yPos + 7);
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(7);
+        doc.setTextColor(75, 85, 99);
+        doc.text(`(${bpjsHealthEmployeePercentage}%)`, margin + 65, yPos);
         
-        doc.setFontSize(10);
+        doc.setFontSize(8);
         doc.setFont(undefined, 'bold');
         doc.setTextColor(185, 28, 28);
         doc.text(`Rp ${Number(payroll.bpjs_health_employee).toLocaleString('id-ID')}`, pageWidth - margin - 5, yPos, { align: 'right' });
-        yPos += 17;
+        yPos += 11;
       }
       
       if (Number(payroll.jht_employee) > 0) {
@@ -967,8 +940,7 @@ const KaryawanDashboard = () => {
         yPos += 17;
       }
       
-      // Check if we need a page break before Manual Deductions
-      yPos = checkPageBreak(yPos, 80); // Estimate space needed for manual deductions
+      // No page break needed - optimizing for single page
       
       // Manual Deductions Section Title
       if (Number(payroll.kasbon) > 0 || Number(payroll.telat) > 0 || Number(payroll.angsuran_kredit) > 0) {
@@ -1023,12 +995,13 @@ const KaryawanDashboard = () => {
         yPos += 12;
       }
       
-      // Total Deductions with background - like Detail Payroll
+      // Total Deductions with background - more compact
       doc.setFillColor(254, 226, 226); // Light red background
-      doc.roundedRect(margin, yPos - 5, contentWidth, 12, 1, 1, 'F');
+      doc.roundedRect(margin, yPos - 4, contentWidth, 9, 1, 1, 'F');
       doc.setDrawColor(248, 113, 113);
-      doc.roundedRect(margin, yPos - 5, contentWidth, 12, 1, 1, 'S');
+      doc.roundedRect(margin, yPos - 4, contentWidth, 9, 1, 1, 'S');
       
+      doc.setFontSize(8);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(31, 41, 55);
       doc.text('TOTAL POTONGAN', margin + 5, yPos);
@@ -1037,44 +1010,38 @@ const KaryawanDashboard = () => {
       
       doc.setTextColor(0, 0, 0);
       doc.setFont(undefined, 'normal');
-      yPos += 15;
+      yPos += 12;
       
-      // Small spacing
-      yPos += 5;
-      
-      // Check if we need a page break before Total Diterima section
-      yPos = checkPageBreak(yPos, 50); // Estimate space needed for Total Diterima section
-      
-      // TOTAL DITERIMA (Net Salary) - the most important part
+      // TOTAL DITERIMA (Net Salary) - the most important part - more compact
       const netSalaryY = yPos;
       
-      // Create a box with border - like Detail Payroll
+      // Create a box with border - more compact
       doc.setFillColor(219, 234, 254); // Light blue background
-      doc.roundedRect(margin, netSalaryY - 5, contentWidth, 30, 1, 1, 'F');
+      doc.roundedRect(margin, netSalaryY - 4, contentWidth, 20, 1, 1, 'F');
       doc.setDrawColor(96, 165, 250);
-      doc.roundedRect(margin, netSalaryY - 5, contentWidth, 30, 1, 1, 'S');
+      doc.roundedRect(margin, netSalaryY - 4, contentWidth, 20, 1, 1, 'S');
       
       // Add title
+      doc.setFontSize(11);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(30, 64, 175);
+      doc.text('TOTAL DITERIMA', margin + 5, netSalaryY + 4);
+      
+      // Add amount with larger font
       doc.setFontSize(14);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(30, 64, 175);
-      doc.text('TOTAL DITERIMA', margin + 5, netSalaryY + 5);
-      
-      // Add amount with larger font
-      doc.setFontSize(16);
-      doc.setFont(undefined, 'bold');
-      doc.setTextColor(30, 64, 175);
-      doc.text(`Rp ${Number(payroll.net_salary || 0).toLocaleString('id-ID')}`, pageWidth - margin - 5, netSalaryY + 15, { align: 'right' });
+      doc.text(`Rp ${Number(payroll.net_salary || 0).toLocaleString('id-ID')}`, pageWidth - margin - 5, netSalaryY + 12, { align: 'right' });
       
       // Footer with better formatting - adjusted position
-      yPos = netSalaryY + 35; // Adjusted to be closer to TOTAL DITERIMA
+      yPos = netSalaryY + 22; // Adjusted to be closer to TOTAL DITERIMA
       
-      // Add footer text
-      doc.setFontSize(8);
+      // Add footer text - more compact
+      doc.setFontSize(7);
       doc.setFont(undefined, 'normal');
       doc.setTextColor(100, 100, 100);
-      doc.text(`Dicetak pada: ${format(new Date(), 'dd MMMM yyyy HH:mm', { locale: id })}`, 105, yPos + 5, { align: 'center' });
-      doc.text('Dokumen ini dicetak secara elektronik dan sah tanpa tanda tangan', 105, yPos + 12, { align: 'center' });
+      doc.text(`Dicetak pada: ${format(new Date(), 'dd MMM yyyy HH:mm', { locale: id })}`, 105, yPos + 3, { align: 'center' });
+      doc.text('Dokumen ini dicetak secara elektronik dan sah tanpa tanda tangan', 105, yPos + 8, { align: 'center' });
       doc.setTextColor(0, 0, 0);
       
       // Save PDF
