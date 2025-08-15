@@ -329,9 +329,9 @@ const KaryawanDashboard = () => {
         doc.text(String(text || ''), textX, y + height/2 + 1.5, { align });
       };
       
-      // Function to format currency
+      // Function to format currency without decimal places
       const formatCurrency = (amount) => {
-        return Number(amount || 0).toLocaleString('id-ID');
+        return Math.floor(Number(amount || 0)).toLocaleString('id-ID');
       };
       
       // Function to calculate percentage
