@@ -292,16 +292,21 @@ const KaryawanDashboard = () => {
       }
 
       // Create PDF using jsPDF - optimized for single A4 page with table layout
-      const doc = new jsPDF();
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+        compress: true
+      });
       
       // Set page margins - tighter for table layout
-      const margin = 8;
+      const margin = 6;
       const pageWidth = doc.internal.pageSize.width;
       const pageHeight = doc.internal.pageSize.height;
       const contentWidth = pageWidth - (margin * 2);
       
       // Function to draw table cell
-      const drawTableCell = (x, y, width, height, text, align = 'left', fontSize = 8, isBold = false, bgColor = [255, 255, 255], borderColor = [220, 220, 220]) => {
+      const drawTableCell = (x, y, width, height, text, align = 'left', fontSize = 7, isBold = false, bgColor = [255, 255, 255], borderColor = [220, 220, 220]) => {
         // Draw cell background
         doc.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
         doc.rect(x, y, width, height, 'F');
@@ -321,7 +326,7 @@ const KaryawanDashboard = () => {
         if (align === 'center') textX = x + width / 2;
         
         doc.setTextColor(0, 0, 0);
-        doc.text(text, textX, y + height/2 + 2, { align });
+        doc.text(String(text || ''), textX, y + height/2 + 1.5, { align });
       };
       
       // Function to format currency
@@ -359,7 +364,7 @@ const KaryawanDashboard = () => {
           const base64Logo = await base64Promise;
           
           // Add logo to PDF - smaller size
-          doc.addImage(base64Logo, 'JPEG', margin, yPos, 20, 12);
+          doc.addImage(base64Logo, 'JPEG', margin, yPos, 18, 10);
         }
       } catch (logoError) {
         console.error('Error loading logo:', logoError);
@@ -379,11 +384,11 @@ const KaryawanDashboard = () => {
       
       // Employee information table
       yPos += 2;
-      const colWidth1 = 40;
-      const colWidth2 = 55;
-      const colWidth3 = 40;
-      const colWidth4 = 55;
-      const rowHeight = 8;
+      const colWidth1 = 30;
+      const colWidth2 = 65;
+      const colWidth3 = 30;
+      const colWidth4 = 65;
+      const rowHeight = 7;
       
       // Row 1 - Name and Position
       drawTableCell(margin, yPos, colWidth1, rowHeight, 'NAMA', 'left', 8, true);
@@ -409,8 +414,8 @@ const KaryawanDashboard = () => {
       yPos += rowHeight;
       drawTableCell(margin, yPos, colWidth1, rowHeight, 'DIVISI / GROUP', 'left', 8, true);
       drawTableCell(margin + colWidth1, yPos, colWidth2, rowHeight, profile?.departemen?.nama || 'OPERASIONAL');
-      drawTableCell(margin + colWidth1 + colWidth2, yPos, colWidth3, rowHeight, 'MANDIRI', 'left', 8, true);
-      drawTableCell(margin + colWidth1 + colWidth2 + colWidth3, yPos, colWidth4, rowHeight, payroll.bank_account_number || '-');
+      drawTableCell(margin + colWidth1 + colWidth2, yPos, colWidth3, rowHeight, profile?.bank_name || 'BANK', 'left', 8, true);
+      drawTableCell(margin + colWidth1 + colWidth2 + colWidth3, yPos, colWidth4, rowHeight, profile?.bank_account_number || '-');
       
       yPos += rowHeight + 1;
       
@@ -427,7 +432,7 @@ const KaryawanDashboard = () => {
       drawTableCell(margin + contentWidth - 60, yPos, 60, rowHeight, `Rp ${formatCurrency(payroll.basic_salary)}`, 'right', 8, false);
       yPos += rowHeight;
       
-      // BPJS Components in Pendapatan Tetap
+      // BPJS Components in Pendapatan Tetap - only show if exists
       if (Number(payroll.jht_company) > 0) {
         const jhtPercentage = calculatePercentage(payroll.jht_company, payroll.basic_salary);
         drawTableCell(margin, yPos, contentWidth - 60, rowHeight, `BPJS Ketenagakerjaan JHT ${jhtPercentage}`, 'left', 8, false);
@@ -472,34 +477,24 @@ const KaryawanDashboard = () => {
       drawTableCell(margin, yPos, contentWidth, rowHeight, 'PENDAPATAN TIDAK TETAP', 'left', 8, true, [240, 245, 250]);
       yPos += rowHeight;
       
-      // Allowances in table format
+      // Allowances in table format - only show if exists or has value
       if (Number(payroll.position_allowance) > 0) {
         drawTableCell(margin, yPos, contentWidth - 60, rowHeight, 'Tunjangan Jabatan', 'left', 8, false);
         drawTableCell(margin + contentWidth - 60, yPos, 60, rowHeight, `Rp ${formatCurrency(payroll.position_allowance)}`, 'right', 8, false);
         yPos += rowHeight;
-      } else {
-        drawTableCell(margin, yPos, contentWidth - 60, rowHeight, 'Tunjangan Jabatan', 'left', 8, false);
-        drawTableCell(margin + contentWidth - 60, yPos, 60, rowHeight, 'Rp 0', 'right', 8, false);
-        yPos += rowHeight;
       }
       
-      if (Number(payroll.phone_allowance) > 0) {
+      // Transport allowance - assuming it might be a different field in the future
+      const transportAllowance = 0; // Replace with actual field when available
+      if (Number(transportAllowance) > 0) {
         drawTableCell(margin, yPos, contentWidth - 60, rowHeight, 'Tunjangan Transport', 'left', 8, false);
-        drawTableCell(margin + contentWidth - 60, yPos, 60, rowHeight, `Rp ${formatCurrency(payroll.phone_allowance)}`, 'right', 8, false);
-        yPos += rowHeight;
-      } else {
-        drawTableCell(margin, yPos, contentWidth - 60, rowHeight, 'Tunjangan Transport', 'left', 8, false);
-        drawTableCell(margin + contentWidth - 60, yPos, 60, rowHeight, 'Rp 0', 'right', 8, false);
+        drawTableCell(margin + contentWidth - 60, yPos, 60, rowHeight, `Rp ${formatCurrency(transportAllowance)}`, 'right', 8, false);
         yPos += rowHeight;
       }
       
       if (Number(payroll.phone_allowance) > 0) {
         drawTableCell(margin, yPos, contentWidth - 60, rowHeight, 'Tunjangan Pulsa', 'left', 8, false);
         drawTableCell(margin + contentWidth - 60, yPos, 60, rowHeight, `Rp ${formatCurrency(payroll.phone_allowance)}`, 'right', 8, false);
-        yPos += rowHeight;
-      } else {
-        drawTableCell(margin, yPos, contentWidth - 60, rowHeight, 'Tunjangan Pulsa', 'left', 8, false);
-        drawTableCell(margin + contentWidth - 60, yPos, 60, rowHeight, 'Rp 0', 'right', 8, false);
         yPos += rowHeight;
       }
       
@@ -507,19 +502,11 @@ const KaryawanDashboard = () => {
         drawTableCell(margin, yPos, contentWidth - 60, rowHeight, 'Tunjangan Lembur', 'left', 8, false);
         drawTableCell(margin + contentWidth - 60, yPos, 60, rowHeight, `Rp ${formatCurrency(payroll.overtime_allowance)}`, 'right', 8, false);
         yPos += rowHeight;
-      } else {
-        drawTableCell(margin, yPos, contentWidth - 60, rowHeight, 'Tunjangan Lembur', 'left', 8, false);
-        drawTableCell(margin + contentWidth - 60, yPos, 60, rowHeight, 'Rp 0', 'right', 8, false);
-        yPos += rowHeight;
       }
       
       if (Number(payroll.incentive_allowance) > 0) {
         drawTableCell(margin, yPos, contentWidth - 60, rowHeight, 'Tunjangan Insentif', 'left', 8, false);
         drawTableCell(margin + contentWidth - 60, yPos, 60, rowHeight, `Rp ${formatCurrency(payroll.incentive_allowance)}`, 'right', 8, false);
-        yPos += rowHeight;
-      } else {
-        drawTableCell(margin, yPos, contentWidth - 60, rowHeight, 'Tunjangan Insentif', 'left', 8, false);
-        drawTableCell(margin + contentWidth - 60, yPos, 60, rowHeight, 'Rp 0', 'right', 8, false);
         yPos += rowHeight;
       }
       
@@ -541,7 +528,7 @@ const KaryawanDashboard = () => {
       drawTableCell(margin, yPos, contentWidth, rowHeight, 'PERUSAHAAN', 'left', 8, true, [250, 230, 230]);
       yPos += rowHeight;
       
-      // BPJS Company Contributions in Potongan section
+      // BPJS Company Contributions in Potongan section - only show if exists
       if (Number(payroll.jht_company) > 0) {
         const jhtPercentage = calculatePercentage(payroll.jht_company, payroll.basic_salary);
         drawTableCell(margin, yPos, contentWidth - 60, rowHeight, `BPJS Ketenagakerjaan JHT ${jhtPercentage}`, 'left', 8, false);
@@ -586,7 +573,7 @@ const KaryawanDashboard = () => {
       drawTableCell(margin, yPos, contentWidth, rowHeight, 'KARYAWAN', 'left', 8, true, [250, 230, 230]);
       yPos += rowHeight;
       
-      // BPJS Employee Contributions
+      // BPJS Employee Contributions - only show if exists
       if (Number(payroll.bpjs_health_employee) > 0) {
         const bpjsHealthPercentage = calculatePercentage(payroll.bpjs_health_employee, payroll.basic_salary);
         drawTableCell(margin, yPos, contentWidth - 60, rowHeight, `BPJS Kesehatan ${bpjsHealthPercentage}`, 'left', 8, false);
@@ -608,14 +595,10 @@ const KaryawanDashboard = () => {
         yPos += rowHeight;
       }
       
-      // Manual Deductions
+      // Manual Deductions - only show if exists
       if (Number(payroll.kasbon) > 0) {
         drawTableCell(margin, yPos, contentWidth - 60, rowHeight, 'KASBON', 'left', 8, false);
         drawTableCell(margin + contentWidth - 60, yPos, 60, rowHeight, `Rp ${formatCurrency(payroll.kasbon)}`, 'right', 8, false);
-        yPos += rowHeight;
-      } else {
-        drawTableCell(margin, yPos, contentWidth - 60, rowHeight, 'KASBON', 'left', 8, false);
-        drawTableCell(margin + contentWidth - 60, yPos, 60, rowHeight, 'Rp 0', 'right', 8, false);
         yPos += rowHeight;
       }
       
@@ -623,26 +606,21 @@ const KaryawanDashboard = () => {
         drawTableCell(margin, yPos, contentWidth - 60, rowHeight, 'Angsuran Kredit', 'left', 8, false);
         drawTableCell(margin + contentWidth - 60, yPos, 60, rowHeight, `Rp ${formatCurrency(payroll.angsuran_kredit)}`, 'right', 8, false);
         yPos += rowHeight;
-      } else {
-        drawTableCell(margin, yPos, contentWidth - 60, rowHeight, 'Angsuran Kredit', 'left', 8, false);
-        drawTableCell(margin + contentWidth - 60, yPos, 60, rowHeight, 'Rp 0', 'right', 8, false);
-        yPos += rowHeight;
       }
       
       if (Number(payroll.telat) > 0) {
         drawTableCell(margin, yPos, contentWidth - 60, rowHeight, 'Telat', 'left', 8, false);
         drawTableCell(margin + contentWidth - 60, yPos, 60, rowHeight, `Rp ${formatCurrency(payroll.telat)}`, 'right', 8, false);
         yPos += rowHeight;
-      } else {
-        drawTableCell(margin, yPos, contentWidth - 60, rowHeight, 'Telat', 'left', 8, false);
-        drawTableCell(margin + contentWidth - 60, yPos, 60, rowHeight, 'Rp 0', 'right', 8, false);
-        yPos += rowHeight;
       }
       
-      // Add ALFA if needed
-      drawTableCell(margin, yPos, contentWidth - 60, rowHeight, 'ALFA', 'left', 8, false);
-      drawTableCell(margin + contentWidth - 60, yPos, 60, rowHeight, 'Rp 0', 'right', 8, false);
-      yPos += rowHeight;
+      // Add ALFA only if it exists
+      const alfaDeduction = 0; // Replace with actual field when available
+      if (Number(alfaDeduction) > 0) {
+        drawTableCell(margin, yPos, contentWidth - 60, rowHeight, 'ALFA', 'left', 8, false);
+        drawTableCell(margin + contentWidth - 60, yPos, 60, rowHeight, `Rp ${formatCurrency(alfaDeduction)}`, 'right', 8, false);
+        yPos += rowHeight;
+      }
       
       // SUB TOTAL for Karyawan
       const employeeDeductions = (Number(payroll.bpjs_health_employee) || 0) + 
