@@ -579,7 +579,8 @@ export const PayrollContent = () => {
         angsuran_kredit: form.angsuran_kredit,
         
         // Total Deductions
-        total_deductions: form.total_deductions
+        total_deductions: autoDeductionsTotal + manualDeductionsTotal,
+        total_deductions_manual: manualDeductionsTotal
       };
 
       const res = await fetch(`${API_URL}/api/payrolls`, {
@@ -1055,7 +1056,7 @@ export const PayrollContent = () => {
                 Tambah Payroll
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Tambah Payroll Baru</DialogTitle>
               </DialogHeader>
@@ -1439,19 +1440,18 @@ export const PayrollContent = () => {
                             )}
                           </div>
                           <div className="flex justify-between items-center py-3 px-4 bg-red-100 rounded-lg border border-red-300">
-                            <span className="font-semibold text-gray-800">SUB TOTAL</span>
+                            <span className="font-semibold text-gray-800">SUB TOTAL (Auto)</span>
                             <span className="font-bold text-red-800">
-                              {formatCurrency(calculatedComponents.filter(c => c.type === 'deduction' && c.name.includes('(Karyawan)')).reduce((sum, c) => sum + c.amount, 0) + 
-                                form.kasbon + form.telat + form.angsuran_kredit)}
+                              {formatCurrency(calculatedComponents.filter(c => c.type === 'deduction' && c.name.includes('(Karyawan)')).reduce((sum, c) => sum + c.amount, 0))}
                             </span>
                           </div>
                         </div>
                        
-                                               {/* TOTAL PEMOTONGAN */}
+                                               {/* TOTAL PEMOTONGAN (AUTO) */}
                         <div className="flex justify-between items-center py-4 px-5 bg-red-200 rounded-lg border-2 border-red-400">
                           <span className="text-xl font-bold text-gray-800">TOTAL PEMOTONGAN</span>
                           <span className="text-2xl font-bold text-red-800">
-                            {formatCurrency(form.total_deductions)}
+                            {formatCurrency(autoDeductionsTotal)}
                           </span>
                         </div>
                         
@@ -2074,7 +2074,7 @@ export const PayrollContent = () => {
 
       {/* Edit Payroll Modal */}
       <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Payroll</DialogTitle>
           </DialogHeader>
