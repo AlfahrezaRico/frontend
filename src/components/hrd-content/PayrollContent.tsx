@@ -704,6 +704,71 @@ export const PayrollContent = () => {
   // Handler untuk Edit Payroll
   const handleEditPayroll = (payroll: any) => {
     setSelectedPayroll(payroll);
+    
+    // Populate calculatedComponents with existing payroll data for proper editing
+    const existingComponents = [
+      // BPJS Perusahaan (Income)
+      {
+        name: 'BPJS Kesehatan (Perusahaan)',
+        amount: Number(payroll.bpjs_health_company) || 0,
+        type: 'income',
+        category: 'bpjs',
+        percentage: '4%'
+      },
+      {
+        name: 'BPJS Jaminan Hari Tua (Perusahaan)',
+        amount: Number(payroll.jht_company) || 0,
+        type: 'income',
+        category: 'bpjs',
+        percentage: '3.7%'
+      },
+      {
+        name: 'BPJS Jaminan Kecelakaan Kerja (Perusahaan)',
+        amount: Number(payroll.jkk_company) || 0,
+        type: 'income',
+        category: 'bpjs',
+        percentage: '0.24%'
+      },
+      {
+        name: 'BPJS Jaminan Kematian (Perusahaan)',
+        amount: Number(payroll.jkm_company) || 0,
+        type: 'income',
+        category: 'bpjs',
+        percentage: '0.3%'
+      },
+      {
+        name: 'BPJS Jaminan Pensiun (Perusahaan)',
+        amount: Number(payroll.jp_company) || 0,
+        type: 'income',
+        category: 'bpjs',
+        percentage: '2%'
+      },
+      // BPJS Karyawan (Deduction)
+      {
+        name: 'BPJS Kesehatan (Karyawan)',
+        amount: Number(payroll.bpjs_health_employee) || 0,
+        type: 'deduction',
+        category: 'bpjs',
+        percentage: '1%'
+      },
+      {
+        name: 'BPJS Jaminan Hari Tua (Karyawan)',
+        amount: Number(payroll.jht_employee) || 0,
+        type: 'deduction',
+        category: 'bpjs',
+        percentage: '2%'
+      },
+      {
+        name: 'BPJS Jaminan Pensiun (Karyawan)',
+        amount: Number(payroll.jp_employee) || 0,
+        type: 'deduction',
+        category: 'bpjs',
+        percentage: '1%'
+      }
+    ];
+    
+    setCalculatedComponents(existingComponents);
+    
     // Populate form dengan data payroll yang dipilih
     setForm({
       employee_id: payroll.employee_id,
@@ -736,6 +801,24 @@ export const PayrollContent = () => {
       total_deductions: Number(payroll.total_deductions) || 0,
       total_deductions_manual: Number(payroll.total_deductions_manual) || 0
     });
+    
+    // Update totals for display
+    const totalAllowances = (Number(payroll.position_allowance) || 0) + (Number(payroll.management_allowance) || 0) + (Number(payroll.phone_allowance) || 0) + (Number(payroll.incentive_allowance) || 0) + (Number(payroll.overtime_allowance) || 0);
+    const subtotalCompany = (Number(payroll.bpjs_health_company) || 0) + (Number(payroll.jht_company) || 0) + (Number(payroll.jkk_company) || 0) + (Number(payroll.jkm_company) || 0) + (Number(payroll.jp_company) || 0);
+    const subtotalEmployee = (Number(payroll.bpjs_health_employee) || 0) + (Number(payroll.jht_employee) || 0) + (Number(payroll.jp_employee) || 0);
+    const totalManualDeduction = (Number(payroll.kasbon) || 0) + (Number(payroll.telat) || 0) + (Number(payroll.angsuran_kredit) || 0);
+    
+    setTotalPendapatan((Number(payroll.basic_salary) || 0) + totalAllowances + subtotalCompany);
+    setAutoDeductionsTotal(subtotalEmployee);
+    setManualDeductionsTotal(totalManualDeduction);
+    
+    // Synchronize manualDeductions state with form values
+    setManualDeductions({
+      kasbon: Number(payroll.kasbon) || 0,
+      telat: Number(payroll.telat) || 0,
+      angsuran_kredit: Number(payroll.angsuran_kredit) || 0
+    });
+    
     setEditModalOpen(true);
   };
 
@@ -807,6 +890,7 @@ export const PayrollContent = () => {
 
         // Totals
         total_deductions: totalDeduction,
+        total_deductions_manual: totalManualDeduction,
         total_pendapatan: totalPendapatan,
 
         // Legacy/Additional
@@ -2060,7 +2144,47 @@ export const PayrollContent = () => {
       </Dialog>
 
       {/* Edit Payroll Modal */}
-      <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
+      <Dialog open={editModalOpen} onOpenChange={(open) => {
+        if (!open) {
+          // Reset form and states when edit modal closes
+          setForm({
+            employee_id: '',
+            pay_period_start: '',
+            pay_period_end: '',
+            basic_salary: 0,
+            gross_salary: 0,
+            net_salary: 0,
+            payment_date: '',
+            status: 'UNPAID',
+            position_allowance: 0,
+            management_allowance: 0,
+            phone_allowance: 0,
+            incentive_allowance: 0,
+            overtime_allowance: 0,
+            total_allowances: 0,
+            bpjs_health_company: 0,
+            jht_company: 0,
+            jkk_company: 0,
+            jkm_company: 0,
+            jp_company: 0,
+            bpjs_health_employee: 0,
+            jht_employee: 0,
+            jp_employee: 0,
+            pph21: 0,
+            kasbon: 0,
+            telat: 0,
+            angsuran_kredit: 0,
+            total_deductions: 0,
+            total_deductions_manual: 0
+          });
+          setCalculatedComponents([]);
+          setSelectedPayroll(null);
+          setTotalPendapatan(0);
+          setAutoDeductionsTotal(0);
+          setManualDeductionsTotal(0);
+        }
+        setEditModalOpen(open);
+      }}>
         <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Payroll</DialogTitle>
@@ -2115,6 +2239,35 @@ export const PayrollContent = () => {
                 className="bg-gray-50"
               />
               <p className="text-xs text-gray-500 mt-1">Nilai ini diambil dari data salary dan tidak dapat diubah di sini.</p>
+            </div>
+
+            {/* Payment Date and Status */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="edit_payment_date">Tanggal Bayar</Label>
+                <Input 
+                  id="edit_payment_date"
+                  type="date" 
+                  value={form.payment_date} 
+                  onChange={(e) => handleFormChange('payment_date', e.target.value)} 
+                  required 
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit_status">Status</Label>
+                <Select value={form.status} onValueChange={(value) => handleFormChange('status', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="UNPAID">UNPAID</SelectItem>
+                    <SelectItem value="PENDING">PENDING</SelectItem>
+                    <SelectItem value="APPROVED">APPROVED</SelectItem>
+                    <SelectItem value="PAID">PAID</SelectItem>
+                    <SelectItem value="REJECTED">REJECTED</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* Manual Deductions */}
