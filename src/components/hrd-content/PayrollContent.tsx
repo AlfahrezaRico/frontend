@@ -2089,16 +2089,7 @@ export const PayrollContent = () => {
                 <div className="flex justify-between items-center py-4 px-5 bg-red-200 rounded-lg border-2 border-red-400">
                   <span className="text-xl font-bold text-gray-800">TOTAL PEMOTONGAN BPJS</span>
                   <span className="text-2xl font-bold text-red-800">
-                    {formatCurrency(
-                      (Number(selectedPayroll.bpjs_health_company) || 0) +
-                      (Number(selectedPayroll.jht_company) || 0) +
-                      (Number(selectedPayroll.jkk_company) || 0) +
-                      (Number(selectedPayroll.jkm_company) || 0) +
-                      (Number(selectedPayroll.jp_company) || 0) +
-                      (Number(selectedPayroll.bpjs_health_employee) || 0) +
-                      (Number(selectedPayroll.jht_employee) || 0) +
-                      (Number(selectedPayroll.jp_employee) || 0)
-                    )}
+                    {formatCurrency(selectedPayroll.total_deductions_bpjs || 0)}
                   </span>
                 </div>
                 
@@ -2153,17 +2144,8 @@ export const PayrollContent = () => {
                   <p className="text-xs text-gray-500">Gaji Pokok + Tunjangan + BPJS Perusahaan</p>
                 </div>
                 <div>
-                  <span className="text-sm font-medium text-gray-600">Total Potongan</span>
-                  <p className="text-lg font-bold text-red-600">{formatCurrency(
-                    (Number(selectedPayroll.bpjs_health_company) || 0) +
-                    (Number(selectedPayroll.jht_company) || 0) +
-                    (Number(selectedPayroll.jkk_company) || 0) +
-                    (Number(selectedPayroll.jkm_company) || 0) +
-                    (Number(selectedPayroll.jp_company) || 0) +
-                    (Number(selectedPayroll.bpjs_health_employee) || 0) +
-                    (Number(selectedPayroll.jht_employee) || 0) +
-                    (Number(selectedPayroll.jp_employee) || 0)
-                  )}</p>
+                  <span className="text-sm font-medium text-gray-600">Total Potongan BPJS</span>
+                  <p className="text-lg font-bold text-red-600">{formatCurrency(selectedPayroll.total_deductions_bpjs || 0)}</p>
                   <p className="text-xs text-gray-500">BPJS Perusahaan + BPJS Karyawan</p>
                 </div>
                 <div>
