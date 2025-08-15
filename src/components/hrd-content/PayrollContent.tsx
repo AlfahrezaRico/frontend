@@ -2438,32 +2438,12 @@ export const PayrollContent = () => {
                         </div>
                         );
                       })}
-                      {/* Manual Deductions */}
-                      {(form.kasbon || 0) > 0 && (
-                        <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
-                          <span className="font-medium text-sm text-gray-800">KASBON</span>
-                          <span className="text-sm font-bold text-red-700 ml-4">{formatCurrency(form.kasbon || 0)}</span>
-                        </div>
-                      )}
-                      {(form.telat || 0) > 0 && (
-                        <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
-                          <span className="font-medium text-sm text-gray-800">Telat</span>
-                          <span className="text-sm font-bold text-red-700 ml-4">{formatCurrency(form.telat || 0)}</span>
-                        </div>
-                      )}
-                      {(form.angsuran_kredit || 0) > 0 && (
-                        <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
-                          <span className="font-medium text-sm text-gray-800">Angsuran Kredit</span>
-                          <span className="text-sm font-bold text-red-700 ml-4">{formatCurrency(form.angsuran_kredit || 0)}</span>
-                        </div>
-                      )}
                     </div>
                     <div className="flex justify-between items-center py-3 px-4 bg-red-100 rounded-lg border border-red-300">
                       <span className="font-semibold text-gray-800">SUB TOTAL</span>
                       <span className="font-bold text-red-800">
                         {formatCurrency(
-                          calculatedComponents.filter(c => c.type === 'deduction' && c.category === 'bpjs').reduce((s, c) => s + c.amount, 0) +
-                          (form.kasbon || 0) + (form.telat || 0) + (form.angsuran_kredit || 0)
+                          calculatedComponents.filter(c => c.type === 'deduction' && c.category === 'bpjs').reduce((s, c) => s + c.amount, 0)
                         )}
                       </span>
                     </div>
