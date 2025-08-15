@@ -1564,7 +1564,7 @@ export const PayrollContent = () => {
                 </div>
 
                                                    {/* Summary Section */}
-                  <div className="grid grid-cols-4 gap-4 bg-gray-50 p-4 rounded-lg">
+                  <div className="grid grid-cols-4 gap-6 bg-gray-50 p-6 rounded-lg">
                     <div>
                       <Label htmlFor="gross_salary_display">Total Pendapatan</Label>
                       <Input 
