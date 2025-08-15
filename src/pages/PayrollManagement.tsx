@@ -348,7 +348,7 @@ export default function PayrollManagement() {
       ...prev,
       basic_salary: basicSalary,
       gross_salary: grossSalary,
-              total_deductions_bpjs: totalDeduction,
+      total_deductions_bpjs: subtotalCompany + subtotalEmployee,
       net_salary: netSalary,
       
       // Tunjangan dari Data Salary
@@ -659,7 +659,7 @@ export default function PayrollManagement() {
         angsuran_kredit: manualDeductions.angsuran_kredit,
         
         // Total Deductions
-        total_deductions_bpjs: totalDeduction,
+        total_deductions_bpjs: subtotalCompany + subtotalEmployee,
         
         // Total Pendapatan (Gaji + Tunjangan + BPJS Perusahaan)
         total_pendapatan: totalPendapatan,

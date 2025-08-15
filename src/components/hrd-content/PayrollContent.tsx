@@ -299,7 +299,7 @@ export const PayrollContent = () => {
         setForm(prev => ({
           ...prev,
           gross_salary: pendapatan,
-          total_deductions_bpjs: autoDeduction, // untuk database: BPJS Perusahaan + BPJS Karyawan
+          total_deductions_bpjs: autoDeductionsTotal, // untuk database: BPJS Perusahaan + BPJS Karyawan
           net_salary: pendapatan - autoDeduction - getTotalManualDeductions(),
           total_deductions_manual: getTotalManualDeductions()
         }));
