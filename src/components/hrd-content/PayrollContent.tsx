@@ -1522,32 +1522,32 @@ export const PayrollContent = () => {
                             )}
                           </span>
                         </div>
-
+                        
                         {/* Manual Deductions List */}
                         <div className="space-y-2 mt-4">
                           {form.kasbon > 0 && (
                             <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
                               <span className="font-medium text-sm text-gray-800">KASBON</span>
                               <span className="text-sm font-bold text-red-700 ml-4">{formatCurrency(form.kasbon)}</span>
-                            </div>
-                          )}
+                                          </div>
+                                        )}
                           {form.angsuran_kredit > 0 && (
                             <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
                               <span className="font-medium text-sm text-gray-800">Angsuran Kredit</span>
                               <span className="text-sm font-bold text-red-700 ml-4">{formatCurrency(form.angsuran_kredit)}</span>
-                            </div>
+                                      </div>
                           )}
                           {form.telat > 0 && (
                             <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
                               <span className="font-medium text-sm text-gray-800">Telat</span>
                               <span className="text-sm font-bold text-red-700 ml-4">{formatCurrency(form.telat)}</span>
-                            </div>
+                                    </div>
                           )}
                           <div className="flex justify-between items-center py-3 px-4 bg-red-100 rounded-lg border border-red-300">
                             <span className="font-semibold text-gray-800">TOTAL POTONGAN TAMBAHAN</span>
                             <span className="font-bold text-red-800">{formatCurrency(form.total_deductions_manual || 0)}</span>
-                          </div>
-                        </div>
+                                </div>
+                              </div>
                      </div>
                    </div>
                  )}
@@ -1914,7 +1914,19 @@ export const PayrollContent = () => {
                 <div className="flex justify-between items-center py-4 px-5 bg-green-200 rounded-lg border-2 border-green-400">
                   <span className="text-xl font-bold text-gray-800">TOTAL PENDAPATAN</span>
                   <span className="text-2xl font-bold text-green-800">
-                    {formatCurrency(Number(selectedPayroll?.total_pendapatan ?? 0) || Number(selectedPayroll?.gross_salary ?? 0))}
+                    {formatCurrency(
+                      (Number(selectedPayroll.basic_salary) || 0) +
+                      (Number(selectedPayroll.position_allowance) || 0) +
+                      (Number(selectedPayroll.management_allowance) || 0) +
+                      (Number(selectedPayroll.phone_allowance) || 0) +
+                      (Number(selectedPayroll.incentive_allowance) || 0) +
+                      (Number(selectedPayroll.overtime_allowance) || 0) +
+                      (Number(selectedPayroll.bpjs_health_company) || 0) +
+                      (Number(selectedPayroll.jht_company) || 0) +
+                      (Number(selectedPayroll.jkk_company) || 0) +
+                      (Number(selectedPayroll.jkm_company) || 0) +
+                      (Number(selectedPayroll.jp_company) || 0)
+                    )}
                   </span>
                 </div>
               </div>
@@ -1998,7 +2010,13 @@ export const PayrollContent = () => {
                   <div className="flex justify-between items-center py-3 px-4 bg-orange-100 rounded-lg border border-orange-300">
                     <span className="font-semibold text-gray-800">SUB TOTAL</span>
                     <span className="font-bold text-orange-800">
-                      {formatCurrency(Number(selectedPayroll.subtotal_company ?? 0))}
+                      {formatCurrency(
+                        (Number(selectedPayroll.bpjs_health_company) || 0) +
+                        (Number(selectedPayroll.jht_company) || 0) +
+                        (Number(selectedPayroll.jkk_company) || 0) +
+                        (Number(selectedPayroll.jkm_company) || 0) +
+                        (Number(selectedPayroll.jp_company) || 0)
+                      )}
                     </span>
                   </div>
                 </div>
@@ -2060,7 +2078,11 @@ export const PayrollContent = () => {
                   <div className="flex justify-between items-center py-3 px-4 bg-red-100 rounded-lg border border-red-300">
                     <span className="font-semibold text-gray-800">SUB TOTAL</span>
                     <span className="font-bold text-red-800">
-                      {formatCurrency(Number(selectedPayroll.subtotal_employee ?? 0))}
+                      {formatCurrency(
+                        (Number(selectedPayroll.bpjs_health_employee) || 0) +
+                        (Number(selectedPayroll.jht_employee) || 0) +
+                        (Number(selectedPayroll.jp_employee) || 0)
+                      )}
                     </span>
                   </div>
                 </div>
@@ -2069,33 +2091,46 @@ export const PayrollContent = () => {
                 <div className="flex justify-between items-center py-4 px-5 bg-red-200 rounded-lg border-2 border-red-400">
                   <span className="text-xl font-bold text-gray-800">TOTAL PEMOTONGAN BPJS</span>
                   <span className="text-2xl font-bold text-red-800">
-                    {formatCurrency(Number(selectedPayroll.subtotal_company ?? 0) + Number(selectedPayroll.subtotal_employee ?? 0))}
+                    {formatCurrency(
+                      (Number(selectedPayroll.bpjs_health_company) || 0) +
+                      (Number(selectedPayroll.jht_company) || 0) +
+                      (Number(selectedPayroll.jkk_company) || 0) +
+                      (Number(selectedPayroll.jkm_company) || 0) +
+                      (Number(selectedPayroll.jp_company) || 0) +
+                      (Number(selectedPayroll.bpjs_health_employee) || 0) +
+                      (Number(selectedPayroll.jht_employee) || 0) +
+                      (Number(selectedPayroll.jp_employee) || 0)
+                    )}
                   </span>
                 </div>
                 
                 {/* Manual Deductions List */}
                 <div className="space-y-2 mt-4">
-                  {selectedPayroll.kasbon > 0 && (
-                    <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
-                      <span className="font-medium text-sm text-gray-800">KASBON</span>
+                    {selectedPayroll.kasbon > 0 && (
+                      <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
+                        <span className="font-medium text-sm text-gray-800">KASBON</span>
                       <span className="text-sm font-bold text-red-700 ml-4">{formatCurrency(selectedPayroll.kasbon)}</span>
-                    </div>
-                  )}
-                  {selectedPayroll.angsuran_kredit > 0 && (
-                    <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
-                      <span className="font-medium text-sm text-gray-800">Angsuran Kredit</span>
+                      </div>
+                    )}
+                    {selectedPayroll.angsuran_kredit > 0 && (
+                      <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
+                        <span className="font-medium text-sm text-gray-800">Angsuran Kredit</span>
                       <span className="text-sm font-bold text-red-700 ml-4">{formatCurrency(selectedPayroll.angsuran_kredit)}</span>
-                    </div>
-                  )}
+                      </div>
+                    )}
                   {selectedPayroll.telat > 0 && (
                     <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
                       <span className="font-medium text-sm text-gray-800">Telat</span>
                       <span className="text-sm font-bold text-red-700 ml-4">{formatCurrency(selectedPayroll.telat)}</span>
-                    </div>
+                  </div>
                   )}
                   <div className="flex justify-between items-center py-3 px-4 bg-red-100 rounded-lg border border-red-300">
                     <span className="font-semibold text-gray-800">TOTAL POTONGAN TAMBAHAN</span>
-                    <span className="font-bold text-red-800">{formatCurrency(selectedPayroll.total_deductions_manual || 0)}</span>
+                    <span className="font-bold text-red-800">{formatCurrency(
+                      (Number(selectedPayroll.kasbon) || 0) +
+                      (Number(selectedPayroll.telat) || 0) +
+                      (Number(selectedPayroll.angsuran_kredit) || 0)
+                    )}</span>
                   </div>
                 </div>
               </div>
@@ -2104,12 +2139,33 @@ export const PayrollContent = () => {
               <div className="grid grid-cols-4 gap-6 bg-gray-50 p-6 rounded-lg">
                 <div>
                   <span className="text-sm font-medium text-gray-600">Total Pendapatan</span>
-                  <p className="text-lg font-bold text-green-600">{formatCurrency(selectedPayroll.gross_salary || 0)}</p>
+                  <p className="text-lg font-bold text-green-600">{formatCurrency(
+                    (Number(selectedPayroll.basic_salary) || 0) +
+                    (Number(selectedPayroll.position_allowance) || 0) +
+                    (Number(selectedPayroll.management_allowance) || 0) +
+                    (Number(selectedPayroll.phone_allowance) || 0) +
+                    (Number(selectedPayroll.incentive_allowance) || 0) +
+                    (Number(selectedPayroll.overtime_allowance) || 0) +
+                    (Number(selectedPayroll.bpjs_health_company) || 0) +
+                    (Number(selectedPayroll.jht_company) || 0) +
+                    (Number(selectedPayroll.jkk_company) || 0) +
+                    (Number(selectedPayroll.jkm_company) || 0) +
+                    (Number(selectedPayroll.jp_company) || 0)
+                  )}</p>
                   <p className="text-xs text-gray-500">Gaji Pokok + Tunjangan + BPJS Perusahaan</p>
                 </div>
                 <div>
                   <span className="text-sm font-medium text-gray-600">Total Potongan</span>
-                  <p className="text-lg font-bold text-red-600">{formatCurrency(Number(selectedPayroll.subtotal_company ?? 0) + Number(selectedPayroll.subtotal_employee ?? 0))}</p>
+                  <p className="text-lg font-bold text-red-600">{formatCurrency(
+                    (Number(selectedPayroll.bpjs_health_company) || 0) +
+                    (Number(selectedPayroll.jht_company) || 0) +
+                    (Number(selectedPayroll.jkk_company) || 0) +
+                    (Number(selectedPayroll.jkm_company) || 0) +
+                    (Number(selectedPayroll.jp_company) || 0) +
+                    (Number(selectedPayroll.bpjs_health_employee) || 0) +
+                    (Number(selectedPayroll.jht_employee) || 0) +
+                    (Number(selectedPayroll.jp_employee) || 0)
+                  )}</p>
                   <p className="text-xs text-gray-500">BPJS Perusahaan + BPJS Karyawan</p>
                 </div>
                 <div>
@@ -2457,23 +2513,23 @@ export const PayrollContent = () => {
 
                   {/* Manual Deductions List */}
                   <div className="space-y-2 mt-4">
-                    {(form.kasbon || 0) > 0 && (
-                      <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
-                        <span className="font-medium text-sm text-gray-800">KASBON</span>
-                        <span className="text-sm font-bold text-red-700 ml-4">{formatCurrency(form.kasbon || 0)}</span>
-                      </div>
-                    )}
-                    {(form.angsuran_kredit || 0) > 0 && (
-                      <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
-                        <span className="font-medium text-sm text-gray-800">Angsuran Kredit</span>
-                        <span className="text-sm font-bold text-red-700 ml-4">{formatCurrency(form.angsuran_kredit || 0)}</span>
-                      </div>
-                    )}
+                      {(form.kasbon || 0) > 0 && (
+                        <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
+                          <span className="font-medium text-sm text-gray-800">KASBON</span>
+                          <span className="text-sm font-bold text-red-700 ml-4">{formatCurrency(form.kasbon || 0)}</span>
+                        </div>
+                      )}
+                      {(form.angsuran_kredit || 0) > 0 && (
+                        <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
+                          <span className="font-medium text-sm text-gray-800">Angsuran Kredit</span>
+                          <span className="text-sm font-bold text-red-700 ml-4">{formatCurrency(form.angsuran_kredit || 0)}</span>
+                        </div>
+                      )}
                     {(form.telat || 0) > 0 && (
                       <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
                         <span className="font-medium text-sm text-gray-800">Telat</span>
                         <span className="text-sm font-bold text-red-700 ml-4">{formatCurrency(form.telat || 0)}</span>
-                      </div>
+                    </div>
                     )}
                     <div className="flex justify-between items-center py-3 px-4 bg-red-100 rounded-lg border border-red-300">
                       <span className="font-semibold text-gray-800">TOTAL POTONGAN TAMBAHAN</span>
