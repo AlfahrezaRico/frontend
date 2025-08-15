@@ -89,7 +89,8 @@ export const PayrollContent = () => {
     angsuran_kredit: 0,
     
     // Total Deductions
-    total_deductions: 0
+    total_deductions: 0,
+    total_deductions_manual: 0
   });
   const [submitting, setSubmitting] = useState(false);
   const [stats, setStats] = useState({
@@ -297,7 +298,8 @@ export const PayrollContent = () => {
           ...prev,
           gross_salary: pendapatan,
           total_deductions: autoDeduction, // simpan hanya otomatis di field ini
-          net_salary: pendapatan - autoDeduction - getTotalManualDeductions()
+          net_salary: pendapatan - autoDeduction - getTotalManualDeductions(),
+          total_deductions_manual: getTotalManualDeductions()
         }));
 
         // Update breakdown pendapatan dari backend
@@ -630,7 +632,8 @@ export const PayrollContent = () => {
         pph21: 0,
         kasbon: 0,
         telat: 0,
-        angsuran_kredit: 0
+        angsuran_kredit: 0,
+        total_deductions_manual: 0
       });
       setCalculatedComponents([]);
       setManualDeductions({ kasbon: 0, telat: 0, angsuran_kredit: 0 });
@@ -730,7 +733,8 @@ export const PayrollContent = () => {
       kasbon: Number(payroll.kasbon) || 0,
       telat: Number(payroll.telat) || 0,
       angsuran_kredit: Number(payroll.angsuran_kredit) || 0,
-      total_deductions: Number(payroll.total_deductions) || 0
+      total_deductions: Number(payroll.total_deductions) || 0,
+      total_deductions_manual: Number(payroll.total_deductions_manual) || 0
     });
     setEditModalOpen(true);
   };
@@ -1044,7 +1048,8 @@ export const PayrollContent = () => {
                 kasbon: 0,
                 telat: 0,
                 angsuran_kredit: 0,
-                total_deductions: 0
+                total_deductions: 0,
+                total_deductions_manual: 0
               });
               setCalculatedComponents([]);
               setManualDeductions({ kasbon: 0, telat: 0, angsuran_kredit: 0 });
@@ -1456,7 +1461,7 @@ export const PayrollContent = () => {
                           )}
                           <div className="flex justify-between items-center py-3 px-4 bg-red-100 rounded-lg border border-red-300">
                             <span className="font-semibold text-gray-800">TOTAL POTONGAN TAMBAHAN</span>
-                            <span className="font-bold text-red-800">{formatCurrency(manualDeductionsTotal)}</span>
+                            <span className="font-bold text-red-800">{formatCurrency(form.total_deductions_manual || 0)}</span>
                           </div>
                         </div>
                      </div>
@@ -2006,7 +2011,7 @@ export const PayrollContent = () => {
                   )}
                   <div className="flex justify-between items-center py-3 px-4 bg-red-100 rounded-lg border border-red-300">
                     <span className="font-semibold text-gray-800">TOTAL POTONGAN TAMBAHAN</span>
-                    <span className="font-bold text-red-800">{formatCurrency((selectedPayroll.kasbon || 0) + (selectedPayroll.angsuran_kredit || 0) + (selectedPayroll.telat || 0))}</span>
+                    <span className="font-bold text-red-800">{formatCurrency(selectedPayroll.total_deductions_manual || 0)}</span>
                   </div>
                 </div>
               </div>
@@ -2025,7 +2030,7 @@ export const PayrollContent = () => {
                 </div>
                 <div>
                   <span className="text-sm font-medium text-gray-600">Total Potongan Manual</span>
-                  <p className="text-lg font-bold text-red-600">{formatCurrency((selectedPayroll.kasbon || 0) + (selectedPayroll.angsuran_kredit || 0) + (selectedPayroll.telat || 0))}</p>
+                  <p className="text-lg font-bold text-red-600">{formatCurrency(selectedPayroll.total_deductions_manual || 0)}</p>
                   <p className="text-xs text-gray-500">Kasbon + Telat + Angsuran</p>
                 </div>
                 <div>
