@@ -1510,14 +1510,11 @@ export const PayrollContent = () => {
                           </div>
                         </div>
                        
-                                               {/* TOTAL PEMOTONGAN (AUTO) */}
+                                               {/* TOTAL PEMOTONGAN BPJS */}
                         <div className="flex justify-between items-center py-4 px-5 bg-red-200 rounded-lg border-2 border-red-400">
                           <span className="text-xl font-bold text-gray-800">TOTAL PEMOTONGAN BPJS</span>
                           <span className="text-2xl font-bold text-red-800">
-                            {formatCurrency(
-                              calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).reduce((sum, c) => sum + c.amount, 0) +
-                              calculatedComponents.filter(c => c.type === 'deduction' && c.name.includes('(Karyawan)')).reduce((sum, c) => sum + c.amount, 0)
-                            )}
+                            {formatCurrency(autoDeductionsTotal)}
                           </span>
                         </div>
                         
@@ -1647,10 +1644,7 @@ export const PayrollContent = () => {
                       <Input 
                         id="total_deductions_bpjs"
                         type="text" 
-                        value={formatCurrency(
-                          calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).reduce((sum, c) => sum + c.amount, 0) +
-                          calculatedComponents.filter(c => c.type === 'deduction').reduce((sum, c) => sum + c.amount, 0)
-                        )} 
+                        value={formatCurrency(autoDeductionsTotal)} 
                         readOnly
                         className="bg-white font-semibold text-red-600"
                       />
@@ -2485,13 +2479,10 @@ export const PayrollContent = () => {
                     </div>
                   </div>
 
-                  {/* TOTAL PEMOTONGAN (BPJS) */}
+                  {/* TOTAL PEMOTONGAN BPJS */}
                   <div className="flex justify-between items-center py-4 px-5 bg-red-200 rounded-lg border-2 border-red-400">
                     <span className="text-xl font-bold text-gray-800">TOTAL PEMOTONGAN BPJS</span>
-                    <span className="text-2xl font-bold text-red-800">{formatCurrency(
-                      calculatedComponents.filter(c => c.type === 'income').reduce((sum, c) => sum + c.amount, 0) +
-                      calculatedComponents.filter(c => c.type === 'deduction').reduce((sum, c) => sum + c.amount, 0)
-                    )}</span>
+                    <span className="text-2xl font-bold text-red-800">{formatCurrency(autoDeductionsTotal)}</span>
                   </div>
 
                   {/* Manual Deductions List */}
@@ -2535,13 +2526,10 @@ export const PayrollContent = () => {
                 />
               </div>
               <div>
-                <Label>Total Potongan</Label>
+                <Label>Total Potongan BPJS</Label>
                 <Input 
                   type="text" 
-                  value={formatCurrency(
-                    calculatedComponents.filter(c => c.type === 'income').reduce((sum, c) => sum + c.amount, 0) +
-                    calculatedComponents.filter(c => c.type === 'deduction').reduce((sum, c) => sum + c.amount, 0)
-                  )} 
+                  value={formatCurrency(autoDeductionsTotal)} 
                   readOnly
                   className="bg-white font-semibold text-red-600"
                 />
