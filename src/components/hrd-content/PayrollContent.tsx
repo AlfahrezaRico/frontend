@@ -294,10 +294,12 @@ export const PayrollContent = () => {
         setManualDeductionsTotal(getTotalManualDeductions());
         
         // net_salary yang ditampilkan = pendapatan - auto - manual
+        // total_deductions untuk database = BPJS Perusahaan + BPJS Karyawan
+        // total_deductions_manual untuk database = potongan manual
         setForm(prev => ({
           ...prev,
           gross_salary: pendapatan,
-          total_deductions: autoDeduction, // simpan hanya otomatis di field ini
+          total_deductions: autoDeduction, // untuk database: BPJS Perusahaan + BPJS Karyawan
           net_salary: pendapatan - autoDeduction - getTotalManualDeductions(),
           total_deductions_manual: getTotalManualDeductions()
         }));
@@ -809,7 +811,7 @@ export const PayrollContent = () => {
     const totalManualDeduction = (Number(payroll.kasbon) || 0) + (Number(payroll.telat) || 0) + (Number(payroll.angsuran_kredit) || 0);
     
     setTotalPendapatan((Number(payroll.basic_salary) || 0) + totalAllowances + subtotalCompany);
-    setAutoDeductionsTotal(subtotalEmployee);
+    setAutoDeductionsTotal(subtotalCompany + subtotalEmployee); // BPJS Perusahaan + BPJS Karyawan
     setManualDeductionsTotal(totalManualDeduction);
     
     // Synchronize manualDeductions state with form values
@@ -2508,7 +2510,16 @@ export const PayrollContent = () => {
                   {/* TOTAL PEMOTONGAN (BPJS) */}
                   <div className="flex justify-between items-center py-4 px-5 bg-red-200 rounded-lg border-2 border-red-400">
                     <span className="text-xl font-bold text-gray-800">TOTAL PEMOTONGAN BPJS</span>
-                    <span className="text-2xl font-bold text-red-800">{formatCurrency(autoDeductionsTotal)}</span>
+                    <span className="text-2xl font-bold text-red-800">{formatCurrency(
+                      (Number(form.bpjs_health_company) || 0) +
+                      (Number(form.jht_company) || 0) +
+                      (Number(form.jkk_company) || 0) +
+                      (Number(form.jkm_company) || 0) +
+                      (Number(form.jp_company) || 0) +
+                      (Number(form.bpjs_health_employee) || 0) +
+                      (Number(form.jht_employee) || 0) +
+                      (Number(form.jp_employee) || 0)
+                    )}</span>
                   </div>
 
                   {/* Manual Deductions List */}
@@ -2555,7 +2566,16 @@ export const PayrollContent = () => {
                 <Label>Total Potongan</Label>
                 <Input 
                   type="text" 
-                  value={formatCurrency(autoDeductionsTotal)} 
+                  value={formatCurrency(
+                    (Number(form.bpjs_health_company) || 0) +
+                    (Number(form.jht_company) || 0) +
+                    (Number(form.jkk_company) || 0) +
+                    (Number(form.jkm_company) || 0) +
+                    (Number(form.jp_company) || 0) +
+                    (Number(form.bpjs_health_employee) || 0) +
+                    (Number(form.jht_employee) || 0) +
+                    (Number(form.jp_employee) || 0)
+                  )} 
                   readOnly
                   className="bg-white font-semibold text-red-600"
                 />
