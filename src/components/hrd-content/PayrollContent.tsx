@@ -46,6 +46,10 @@ export const PayrollContent = () => {
     telat: 0,
     angsuran_kredit: 0
   });
+  // Pisahkan ringkasan untuk mencegah refresh saat input manual berubah
+  const [autoDeductionsTotal, setAutoDeductionsTotal] = useState(0);
+  const [manualDeductionsTotal, setManualDeductionsTotal] = useState(0);
+  const [totalPendapatan, setTotalPendapatan] = useState(0);
   const [form, setForm] = useState({
     employee_id: "",
     pay_period_start: "",
@@ -280,23 +284,28 @@ export const PayrollContent = () => {
       
       setCalculatedComponents(data.calculated_components || []);
       
-      // Update form dengan breakdown pendapatan dari backend
+      // Update ringkasan otomatis dari backend (tanpa potongan manual)
       if (data.totals) {
+        const pendapatan = Number(data.totals.total_pendapatan || 0);
+        const autoDeduction = Number(data.totals.total_deduction || 0);
+        setTotalPendapatan(pendapatan);
+        setAutoDeductionsTotal(autoDeduction);
+        setManualDeductionsTotal(getTotalManualDeductions());
+        
+        // net_salary yang ditampilkan = pendapatan - auto - manual
         setForm(prev => ({
           ...prev,
-          // Backend mengirimkan breakdown pendapatan yang lengkap
-          gross_salary: data.totals.total_pendapatan || prev.gross_salary,
-          total_deductions: data.totals.total_deduction || 0,
-          net_salary: data.totals.net_salary || prev.net_salary
+          gross_salary: pendapatan,
+          total_deductions: autoDeduction, // simpan hanya otomatis di field ini
+          net_salary: pendapatan - autoDeduction - getTotalManualDeductions()
         }));
 
         // Update breakdown pendapatan dari backend
         const newBreakdown = {
-          pendapatan_tetap: data.totals.pendapatan_tetap || 0,           // Gaji Pokok
-          pendapatan_tidak_tetap: data.totals.pendapatan_tidak_tetap || 0, // Total Tunjangan
-          total_pendapatan: data.totals.total_pendapatan || 0             // Total keseluruhan
+          pendapatan_tetap: data.totals.pendapatan_tetap || 0,
+          pendapatan_tidak_tetap: data.totals.pendapatan_tidak_tetap || 0,
+          total_pendapatan: pendapatan
         };
-        
         setBreakdownPendapatan(newBreakdown);
       }
       
@@ -371,7 +380,7 @@ export const PayrollContent = () => {
       // Use basic_salary (from salary data) instead of gross_salary to prevent loop
       calculatePayrollComponents(form.basic_salary);
     }
-  }, [payrollComponents, form.employee_id, form.basic_salary, manualDeductions]); // Removed form.gross_salary to prevent infinite loop
+  }, [payrollComponents, form.employee_id, form.basic_salary]); // jangan tergantung manualDeductions agar input manual tidak memicu kalkulasi ulang
 
   const handleFormChange = (field: string, value: any) => {
     if (field === 'employee_id') {
@@ -497,8 +506,13 @@ export const PayrollContent = () => {
       isManualDeductionUpdate.current = false;
     }, 100);
     
-    // Manual deductions berubah, useEffect akan handle perhitungan otomatis
-    // Tidak perlu manual call calculatePayrollComponents
+    // Update ringkasan tanpa memanggil kalkulasi backend
+    const newManualTotal = (newManualDeductions.kasbon || 0) + (newManualDeductions.telat || 0) + (newManualDeductions.angsuran_kredit || 0);
+    setManualDeductionsTotal(newManualTotal);
+    setForm(prev => ({
+      ...prev,
+      net_salary: totalPendapatan - autoDeductionsTotal - newManualTotal
+    }));
   };
 
   const handleAddPayroll = async (e: React.FormEvent) => {
@@ -1557,7 +1571,7 @@ export const PayrollContent = () => {
                 </div>
 
                                                    {/* Summary Section */}
-                  <div className="grid grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg">
+                  <div className="grid grid-cols-4 gap-4 bg-gray-50 p-4 rounded-lg">
                     <div>
                       <Label htmlFor="gross_salary_display">Total Pendapatan</Label>
                       <Input 
@@ -1574,11 +1588,22 @@ export const PayrollContent = () => {
                       <Input 
                         id="total_deductions"
                         type="text" 
-                        value={formatCurrency(form.total_deductions)} 
+                        value={formatCurrency(autoDeductionsTotal)} 
                         readOnly
                         className="bg-white font-semibold text-red-600"
                       />
                       <p className="text-xs text-gray-500 mt-1">Komponen Deduction + Manual</p>
+                    </div>
+                    <div>
+                      <Label htmlFor="total_manual_deductions">Total Potongan Manual</Label>
+                      <Input 
+                        id="total_manual_deductions"
+                        type="text" 
+                        value={formatCurrency(manualDeductionsTotal)} 
+                        readOnly
+                        className="bg-white font-semibold text-red-600"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Kasbon + Telat + Angsuran</p>
                     </div>
                     <div>
                       <Label htmlFor="net_salary">Total Diterima</Label>
@@ -1589,7 +1614,7 @@ export const PayrollContent = () => {
                         readOnly
                         className="bg-white font-semibold text-green-600"
                       />
-                      <p className="text-xs text-gray-500 mt-1">Total Pendapatan - Total Potongan</p>
+                      <p className="text-xs text-gray-500 mt-1">Total Pendapatan - Potongan (Auto) - Potongan Manual</p>
                     </div>
                   </div>
 
