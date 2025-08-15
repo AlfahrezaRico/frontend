@@ -515,13 +515,13 @@ export const PayrollContent = () => {
           return d.getMonth() === payDate.getMonth() && d.getFullYear() === payDate.getFullYear();
         });
         if (sameMonthExists) {
-          setSubmitting(false);
-          toast({
-            title: 'Tidak dapat menambah',
+        setSubmitting(false);
+        toast({
+          title: 'Tidak dapat menambah',
             description: 'Tanggal Bayar untuk karyawan ini sudah ada pada bulan yang sama. Satu payroll per bulan per karyawan.',
-            variant: 'destructive'
-          });
-          return;
+          variant: 'destructive'
+        });
+        return;
         }
       }
 
@@ -1214,9 +1214,9 @@ export const PayrollContent = () => {
                              <div key={index} className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
                                <div className="flex-1">
                                  <span className="font-medium text-sm text-gray-800">{component.name}</span>
-                                 <div className="text-xs text-gray-600 mt-1">
-                                   {component.percentage}% dari gaji pokok murni
-                                 </div>
+                                   <div className="text-xs text-gray-600 mt-1">
+                                     {component.percentage}% dari gaji pokok murni
+                                   </div>
                                </div>
                                <span className="text-sm font-bold text-green-700 ml-4">
                                  {formatCurrency(component.amount)}
@@ -1355,17 +1355,17 @@ export const PayrollContent = () => {
                             {calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).map((component, index) => {
                               console.log(`Rendering company component: ${component.name}, percentage: ${component.percentage}`);
                               return (
-                                <div key={index} className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
-                                  <div className="flex-1">
-                                    <span className="font-medium text-sm text-gray-800">{component.name}</span>
+                              <div key={index} className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
+                                <div className="flex-1">
+                                  <span className="font-medium text-sm text-gray-800">{component.name}</span>
                                     <div className="text-xs text-gray-600 mt-1">
                                       {component.percentage}% dari gaji pokok murni
                                     </div>
-                                  </div>
-                                  <span className="text-sm font-bold text-orange-700 ml-4">
-                                    {formatCurrency(component.amount)}
-                                  </span>
                                 </div>
+                                <span className="text-sm font-bold text-orange-700 ml-4">
+                                  {formatCurrency(component.amount)}
+                                </span>
+                              </div>
                               );
                             })}
                           </div>
@@ -1384,17 +1384,17 @@ export const PayrollContent = () => {
                             {calculatedComponents.filter(c => c.type === 'deduction' && c.name.includes('(Karyawan)')).map((component, index) => {
                               console.log(`Rendering employee component: ${component.name}, percentage: ${component.percentage}`);
                               return (
-                                <div key={index} className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
-                                  <div className="flex-1">
-                                    <span className="font-medium text-sm text-gray-800">{component.name}</span>
+                              <div key={index} className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
+                                <div className="flex-1">
+                                  <span className="font-medium text-sm text-gray-800">{component.name}</span>
                                     <div className="text-xs text-gray-600 mt-1">
                                       {component.percentage}% dari gaji pokok murni
                                     </div>
-                                  </div>
-                                  <span className="text-sm font-bold text-red-700 ml-4">
-                                    {formatCurrency(component.amount)}
-                                  </span>
                                 </div>
+                                <span className="text-sm font-bold text-red-700 ml-4">
+                                  {formatCurrency(component.amount)}
+                                </span>
+                              </div>
                               );
                             })}
                             
@@ -1458,9 +1458,9 @@ export const PayrollContent = () => {
                                     <div key={index} className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg border border-gray-200">
                                       <div className="flex-1">
                                         <span className="font-medium text-sm text-gray-800">{component.name}</span>
-                                        <div className="text-xs text-gray-600 mt-1">
-                                          {component.percentage}% dari gaji pokok murni
-                                        </div>
+                                          <div className="text-xs text-gray-600 mt-1">
+                                            {component.percentage}% dari gaji pokok murni
+                                          </div>
                                       </div>
                                       <span className="text-sm font-bold text-gray-700 ml-4">
                                         {formatCurrency(component.amount)}
@@ -1843,7 +1843,7 @@ export const PayrollContent = () => {
                     {selectedPayroll.bpjs_health_company > 0 && (
                       <div className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
                         <div className="flex-1">
-                          <span className="font-medium text-sm text-gray-800">BPJS Kesehatan (Perusahaan)</span>
+                        <span className="font-medium text-sm text-gray-800">BPJS Kesehatan (Perusahaan)</span>
                           <div className="text-xs text-gray-600 mt-1">
                             {((Number(selectedPayroll?.bpjs_health_company ?? 0) / Number(selectedPayroll?.basic_salary ?? 1)) * 100).toFixed(1)}% dari gaji pokok
                           </div>
@@ -1856,7 +1856,7 @@ export const PayrollContent = () => {
                     {selectedPayroll.jht_company > 0 && (
                       <div className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
                         <div className="flex-1">
-                          <span className="font-medium text-sm text-gray-800">BPJS Jaminan Hari Tua (Perusahaan)</span>
+                        <span className="font-medium text-sm text-gray-800">BPJS Jaminan Hari Tua (Perusahaan)</span>
                           <div className="text-xs text-gray-600 mt-1">
                             {((Number(selectedPayroll?.jht_company ?? 0) / Number(selectedPayroll?.basic_salary ?? 1)) * 100).toFixed(1)}% dari gaji pokok
                           </div>
@@ -1869,7 +1869,7 @@ export const PayrollContent = () => {
                     {selectedPayroll.jkk_company > 0 && (
                       <div className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
                         <div className="flex-1">
-                          <span className="font-medium text-sm text-gray-800">BPJS Jaminan Kecelakaan Kerja (Perusahaan)</span>
+                        <span className="font-medium text-sm text-gray-800">BPJS Jaminan Kecelakaan Kerja (Perusahaan)</span>
                           <div className="text-xs text-gray-600 mt-1">
                             {((Number(selectedPayroll?.jkk_company ?? 0) / Number(selectedPayroll?.basic_salary ?? 1)) * 100).toFixed(1)}% dari gaji pokok
                           </div>
@@ -1882,7 +1882,7 @@ export const PayrollContent = () => {
                     {selectedPayroll.jkm_company > 0 && (
                       <div className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
                         <div className="flex-1">
-                          <span className="font-medium text-sm text-gray-800">BPJS Jaminan Kematian (Perusahaan)</span>
+                        <span className="font-medium text-sm text-gray-800">BPJS Jaminan Kematian (Perusahaan)</span>
                           <div className="text-xs text-gray-600 mt-1">
                             {((Number(selectedPayroll?.jkm_company ?? 0) / Number(selectedPayroll?.basic_salary ?? 1)) * 100).toFixed(1)}% dari gaji pokok
                           </div>
@@ -1895,7 +1895,7 @@ export const PayrollContent = () => {
                     {selectedPayroll.jp_company > 0 && (
                       <div className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
                         <div className="flex-1">
-                          <span className="font-medium text-sm text-gray-800">BPJS Jaminan Pensiun (Perusahaan)</span>
+                        <span className="font-medium text-sm text-gray-800">BPJS Jaminan Pensiun (Perusahaan)</span>
                           <div className="text-xs text-gray-600 mt-1">
                             {((Number(selectedPayroll?.jp_company ?? 0) / Number(selectedPayroll?.basic_salary ?? 1)) * 100).toFixed(1)}% dari gaji pokok
                           </div>
@@ -1921,7 +1921,7 @@ export const PayrollContent = () => {
                     {selectedPayroll.bpjs_health_employee > 0 && (
                       <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
                         <div className="flex-1">
-                          <span className="font-medium text-sm text-gray-800">BPJS Kesehatan (Karyawan)</span>
+                        <span className="font-medium text-sm text-gray-800">BPJS Kesehatan (Karyawan)</span>
                           <div className="text-xs text-gray-600 mt-1">
                             {((Number(selectedPayroll?.bpjs_health_employee ?? 0) / Number(selectedPayroll?.basic_salary ?? 1)) * 100).toFixed(1)}% dari gaji pokok
                           </div>
@@ -1934,7 +1934,7 @@ export const PayrollContent = () => {
                     {selectedPayroll.jht_employee > 0 && (
                       <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
                         <div className="flex-1">
-                          <span className="font-medium text-sm text-gray-800">BPJS Jaminan Hari Tua (Karyawan)</span>
+                        <span className="font-medium text-sm text-gray-800">BPJS Jaminan Hari Tua (Karyawan)</span>
                           <div className="text-xs text-gray-600 mt-1">
                             {((Number(selectedPayroll?.jht_employee ?? 0) / Number(selectedPayroll?.basic_salary ?? 1)) * 100).toFixed(1)}% dari gaji pokok
                           </div>
@@ -1947,7 +1947,7 @@ export const PayrollContent = () => {
                     {selectedPayroll.jp_employee > 0 && (
                       <div className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
                         <div className="flex-1">
-                          <span className="font-medium text-sm text-gray-800">BPJS Jaminan Pensiun (Karyawan)</span>
+                        <span className="font-medium text-sm text-gray-800">BPJS Jaminan Pensiun (Karyawan)</span>
                           <div className="text-xs text-gray-600 mt-1">
                             {((Number(selectedPayroll?.jp_employee ?? 0) / Number(selectedPayroll?.basic_salary ?? 1)) * 100).toFixed(1)}% dari gaji pokok
                           </div>
@@ -2162,9 +2162,9 @@ export const PayrollContent = () => {
                         <div key={index} className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
                           <div className="flex-1">
                             <span className="font-medium text-sm text-gray-800">{component.name}</span>
-                            <div className="text-xs text-gray-600 mt-1">
-                              {component.percentage}% dari gaji pokok murni
-                            </div>
+                              <div className="text-xs text-gray-600 mt-1">
+                                {component.percentage}% dari gaji pokok murni
+                              </div>
                           </div>
                           <span className="text-sm font-bold text-green-700 ml-4">
                             {formatCurrency(component.amount)}
@@ -2235,15 +2235,15 @@ export const PayrollContent = () => {
                       {calculatedComponents.filter(c => c.type === 'income' && c.category === 'bpjs').map((component, index) => {
                         console.log(`Rendering company BPJS component: ${component.name}, percentage: ${component.percentage}`);
                         return (
-                          <div key={index} className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
+                        <div key={index} className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
                             <div className="flex-1">
-                              <span className="font-medium text-sm text-gray-800">{component.name}</span>
+                          <span className="font-medium text-sm text-gray-800">{component.name}</span>
                               <div className="text-xs text-gray-600 mt-1">
                                 {component.percentage}% dari gaji pokok murni
                               </div>
                             </div>
-                            <span className="text-sm font-bold text-orange-700 ml-4">{formatCurrency(component.amount)}</span>
-                          </div>
+                          <span className="text-sm font-bold text-orange-700 ml-4">{formatCurrency(component.amount)}</span>
+                        </div>
                         );
                       })}
                     </div>
@@ -2262,15 +2262,15 @@ export const PayrollContent = () => {
                       {calculatedComponents.filter(c => c.type === 'deduction' && c.category === 'bpjs').map((component, index) => {
                         console.log(`Rendering employee BPJS component: ${component.name}, percentage: ${component.percentage}`);
                         return (
-                          <div key={index} className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
+                        <div key={index} className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
                             <div className="flex-1">
-                              <span className="font-medium text-sm text-gray-800">{component.name}</span>
+                          <span className="font-medium text-sm text-gray-800">{component.name}</span>
                               <div className="text-xs text-gray-600 mt-1">
                                 {component.percentage}% dari gaji pokok murni
                               </div>
                             </div>
-                            <span className="text-sm font-bold text-red-700 ml-4">{formatCurrency(component.amount)}</span>
-                          </div>
+                          <span className="text-sm font-bold text-red-700 ml-4">{formatCurrency(component.amount)}</span>
+                        </div>
                         );
                       })}
                       {/* Manual Deductions */}

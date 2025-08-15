@@ -119,7 +119,8 @@ export const SalaryContent = () => {
 
   const fetchEmployees = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/employees`);
+      // Use the backend API to filter employees without salary data
+      const response = await fetch(`${API_URL}/api/employees?without_salary=1`);
       if (response.ok) {
         const data = await response.json();
         setEmployees(data);
@@ -130,8 +131,9 @@ export const SalaryContent = () => {
   };
 
   useEffect(() => {
-    fetchSalaryData();
-    fetchEmployees();
+    fetchSalaryData().then(() => {
+      fetchEmployees();
+    });
   }, []);
 
   const filteredData = salaryData.filter(item =>
