@@ -299,7 +299,7 @@ export const PayrollContent = () => {
         setForm(prev => ({
           ...prev,
           gross_salary: pendapatan,
-          total_deductions_bpjs: autoDeductionsTotal, // untuk database: BPJS Perusahaan + BPJS Karyawan
+          total_deductions_bpjs: autoDeductionsTotal, // untuk database: BPJS Perusahaan + BPJS Karyawan (tanpa potongan manual)
           net_salary: pendapatan - autoDeduction - getTotalManualDeductions(),
           total_deductions_manual: getTotalManualDeductions()
         }));
@@ -1459,8 +1459,8 @@ export const PayrollContent = () => {
                         <div className="space-y-3">
                           <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PERUSAHAAN</h4>
                           <div className="space-y-2">
-                            {calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).map((component, index) => {
-                              console.log(`Rendering company component: ${component.name}, percentage: ${component.percentage}`);
+                            {calculatedComponents.filter(c => c.type === 'income').map((component, index) => {
+                              console.log(`Rendering company BPJS component: ${component.name}, percentage: ${component.percentage}`);
                               return (
                               <div key={index} className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
                                 <div className="flex-1">
@@ -1479,7 +1479,7 @@ export const PayrollContent = () => {
                           <div className="flex justify-between items-center py-3 px-4 bg-orange-100 rounded-lg border border-orange-300">
                             <span className="font-semibold text-gray-800">SUB TOTAL</span>
                             <span className="font-bold text-orange-800">
-                              {formatCurrency(calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).reduce((sum, c) => sum + c.amount, 0))}
+                              {formatCurrency(calculatedComponents.filter(c => c.type === 'income').reduce((sum, c) => sum + c.amount, 0))}
                             </span>
                           </div>
                         </div>
@@ -1488,8 +1488,8 @@ export const PayrollContent = () => {
                         <div className="space-y-3">
                           <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">KARYAWAN</h4>
                           <div className="space-y-2">
-                            {calculatedComponents.filter(c => c.type === 'deduction' && c.name.includes('(Karyawan)')).map((component, index) => {
-                              console.log(`Rendering employee component: ${component.name}, percentage: ${component.percentage}`);
+                            {calculatedComponents.filter(c => c.type === 'deduction').map((component, index) => {
+                              console.log(`Rendering employee BPJS component: ${component.name}, percentage: ${component.percentage}`);
                               return (
                               <div key={index} className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
                                 <div className="flex-1">
@@ -1498,19 +1498,15 @@ export const PayrollContent = () => {
                                       {component.percentage}% dari gaji pokok murni
                                     </div>
                                 </div>
-                                <span className="text-sm font-bold text-red-700 ml-4">
-                                  {formatCurrency(component.amount)}
-                                </span>
+                                <span className="text-sm font-bold text-red-700 ml-4">{formatCurrency(component.amount)}</span>
                               </div>
                               );
                             })}
-                            
-                            {/* No manual deductions here - they're shown in a separate section below */}
                           </div>
                           <div className="flex justify-between items-center py-3 px-4 bg-red-100 rounded-lg border border-red-300">
                             <span className="font-semibold text-gray-800">SUB TOTAL</span>
                             <span className="font-bold text-red-800">
-                              {formatCurrency(calculatedComponents.filter(c => c.type === 'deduction' && c.name.includes('(Karyawan)')).reduce((sum, c) => sum + c.amount, 0))}
+                              {formatCurrency(calculatedComponents.filter(c => c.type === 'deduction').reduce((sum, c) => sum + c.amount, 0))}
                             </span>
                           </div>
                         </div>
@@ -1521,7 +1517,7 @@ export const PayrollContent = () => {
                           <span className="text-2xl font-bold text-red-800">
                             {formatCurrency(
                               calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).reduce((sum, c) => sum + c.amount, 0) +
-                              calculatedComponents.filter(c => c.type === 'deduction' && c.name.includes('(Karyawan)')).reduce((sum, c) => sum + c.amount, 0)
+                              calculatedComponents.filter(c => c.type === 'deduction').reduce((sum, c) => sum + c.amount, 0)
                             )}
                           </span>
                         </div>
@@ -1654,7 +1650,7 @@ export const PayrollContent = () => {
                         type="text" 
                         value={formatCurrency(
                           calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).reduce((sum, c) => sum + c.amount, 0) +
-                          calculatedComponents.filter(c => c.type === 'deduction' && c.name.includes('(Karyawan)')).reduce((sum, c) => sum + c.amount, 0)
+                          calculatedComponents.filter(c => c.type === 'deduction').reduce((sum, c) => sum + c.amount, 0)
                         )} 
                         readOnly
                         className="bg-white font-semibold text-red-600"
@@ -2456,7 +2452,7 @@ export const PayrollContent = () => {
                   <div className="space-y-3">
                     <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PERUSAHAAN</h4>
                     <div className="space-y-2">
-                      {calculatedComponents.filter(c => c.type === 'income' && c.category === 'bpjs').map((component, index) => {
+                      {calculatedComponents.filter(c => c.type === 'income').map((component, index) => {
                         console.log(`Rendering company BPJS component: ${component.name}, percentage: ${component.percentage}`);
                         return (
                         <div key={index} className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
@@ -2474,7 +2470,7 @@ export const PayrollContent = () => {
                     <div className="flex justify-between items-center py-3 px-4 bg-orange-100 rounded-lg border border-orange-300">
                       <span className="font-semibold text-gray-800">SUB TOTAL</span>
                       <span className="font-bold text-orange-800">
-                        {formatCurrency(calculatedComponents.filter(c => c.type === 'income' && c.category === 'bpjs').reduce((s, c) => s + c.amount, 0))}
+                        {formatCurrency(calculatedComponents.filter(c => c.type === 'income').reduce((sum, c) => sum + c.amount, 0))}
                       </span>
                     </div>
                   </div>
@@ -2483,7 +2479,7 @@ export const PayrollContent = () => {
                   <div className="space-y-3">
                     <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">KARYAWAN</h4>
                     <div className="space-y-2">
-                      {calculatedComponents.filter(c => c.type === 'deduction' && c.category === 'bpjs').map((component, index) => {
+                      {calculatedComponents.filter(c => c.type === 'deduction').map((component, index) => {
                         console.log(`Rendering employee BPJS component: ${component.name}, percentage: ${component.percentage}`);
                         return (
                         <div key={index} className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
@@ -2502,7 +2498,7 @@ export const PayrollContent = () => {
                       <span className="font-semibold text-gray-800">SUB TOTAL</span>
                       <span className="font-bold text-red-800">
                         {formatCurrency(
-                          calculatedComponents.filter(c => c.type === 'deduction' && c.category === 'bpjs').reduce((s, c) => s + c.amount, 0)
+                          calculatedComponents.filter(c => c.type === 'deduction').reduce((s, c) => s + c.amount, 0)
                         )}
                       </span>
                     </div>
@@ -2512,14 +2508,8 @@ export const PayrollContent = () => {
                   <div className="flex justify-between items-center py-4 px-5 bg-red-200 rounded-lg border-2 border-red-400">
                     <span className="text-xl font-bold text-gray-800">TOTAL PEMOTONGAN BPJS</span>
                     <span className="text-2xl font-bold text-red-800">{formatCurrency(
-                      (Number(form.bpjs_health_company) || 0) +
-                      (Number(form.jht_company) || 0) +
-                      (Number(form.jkk_company) || 0) +
-                      (Number(form.jkm_company) || 0) +
-                      (Number(form.jp_company) || 0) +
-                      (Number(form.bpjs_health_employee) || 0) +
-                      (Number(form.jht_employee) || 0) +
-                      (Number(form.jp_employee) || 0)
+                      calculatedComponents.filter(c => c.type === 'income').reduce((sum, c) => sum + c.amount, 0) +
+                      calculatedComponents.filter(c => c.type === 'deduction').reduce((sum, c) => sum + c.amount, 0)
                     )}</span>
                   </div>
 
@@ -2568,14 +2558,8 @@ export const PayrollContent = () => {
                 <Input 
                   type="text" 
                   value={formatCurrency(
-                    (Number(form.bpjs_health_company) || 0) +
-                    (Number(form.jht_company) || 0) +
-                    (Number(form.jkk_company) || 0) +
-                    (Number(form.jkm_company) || 0) +
-                    (Number(form.jp_company) || 0) +
-                    (Number(form.bpjs_health_employee) || 0) +
-                    (Number(form.jht_employee) || 0) +
-                    (Number(form.jp_employee) || 0)
+                    calculatedComponents.filter(c => c.type === 'income').reduce((sum, c) => sum + c.amount, 0) +
+                    calculatedComponents.filter(c => c.type === 'deduction').reduce((sum, c) => sum + c.amount, 0)
                   )} 
                   readOnly
                   className="bg-white font-semibold text-red-600"
