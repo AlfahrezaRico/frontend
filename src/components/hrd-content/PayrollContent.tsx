@@ -515,6 +515,7 @@ export const PayrollContent = () => {
     setManualDeductionsTotal(newManualTotal);
     setForm(prev => ({
       ...prev,
+      total_deductions_manual: newManualTotal,
       net_salary: totalPendapatan - autoDeductionsTotal - newManualTotal
     }));
   };
@@ -1547,7 +1548,7 @@ export const PayrollContent = () => {
                           )}
                           <div className="flex justify-between items-center py-3 px-4 bg-red-100 rounded-lg border border-red-300">
                             <span className="font-semibold text-gray-800">TOTAL POTONGAN TAMBAHAN</span>
-                            <span className="font-bold text-red-800">{formatCurrency(form.total_deductions_manual || 0)}</span>
+                            <span className="font-bold text-red-800">{formatCurrency(manualDeductionsTotal)}</span>
                                 </div>
                               </div>
                      </div>
@@ -2172,7 +2173,7 @@ export const PayrollContent = () => {
                 </div>
                 <div>
                   <span className="text-sm font-medium text-gray-600">Total Potongan Manual</span>
-                  <p className="text-lg font-bold text-red-600">{formatCurrency(selectedPayroll.total_deductions_manual || 0)}</p>
+                  <p className="text-lg font-bold text-red-600">{formatCurrency(manualDeductionsTotal)}</p>
                   <p className="text-xs text-gray-500">Kasbon + Telat + Angsuran</p>
                 </div>
                 <div>
