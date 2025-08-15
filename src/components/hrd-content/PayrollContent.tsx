@@ -1316,7 +1316,7 @@ export const PayrollContent = () => {
                        <div className="space-y-3">
                          <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PENDAPATAN TETAP</h4>
                          <div className="space-y-2">
-                           {calculatedComponents.filter(c => c.type === 'income').map((component, index) => (
+                           {calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).map((component, index) => (
                              <div key={index} className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
                                <div className="flex-1">
                                  <span className="font-medium text-sm text-gray-800">{component.name}</span>
@@ -1333,7 +1333,7 @@ export const PayrollContent = () => {
                          <div className="flex justify-between items-center py-3 px-4 bg-green-100 rounded-lg border border-green-300">
                            <span className="font-semibold text-gray-800">SUB TOTAL</span>
                            <span className="font-bold text-green-800">
-                             {formatCurrency(calculatedComponents.filter(c => c.type === 'income').reduce((sum, c) => sum + c.amount, 0))}
+                             {formatCurrency(calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).reduce((sum, c) => sum + c.amount, 0))}
                            </span>
                          </div>
                        </div>
@@ -1458,7 +1458,7 @@ export const PayrollContent = () => {
                         <div className="space-y-3">
                           <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PERUSAHAAN</h4>
                           <div className="space-y-2">
-                            {calculatedComponents.filter(c => c.type === 'income').map((component, index) => {
+                            {calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).map((component, index) => {
                               console.log(`Rendering company BPJS component: ${component.name}, percentage: ${component.percentage}`);
                               return (
                               <div key={index} className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
@@ -1478,7 +1478,7 @@ export const PayrollContent = () => {
                           <div className="flex justify-between items-center py-3 px-4 bg-orange-100 rounded-lg border border-orange-300">
                             <span className="font-semibold text-gray-800">SUB TOTAL</span>
                             <span className="font-bold text-orange-800">
-                              {formatCurrency(calculatedComponents.filter(c => c.type === 'income').reduce((sum, c) => sum + c.amount, 0))}
+                              {formatCurrency(calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).reduce((sum, c) => sum + c.amount, 0))}
                             </span>
                           </div>
                         </div>
@@ -2353,7 +2353,7 @@ export const PayrollContent = () => {
                   <div className="space-y-3">
                     <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PENDAPATAN TETAP</h4>
                     <div className="space-y-2">
-                      {calculatedComponents.filter(c => c.type === 'income').map((component, index) => (
+                      {calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).map((component, index) => (
                         <div key={index} className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
                           <div className="flex-1">
                             <span className="font-medium text-sm text-gray-800">{component.name}</span>
@@ -2370,7 +2370,7 @@ export const PayrollContent = () => {
                     <div className="flex justify-between items-center py-3 px-4 bg-green-100 rounded-lg border border-green-300">
                       <span className="font-semibold text-gray-800">SUB TOTAL</span>
                       <span className="font-bold text-green-800">
-                        {formatCurrency(calculatedComponents.filter(c => c.type === 'income').reduce((sum, c) => sum + c.amount, 0))}
+                        {formatCurrency(calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).reduce((sum, c) => sum + c.amount, 0))}
                       </span>
                     </div>
                   </div>
@@ -2427,7 +2427,7 @@ export const PayrollContent = () => {
                   <div className="space-y-3">
                     <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PERUSAHAAN</h4>
                     <div className="space-y-2">
-                      {calculatedComponents.filter(c => c.type === 'income').map((component, index) => {
+                      {calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).map((component, index) => {
                         console.log(`Rendering company BPJS component: ${component.name}, percentage: ${component.percentage}`);
                         return (
                         <div key={index} className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
@@ -2445,7 +2445,7 @@ export const PayrollContent = () => {
                     <div className="flex justify-between items-center py-3 px-4 bg-orange-100 rounded-lg border border-orange-300">
                       <span className="font-semibold text-gray-800">SUB TOTAL</span>
                       <span className="font-bold text-orange-800">
-                        {formatCurrency(calculatedComponents.filter(c => c.type === 'income').reduce((sum, c) => sum + c.amount, 0))}
+                        {formatCurrency(calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).reduce((sum, c) => sum + c.amount, 0))}
                       </span>
                     </div>
                   </div>
@@ -2482,7 +2482,7 @@ export const PayrollContent = () => {
                   {/* TOTAL PEMOTONGAN BPJS */}
                   <div className="flex justify-between items-center py-4 px-5 bg-red-200 rounded-lg border-2 border-red-400">
                     <span className="text-xl font-bold text-gray-800">TOTAL PEMOTONGAN BPJS</span>
-                    <span className="text-2xl font-bold text-red-800">{formatCurrency(autoDeductionsTotal)}</span>
+                    <span className="text-2xl font-bold text-red-800">{formatCurrency(selectedPayroll?.total_deductions_bpjs || 0)}</span>
                   </div>
 
                   {/* Manual Deductions List */}
@@ -2529,7 +2529,7 @@ export const PayrollContent = () => {
                 <Label>Total Potongan BPJS</Label>
                 <Input 
                   type="text" 
-                  value={formatCurrency(autoDeductionsTotal)} 
+                  value={formatCurrency(selectedPayroll?.total_deductions_bpjs || 0)} 
                   readOnly
                   className="bg-white font-semibold text-red-600"
                 />

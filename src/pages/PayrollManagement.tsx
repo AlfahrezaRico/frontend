@@ -798,8 +798,8 @@ export default function PayrollManagement() {
   const pagedPayrolls = filteredPayrolls.slice((page - 1) * pageSize, page * pageSize);
 
   // Group components by type for better display
-  const incomeComponents = calculatedComponents.filter(c => c.type === 'income');
-  const deductionComponents = calculatedComponents.filter(c => c.type === 'deduction');
+  const incomeComponents = calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)'));
+  const deductionComponents = calculatedComponents.filter(c => c.type === 'deduction' && c.name.includes('(Karyawan)'));
 
   return (
     <div className="min-h-screen bg-gray-50">
