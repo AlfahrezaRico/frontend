@@ -2739,7 +2739,8 @@ export const PayrollContent = () => {
                     <TableHead>Periode</TableHead>
                     <TableHead>Gaji Pokok</TableHead>
                     <TableHead>Total Pendapatan</TableHead>
-                    <TableHead>Total Deductions</TableHead>
+                    <TableHead>Total Potongan BPJS</TableHead>
+                    <TableHead>Total Potongan Manual</TableHead>
                     <TableHead>Gaji Bersih</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Tanggal Bayar</TableHead>
@@ -2778,6 +2779,9 @@ export const PayrollContent = () => {
                       </TableCell>
                       <TableCell className="font-medium text-red-600">
                         {formatCurrency(payroll.total_deductions_bpjs)}
+                      </TableCell>
+                      <TableCell className="font-medium text-red-600">
+                        {formatCurrency(payroll.total_deductions_manual)}
                       </TableCell>
                       <TableCell className="font-bold text-green-600">
                         {formatCurrency(payroll.net_salary)}

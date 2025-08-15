@@ -122,6 +122,7 @@ export default function PayrollManagement() {
     
     // Total Deductions
     total_deductions_bpjs: 0,
+    total_deductions_manual: 0, // Added for manual deductions
     
     // Total Pendapatan (Gaji + Tunjangan + BPJS Perusahaan)
     total_pendapatan: 0,
@@ -660,6 +661,7 @@ export default function PayrollManagement() {
         
         // Total Deductions
         total_deductions_bpjs: subtotalCompany + subtotalEmployee,
+        total_deductions_manual: totalManualDeduction, // Add total_deductions_manual
         
         // Total Pendapatan (Gaji + Tunjangan + BPJS Perusahaan)
         total_pendapatan: totalPendapatan,
@@ -751,6 +753,7 @@ export default function PayrollManagement() {
         
         // Total Deductions
         total_deductions_bpjs: 0,
+        total_deductions_manual: 0, // Reset total_deductions_manual
         
         // Total Pendapatan (Gaji + Tunjangan + BPJS Perusahaan)
         total_pendapatan: 0,
@@ -1160,6 +1163,16 @@ export default function PayrollManagement() {
                         />
                       </div>
                       <div>
+                        <Label htmlFor="total_deductions_manual">TOTAL PEMOTONGAN MANUAL</Label>
+                        <Input 
+                          id="total_deductions_manual"
+                          type="text" 
+                          value={formatCurrency(form.total_deductions_manual)} 
+                          readOnly
+                          className="bg-white font-semibold text-red-600"
+                        />
+                      </div>
+                      <div>
                         <Label htmlFor="net_salary">Total Diterima</Label>
                         <Input 
                           id="net_salary"
@@ -1245,7 +1258,8 @@ export default function PayrollManagement() {
                     <TableHead>Posisi</TableHead>
                     <TableHead>Periode</TableHead>
                     <TableHead>Gaji Pokok</TableHead>
-                    <TableHead>Potongan</TableHead>
+                    <TableHead>Total Potongan BPJS</TableHead>
+                    <TableHead>Total Potongan Manual</TableHead>
                     <TableHead>Total Diterima</TableHead>
                     <TableHead>Tanggal Bayar</TableHead>
                     <TableHead>Status</TableHead>
@@ -1254,9 +1268,9 @@ export default function PayrollManagement() {
                 </TableHeader>
                 <TableBody>
                   {loading ? (
-                    <TableRow><TableCell colSpan={9} className="text-center py-8">Loading...</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={10} className="text-center py-8">Loading...</TableCell></TableRow>
                   ) : pagedPayrolls.length === 0 ? (
-                    <TableRow><TableCell colSpan={9} className="text-center py-8 text-gray-500">Belum ada data payroll.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={10} className="text-center py-8 text-gray-500">Belum ada data payroll.</TableCell></TableRow>
                   ) : pagedPayrolls.map((p) => (
                     <TableRow key={p.id}>
                       <TableCell>{p.employee?.first_name || '-'} {p.employee?.last_name || ''}</TableCell>
@@ -1264,6 +1278,7 @@ export default function PayrollManagement() {
                       <TableCell>{p.pay_period_start} s/d {p.pay_period_end}</TableCell>
                       <TableCell>{formatCurrency(Number(p.gross_salary))}</TableCell>
                                               <TableCell>{formatCurrency(Number(p.total_deductions_bpjs))}</TableCell>
+                      <TableCell>{formatCurrency(Number(p.total_deductions_manual))}</TableCell>
                       <TableCell>{formatCurrency(Number(p.net_salary))}</TableCell>
                       <TableCell>{p.payment_date}</TableCell>
                       <TableCell>{p.status}</TableCell>
