@@ -121,7 +121,7 @@ export default function PayrollManagement() {
     angsuran_kredit: 0,
     
     // Total Deductions
-    total_deductions: 0,
+    total_deductions_bpjs: 0,
     
     // Total Pendapatan (Gaji + Tunjangan + BPJS Perusahaan)
     total_pendapatan: 0,
@@ -348,7 +348,7 @@ export default function PayrollManagement() {
       ...prev,
       basic_salary: basicSalary,
       gross_salary: grossSalary,
-      total_deductions: totalDeduction,
+              total_deductions_bpjs: totalDeduction,
       net_salary: netSalary,
       
       // Tunjangan dari Data Salary
@@ -659,7 +659,7 @@ export default function PayrollManagement() {
         angsuran_kredit: manualDeductions.angsuran_kredit,
         
         // Total Deductions
-        total_deductions: totalDeduction,
+        total_deductions_bpjs: totalDeduction,
         
         // Total Pendapatan (Gaji + Tunjangan + BPJS Perusahaan)
         total_pendapatan: totalPendapatan,
@@ -670,7 +670,7 @@ export default function PayrollManagement() {
         pph21: 0, // Pajak PPh21 (bisa diisi manual nanti)
         jkk: jkkCompany, // JKK (hanya ada di perusahaan)
         jkm: jkmCompany, // JKM (hanya ada di perusahaan)
-        deductions: totalDeduction, // Total deductions (legacy field)
+
         
         // Additional fields
         created_by: user.id,
@@ -691,7 +691,7 @@ export default function PayrollManagement() {
       console.log('- pph21:', payrollData.pph21);
       console.log('- jkk:', payrollData.jkk);
       console.log('- jkm:', payrollData.jkm);
-      console.log('- deductions:', payrollData.deductions);
+      
       console.log('================================');
       
       const res = await fetch(`${API_URL}/api/payrolls`, {
@@ -750,7 +750,7 @@ export default function PayrollManagement() {
         angsuran_kredit: 0,
         
         // Total Deductions
-        total_deductions: 0,
+        total_deductions_bpjs: 0,
         
         // Total Pendapatan (Gaji + Tunjangan + BPJS Perusahaan)
         total_pendapatan: 0,
@@ -1150,11 +1150,11 @@ export default function PayrollManagement() {
                       {/* Final Totals */}
                       <div className="grid grid-cols-2 gap-4 border-t pt-4">
                         <div>
-                          <Label htmlFor="total_deductions">TOTAL PEMOTONGAN</Label>
-                          <Input 
-                            id="total_deductions"
-                            type="text" 
-                            value={formatCurrency(form.total_deductions)} 
+                                            <Label htmlFor="total_deductions_bpjs">TOTAL PEMOTONGAN BPJS</Label>
+                  <Input 
+                    id="total_deductions_bpjs"
+                    type="text" 
+                    value={formatCurrency(form.total_deductions_bpjs)} 
                           readOnly
                           className="bg-white font-semibold text-red-600"
                         />
@@ -1263,7 +1263,7 @@ export default function PayrollManagement() {
                       <TableCell>{p.employee?.position || '-'}</TableCell>
                       <TableCell>{p.pay_period_start} s/d {p.pay_period_end}</TableCell>
                       <TableCell>{formatCurrency(Number(p.gross_salary))}</TableCell>
-                      <TableCell>{formatCurrency(Number(p.total_deductions))}</TableCell>
+                                              <TableCell>{formatCurrency(Number(p.total_deductions_bpjs))}</TableCell>
                       <TableCell>{formatCurrency(Number(p.net_salary))}</TableCell>
                       <TableCell>{p.payment_date}</TableCell>
                       <TableCell>{p.status}</TableCell>

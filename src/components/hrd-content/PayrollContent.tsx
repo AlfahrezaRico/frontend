@@ -89,7 +89,7 @@ export const PayrollContent = () => {
     angsuran_kredit: 0,
     
     // Total Deductions
-    total_deductions: 0,
+    total_deductions_bpjs: 0,
     total_deductions_manual: 0
   });
   const [submitting, setSubmitting] = useState(false);
@@ -294,12 +294,12 @@ export const PayrollContent = () => {
         setManualDeductionsTotal(getTotalManualDeductions());
         
         // net_salary yang ditampilkan = pendapatan - auto - manual
-        // total_deductions untuk database = BPJS Perusahaan + BPJS Karyawan
+        // total_deductions_bpjs untuk database = BPJS Perusahaan + BPJS Karyawan
         // total_deductions_manual untuk database = potongan manual
         setForm(prev => ({
           ...prev,
           gross_salary: pendapatan,
-          total_deductions: autoDeduction, // untuk database: BPJS Perusahaan + BPJS Karyawan
+          total_deductions_bpjs: autoDeduction, // untuk database: BPJS Perusahaan + BPJS Karyawan
           net_salary: pendapatan - autoDeduction - getTotalManualDeductions(),
           total_deductions_manual: getTotalManualDeductions()
         }));
@@ -583,7 +583,7 @@ export const PayrollContent = () => {
         angsuran_kredit: form.angsuran_kredit,
         
         // Total Deductions
-        total_deductions: autoDeductionsTotal + manualDeductionsTotal,
+        total_deductions_bpjs: autoDeductionsTotal + manualDeductionsTotal,
         total_deductions_manual: manualDeductionsTotal
       };
 
@@ -608,7 +608,7 @@ export const PayrollContent = () => {
         pay_period_end: "", 
         basic_salary: 0,
         gross_salary: 0, 
-        total_deductions: 0,
+        total_deductions_bpjs: 0,
         net_salary: 0, 
         payment_date: "", 
         status: "PAID",
@@ -800,7 +800,7 @@ export const PayrollContent = () => {
       kasbon: Number(payroll.kasbon) || 0,
       telat: Number(payroll.telat) || 0,
       angsuran_kredit: Number(payroll.angsuran_kredit) || 0,
-      total_deductions: Number(payroll.total_deductions) || 0,
+      total_deductions_bpjs: Number(payroll.total_deductions_bpjs) || 0,
       total_deductions_manual: Number(payroll.total_deductions_manual) || 0
     });
     
@@ -891,7 +891,7 @@ export const PayrollContent = () => {
         angsuran_kredit: form.angsuran_kredit,
 
         // Totals
-        total_deductions: totalDeduction,
+        total_deductions_bpjs: subtotalCompany + subtotalEmployee, // BPJS Perusahaan + BPJS Karyawan
         total_deductions_manual: totalManualDeduction,
         total_pendapatan: totalPendapatan,
 
@@ -1134,7 +1134,7 @@ export const PayrollContent = () => {
                 kasbon: 0,
                 telat: 0,
                 angsuran_kredit: 0,
-                total_deductions: 0,
+                total_deductions_bpjs: 0,
                 total_deductions_manual: 0
               });
               setCalculatedComponents([]);
@@ -1647,9 +1647,9 @@ export const PayrollContent = () => {
                       <p className="text-xs text-gray-500 mt-1">Gaji + Tunjangan + Komponen Income</p>
                     </div>
                     <div>
-                      <Label htmlFor="total_deductions">Total Potongan</Label>
+                      <Label htmlFor="total_deductions_bpjs">Total Potongan BPJS</Label>
                       <Input 
-                        id="total_deductions"
+                        id="total_deductions_bpjs"
                         type="text" 
                         value={formatCurrency(
                           calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).reduce((sum, c) => sum + c.amount, 0) +
@@ -2232,7 +2232,7 @@ export const PayrollContent = () => {
             kasbon: 0,
             telat: 0,
             angsuran_kredit: 0,
-            total_deductions: 0,
+            total_deductions_bpjs: 0,
             total_deductions_manual: 0
           });
           setCalculatedComponents([]);
@@ -2776,7 +2776,7 @@ export const PayrollContent = () => {
                         {formatCurrency(payroll.gross_salary)}
                       </TableCell>
                       <TableCell className="font-medium text-red-600">
-                        {formatCurrency(payroll.total_deductions)}
+                        {formatCurrency(payroll.total_deductions_bpjs)}
                       </TableCell>
                       <TableCell className="font-bold text-green-600">
                         {formatCurrency(payroll.net_salary)}

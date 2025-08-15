@@ -221,7 +221,8 @@ export type Database = {
       payrolls: {
         Row: {
           created_at: string | null
-          deductions: number
+          total_deductions_bpjs: number | null
+          total_deductions_manual: number | null
           employee_id: string
           gross_salary: number
           id: string
@@ -233,7 +234,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
-          deductions?: number
+          total_deductions_bpjs?: number | null
+          total_deductions_manual?: number | null
           employee_id: string
           gross_salary: number
           id?: string
@@ -245,7 +247,8 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
-          deductions?: number
+          total_deductions_bpjs?: number | null
+          total_deductions_manual?: number | null
           employee_id?: string
           gross_salary?: number
           id?: string
