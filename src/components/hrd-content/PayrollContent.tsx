@@ -1488,7 +1488,7 @@ export const PayrollContent = () => {
                         <div className="space-y-3">
                           <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">KARYAWAN</h4>
                           <div className="space-y-2">
-                            {calculatedComponents.filter(c => c.type === 'deduction').map((component, index) => {
+                            {calculatedComponents.filter(c => c.type === 'deduction' && c.name.includes('(Karyawan)')).map((component, index) => {
                               console.log(`Rendering employee BPJS component: ${component.name}, percentage: ${component.percentage}`);
                               return (
                               <div key={index} className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
@@ -1506,7 +1506,7 @@ export const PayrollContent = () => {
                           <div className="flex justify-between items-center py-3 px-4 bg-red-100 rounded-lg border border-red-300">
                             <span className="font-semibold text-gray-800">SUB TOTAL</span>
                             <span className="font-bold text-red-800">
-                              {formatCurrency(calculatedComponents.filter(c => c.type === 'deduction').reduce((sum, c) => sum + c.amount, 0))}
+                              {formatCurrency(calculatedComponents.filter(c => c.type === 'deduction' && c.name.includes('(Karyawan)')).reduce((sum, c) => sum + c.amount, 0))}
                             </span>
                           </div>
                         </div>
@@ -1517,7 +1517,7 @@ export const PayrollContent = () => {
                           <span className="text-2xl font-bold text-red-800">
                             {formatCurrency(
                               calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).reduce((sum, c) => sum + c.amount, 0) +
-                              calculatedComponents.filter(c => c.type === 'deduction').reduce((sum, c) => sum + c.amount, 0)
+                              calculatedComponents.filter(c => c.type === 'deduction' && c.name.includes('(Karyawan)')).reduce((sum, c) => sum + c.amount, 0)
                             )}
                           </span>
                         </div>
@@ -2479,7 +2479,7 @@ export const PayrollContent = () => {
                   <div className="space-y-3">
                     <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">KARYAWAN</h4>
                     <div className="space-y-2">
-                      {calculatedComponents.filter(c => c.type === 'deduction').map((component, index) => {
+                      {calculatedComponents.filter(c => c.type === 'deduction' && c.name.includes('(Karyawan)')).map((component, index) => {
                         console.log(`Rendering employee BPJS component: ${component.name}, percentage: ${component.percentage}`);
                         return (
                         <div key={index} className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
@@ -2498,7 +2498,7 @@ export const PayrollContent = () => {
                       <span className="font-semibold text-gray-800">SUB TOTAL</span>
                       <span className="font-bold text-red-800">
                         {formatCurrency(
-                          calculatedComponents.filter(c => c.type === 'deduction').reduce((s, c) => s + c.amount, 0)
+                          calculatedComponents.filter(c => c.type === 'deduction' && c.name.includes('(Karyawan)')).reduce((s, c) => s + c.amount, 0)
                         )}
                       </span>
                     </div>
