@@ -299,7 +299,7 @@ export const PayrollContent = () => {
         setForm(prev => ({
           ...prev,
           gross_salary: pendapatan,
-          total_deductions_bpjs: autoDeductionsTotal, // untuk database: BPJS Perusahaan + BPJS Karyawan (tanpa potongan manual)
+          total_deductions_bpjs: autoDeduction, // untuk database: BPJS Perusahaan + BPJS Karyawan (tanpa potongan manual)
           net_salary: pendapatan - autoDeduction - getTotalManualDeductions(),
           total_deductions_manual: getTotalManualDeductions()
         }));
@@ -584,7 +584,7 @@ export const PayrollContent = () => {
         angsuran_kredit: form.angsuran_kredit,
         
         // Total Deductions
-        total_deductions_bpjs: autoDeductionsTotal + manualDeductionsTotal,
+        total_deductions_bpjs: autoDeductionsTotal, // BPJS Perusahaan + BPJS Karyawan (tanpa potongan manual)
         total_deductions_manual: manualDeductionsTotal
       };
 
@@ -900,8 +900,7 @@ export const PayrollContent = () => {
         bpjs_employee: subtotalEmployee,
         bpjs_company: subtotalCompany,
         jkk: jkkCompany,
-        jkm: jkmCompany,
-        deductions: totalDeduction
+        jkm: jkmCompany
       };
 
       const response = await fetch(`${API_URL}/api/payrolls/${selectedPayroll.id}`, {
