@@ -111,7 +111,6 @@ const KaryawanDashboard = () => {
       if (res.ok) {
         const profil = await res.json();
         setProfile(profil);
-        console.log('Profile loaded:', profil);
       } else {
         setProfile(null);
       }

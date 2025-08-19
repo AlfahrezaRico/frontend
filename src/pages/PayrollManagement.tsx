@@ -42,7 +42,6 @@ interface ManualDeduction {
 
 // Format currency to Indonesian format
 const formatCurrency = (amount: number | null | undefined): string => {
-  // Handle null, undefined, or non-number values
   if (amount === null || amount === undefined || isNaN(Number(amount))) {
     return 'Rp 0';
   }
@@ -166,7 +165,6 @@ export default function PayrollManagement() {
     try {
       const res = await fetch(`${API_URL}/api/salary/employee/${employeeId}`);
       if (!res.ok) {
-        console.log('No salary data found for employee:', employeeId);
         return null;
       }
       const data = await res.json();
@@ -182,8 +180,6 @@ export default function PayrollManagement() {
       const res = await fetch(`${API_URL}/api/payroll-components`);
       if (!res.ok) throw new Error("Gagal mengambil konfigurasi payroll");
       const data = await res.json();
-      console.log('Fetched payroll components:', data);
-      console.log('Payroll components count:', data.length);
       setPayrollComponents(data);
     } catch (error) {
       console.error('Error fetching payroll components:', error);
@@ -198,47 +194,23 @@ export default function PayrollManagement() {
 
   // Update created_by when user is available
   useEffect(() => {
-    console.log('=== USER EFFECT TRIGGERED ===');
-    console.log('user:', user);
-    console.log('user?.id:', user?.id);
-    console.log('form.created_by before update:', form.created_by);
-    
     if (user?.id) {
       setForm(prev => ({
         ...prev,
         created_by: user.id
       }));
-      console.log('Updated form.created_by to:', user.id);
     }
-    console.log('================================');
   }, [user?.id]);
 
   // Calculate payroll components based on basic salary
   const calculatePayrollComponents = (basicSalary: number) => {
-    console.log('=== calculatePayrollComponents CALLED ===');
-    console.log('basicSalary:', basicSalary);
-    console.log('autoCalculation:', autoCalculation);
-    console.log('payrollComponents:', payrollComponents);
-    console.log('payrollComponents.length:', payrollComponents.length);
-    
-    if (basicSalary <= 0) {
-      console.log('Basic salary <= 0, clearing components');
-      setCalculatedComponents([]);
-      updateTotals(basicSalary, [], manualDeductions);
-      return;
-    }
-
-    if (!autoCalculation) {
-      console.log('Auto calculation disabled, clearing components');
+    if (basicSalary <= 0 || !autoCalculation) {
       setCalculatedComponents([]);
       updateTotals(basicSalary, [], manualDeductions);
       return;
     }
 
     const activeComponents = payrollComponents.filter(comp => comp.is_active);
-    console.log('Active components:', activeComponents);
-    console.log('Active components count:', activeComponents.length);
-    
     const calculated: CalculatedComponent[] = [];
 
     activeComponents.forEach(component => {
@@ -246,15 +218,11 @@ export default function PayrollManagement() {
       let isPercentage = false;
 
       if (component.percentage > 0) {
-        // Calculate based on percentage
         amount = (basicSalary * component.percentage) / 100;
         isPercentage = true;
-        console.log(`Component ${component.name}: ${component.percentage}% of ${basicSalary} = ${amount}`);
       } else if (component.amount > 0) {
-        // Use fixed amount
         amount = component.amount;
         isPercentage = false;
-        console.log(`Component ${component.name}: fixed amount = ${amount}`);
       }
 
       calculated.push({
@@ -267,24 +235,18 @@ export default function PayrollManagement() {
       });
     });
 
-    console.log('Final calculated components:', calculated);
-    console.log('==========================================');
-
     setCalculatedComponents(calculated);
     updateTotals(basicSalary, calculated, manualDeductions);
   };
 
   // Update totals calculation
   const updateTotals = (basicSalary: number, calculated: CalculatedComponent[], manual: ManualDeduction) => {
-    // Calculate total allowances (PENDAPATAN TIDAK TETAP) - dari form state
     const totalAllowances = (form.position_allowance || 0) + (form.management_allowance || 0) + (form.phone_allowance || 0) + (form.incentive_allowance || 0) + (form.overtime_allowance || 0);
     
-    // Calculate company contributions (PENDAPATAN TETAP - Perusahaan)
     const companyContributions = calculated
       .filter(c => c.type === 'income' && c.category === 'bpjs')
       .reduce((sum, c) => sum + c.amount, 0);
     
-    // Calculate employee deductions (Pemotongan - Karyawan)
     const employeeDeductions = calculated
       .filter(c => c.type === 'deduction' && c.category === 'bpjs')
       .reduce((sum, c) => sum + c.amount, 0);
@@ -292,16 +254,10 @@ export default function PayrollManagement() {
     const totalManualDeduction = manual.kasbon + manual.telat + manual.angsuran_kredit;
     const totalDeduction = employeeDeductions + totalManualDeduction;
     
-    // Calculate gross salary (basic salary + allowances)
     const grossSalary = basicSalary + totalAllowances;
-    
-    // Calculate total pendapatan (gaji + tunjangan + BPJS perusahaan)
     const totalPendapatan = basicSalary + totalAllowances + companyContributions;
-    
-    // Calculate net salary
     const netSalary = totalPendapatan - totalDeduction;
     
-    // Map calculated components to specific fields - berdasarkan data payroll_components yang ada
     const bpjsHealthCompany = calculated.find(c => c.name === 'BPJS Kesehatan (Perusahaan)' && c.type === 'income')?.amount || 0;
     const jhtCompany = calculated.find(c => c.name === 'BPJS Ketenagakerjaan JHT (Perusahaan)' && c.type === 'income')?.amount || 0;
     const jkkCompany = calculated.find(c => c.name === 'BPJS Ketenagakerjaan JKK (Perusahaan)' && c.type === 'income')?.amount || 0;
@@ -312,38 +268,14 @@ export default function PayrollManagement() {
     const jhtEmployee = calculated.find(c => c.name === 'BPJS Ketenagakerjaan JHT (Karyawan)' && c.type === 'deduction')?.amount || 0;
     const jpEmployee = calculated.find(c => c.name === 'BPJS Jaminan Pensiun (Karyawan)' && c.type === 'deduction')?.amount || 0;
     
-    // Tunjangan dari form (sudah diisi dari salary data)
     const positionAllowance = form.position_allowance || 0;
     const managementAllowance = form.management_allowance || 0;
     const phoneAllowance = form.phone_allowance || 0;
     const incentiveAllowance = form.incentive_allowance || 0;
     const overtimeAllowance = form.overtime_allowance || 0;
     
-    // Calculate subtotals
     const subtotalCompany = bpjsHealthCompany + jhtCompany + jkkCompany + jkmCompany + jpCompany;
     const subtotalEmployee = bpjsHealthEmployee + jhtEmployee + jpEmployee;
-    
-    // Debug logging
-    console.log('=== DEBUG PAYROLL CALCULATION ===');
-    console.log('Basic Salary:', basicSalary);
-    console.log('Total Allowances:', totalAllowances);
-    console.log('Company Contributions:', companyContributions);
-    console.log('Employee Deductions:', employeeDeductions);
-    console.log('Manual Deductions:', totalManualDeduction);
-    console.log('Gross Salary:', grossSalary);
-    console.log('Total Pendapatan:', totalPendapatan);
-    console.log('Total Deductions:', totalDeduction);
-    console.log('Net Salary:', netSalary);
-    console.log('Subtotal Company:', subtotalCompany);
-    console.log('Subtotal Employee:', subtotalEmployee);
-    console.log('BPJS Components:', {
-      bpjsHealthCompany,
-      jhtCompany,
-      jkkCompany,
-      jkmCompany,
-      jpCompany
-    });
-    console.log('================================');
     
     setForm(prev => ({
       ...prev,
@@ -351,38 +283,26 @@ export default function PayrollManagement() {
       gross_salary: grossSalary,
       total_deductions_bpjs: subtotalCompany + subtotalEmployee,
       net_salary: netSalary,
-      
-      // Tunjangan dari Data Salary
       position_allowance: positionAllowance,
       management_allowance: managementAllowance,
       phone_allowance: phoneAllowance,
       incentive_allowance: incentiveAllowance,
       overtime_allowance: overtimeAllowance,
       total_allowances: totalAllowances,
-      
-      // Komponen Payroll yang Dihitung - Perusahaan
       bpjs_health_company: bpjsHealthCompany,
       jht_company: jhtCompany,
       jkk_company: jkkCompany,
       jkm_company: jkmCompany,
       jp_company: jpCompany,
       subtotal_company: subtotalCompany,
-      
-      // Komponen Payroll yang Dihitung - Karyawan
       bpjs_health_employee: bpjsHealthEmployee,
       jht_employee: jhtEmployee,
       jp_employee: jpEmployee,
       subtotal_employee: subtotalEmployee,
-      
-      // Deductions Manual
       kasbon: manual.kasbon,
       telat: manual.telat,
       angsuran_kredit: manual.angsuran_kredit,
-      
-      // Total Pendapatan (Gaji + Tunjangan + BPJS Perusahaan)
       total_pendapatan: totalPendapatan,
-      
-      // Additional fields
       created_by: user?.id,
       approved_by: null,
       approved_at: null
@@ -411,12 +331,12 @@ export default function PayrollManagement() {
   const handleFormChange = async (field: string, value: any) => {
     setForm(f => ({ ...f, [field]: value }));
     
-    // If employee_id changes, fetch employee salary data
     if (field === 'employee_id' && value) {
       const salaryData = await fetchEmployeeSalary(value);
       if (salaryData) {
-        setForm(prev => ({
-          ...prev,
+        const newFormState = {
+          ...form,
+          employee_id: value,
           basic_salary: Number(salaryData.basic_salary) || 0,
           position_allowance: Number(salaryData.position_allowance) || 0,
           management_allowance: Number(salaryData.management_allowance) || 0,
@@ -430,27 +350,21 @@ export default function PayrollManagement() {
             Number(salaryData.incentive_allowance || 0) +
             Number(salaryData.overtime_allowance || 0)
           )
-        }));
+        };
+        setForm(newFormState);
         
-        // Recalculate payroll components with new basic salary
         if (autoCalculation) {
           calculatePayrollComponents(Number(salaryData.basic_salary));
-          // Also update totals to ensure form state is updated
-          setTimeout(() => {
-            updateTotals(Number(salaryData.basic_salary), calculatedComponents, manualDeductions);
-          }, 100);
         }
       }
     }
     
-    // If basic salary changes, recalculate components
     if (field === 'basic_salary') {
       calculatePayrollComponents(Number(value));
     }
   };
 
   const handleManualDeductionChange = (field: keyof ManualDeduction, value: number) => {
-    // Validasi: manual deduction tidak boleh melebihi total diterima
     const currentTotalManualDeductions = getTotalManualDeductions(manualDeductions) - manualDeductions[field] + value;
     
     if (currentTotalManualDeductions > form.net_salary) {
@@ -465,7 +379,6 @@ export default function PayrollManagement() {
     const newManualDeductions = { ...manualDeductions, [field]: value };
     setManualDeductions(newManualDeductions);
     
-    // Recalculate totals with new manual deductions
     updateTotals(form.basic_salary, calculatedComponents, newManualDeductions);
   };
 
@@ -474,32 +387,6 @@ export default function PayrollManagement() {
     setSubmitting(true);
     
     try {
-      // Debug: Check what we have before calculation
-      console.log('=== DEBUG BEFORE CALCULATION ===');
-      console.log('form.basic_salary:', form.basic_salary);
-      console.log('calculatedComponents:', calculatedComponents);
-      console.log('calculatedComponents.length:', calculatedComponents.length);
-      console.log('payrollComponents:', payrollComponents);
-      console.log('payrollComponents.length:', payrollComponents.length);
-      console.log('manualDeductions:', manualDeductions);
-      console.log('user:', user);
-      console.log('user?.id:', user?.id);
-      console.log('================================');
-      
-      // Debug: Show each calculated component
-      console.log('=== DETAILED CALCULATED COMPONENTS ===');
-      calculatedComponents.forEach((comp, index) => {
-        console.log(`Component ${index + 1}:`, {
-          name: comp.name,
-          type: comp.type,
-          category: comp.category,
-          amount: comp.amount,
-          percentage: comp.percentage
-        });
-      });
-      console.log('================================');
-      
-      // Ensure we have a user ID
       if (!user?.id) {
         console.error('No user ID found! User object:', user);
         toast({
@@ -507,10 +394,10 @@ export default function PayrollManagement() {
           description: 'User ID tidak ditemukan. Silakan login ulang.',
           variant: 'destructive',
         });
+        setSubmitting(false);
         return;
       }
       
-      // Ensure payroll components are loaded
       if (payrollComponents.length === 0) {
         console.error('No payroll components loaded!');
         toast({
@@ -518,183 +405,84 @@ export default function PayrollManagement() {
           description: 'Konfigurasi payroll belum dimuat. Silakan refresh halaman.',
           variant: 'destructive',
         });
+        setSubmitting(false);
         return;
       }
       
-      // Ensure calculated components exist
-      if (calculatedComponents.length === 0) {
+      if (autoCalculation && calculatedComponents.length === 0 && form.basic_salary > 0) {
         console.error('No calculated components! Recalculating...');
         calculatePayrollComponents(form.basic_salary);
         toast({
           title: 'Info',
-          description: 'Komponen payroll sedang dihitung ulang. Silakan coba lagi.',
+          description: 'Komponen payroll sedang dihitung ulang. Silakan coba simpan lagi.',
         });
+        setSubmitting(false);
         return;
       }
       
-      // Calculate all values before submitting
       const totalAllowances = (form.position_allowance || 0) + (form.management_allowance || 0) + (form.phone_allowance || 0) + (form.incentive_allowance || 0) + (form.overtime_allowance || 0);
-      
-      const companyContributions = calculatedComponents
-        .filter(c => c.type === 'income' && c.category === 'bpjs')
-        .reduce((sum, c) => sum + c.amount, 0);
-      
-      const employeeDeductions = calculatedComponents
-        .filter(c => c.type === 'deduction' && c.category === 'bpjs')
-        .reduce((sum, c) => sum + c.amount, 0);
-      
+      const companyContributions = calculatedComponents.filter(c => c.type === 'income' && c.category === 'bpjs').reduce((sum, c) => sum + c.amount, 0);
+      const employeeDeductions = calculatedComponents.filter(c => c.type === 'deduction' && c.category === 'bpjs').reduce((sum, c) => sum + c.amount, 0);
       const totalManualDeduction = manualDeductions.kasbon + manualDeductions.telat + manualDeductions.angsuran_kredit;
       const totalDeduction = employeeDeductions + totalManualDeduction;
-      
       const grossSalary = form.basic_salary + totalAllowances;
       const totalPendapatan = form.basic_salary + totalAllowances + companyContributions;
       const netSalary = totalPendapatan - totalDeduction;
       
-      // Debug: Check calculated values
-      console.log('=== DEBUG CALCULATED VALUES ===');
-      console.log('totalAllowances:', totalAllowances);
-      console.log('companyContributions:', companyContributions);
-      console.log('employeeDeductions:', employeeDeductions);
-      console.log('totalManualDeduction:', totalManualDeduction);
-      console.log('totalDeduction:', totalDeduction);
-      console.log('grossSalary:', grossSalary);
-      console.log('totalPendapatan:', totalPendapatan);
-      console.log('netSalary:', netSalary);
-      console.log('================================');
-      
-      // Map calculated components to specific fields - berdasarkan data payroll_components yang ada
-      // Gunakan type 'income' untuk komponen perusahaan (PENDAPATAN TETAP)
       const bpjsHealthCompany = calculatedComponents.find(c => c.name === 'BPJS Kesehatan (Perusahaan)' && c.type === 'income')?.amount || 0;
       const jhtCompany = calculatedComponents.find(c => c.name === 'BPJS Ketenagakerjaan JHT (Perusahaan)' && c.type === 'income')?.amount || 0;
       const jkkCompany = calculatedComponents.find(c => c.name === 'BPJS Ketenagakerjaan JKK (Perusahaan)' && c.type === 'income')?.amount || 0;
       const jkmCompany = calculatedComponents.find(c => c.name === 'BPJS Ketenagakerjaan JKM (Perusahaan)' && c.type === 'income')?.amount || 0;
       const jpCompany = calculatedComponents.find(c => c.name === 'BPJS Jaminan Pensiun (Perusahaan)' && c.type === 'income')?.amount || 0;
       
-      // Gunakan type 'deduction' untuk komponen karyawan (POTONGAN)
       const bpjsHealthEmployee = calculatedComponents.find(c => c.name === 'BPJS Kesehatan (Karyawan)' && c.type === 'deduction')?.amount || 0;
       const jhtEmployee = calculatedComponents.find(c => c.name === 'BPJS Ketenagakerjaan JHT (Karyawan)' && c.type === 'deduction')?.amount || 0;
       const jpEmployee = calculatedComponents.find(c => c.name === 'BPJS Jaminan Pensiun (Karyawan)' && c.type === 'deduction')?.amount || 0;
       
-      // Debug: Check individual BPJS components
-      console.log('=== DEBUG INDIVIDUAL BPJS COMPONENTS ===');
-      console.log('BPJS Health Company:', bpjsHealthCompany);
-      console.log('JHT Company:', jhtCompany);
-      console.log('JKK Company:', jkkCompany);
-      console.log('JKM Company:', jkmCompany);
-      console.log('JP Company:', jpCompany);
-      console.log('BPJS Health Employee:', bpjsHealthEmployee);
-      console.log('JHT Employee:', jhtEmployee);
-      console.log('JP Employee:', jpEmployee);
-      console.log('================================');
-      
-      // Tunjangan dari form (sudah diisi dari salary data)
       const positionAllowance = form.position_allowance || 0;
       const managementAllowance = form.management_allowance || 0;
       const phoneAllowance = form.phone_allowance || 0;
       const incentiveAllowance = form.incentive_allowance || 0;
       const overtimeAllowance = form.overtime_allowance || 0;
       
-      // Debug: Check mapped values
-      console.log('=== DEBUG MAPPED VALUES ===');
-      console.log('BPJS Company:', { bpjsHealthCompany, jhtCompany, jkkCompany, jkmCompany, jpCompany });
-      console.log('BPJS Employee:', { bpjsHealthEmployee, jhtEmployee, jpEmployee });
-      console.log('Allowances:', { positionAllowance, managementAllowance, phoneAllowance, incentiveAllowance, overtimeAllowance });
-      console.log('================================');
-      
-      // Calculate subtotals
       const subtotalCompany = bpjsHealthCompany + jhtCompany + jkkCompany + jkmCompany + jpCompany;
       const subtotalEmployee = bpjsHealthEmployee + jhtEmployee + jpEmployee;
       
-      // Debug: Check subtotals
-      console.log('=== DEBUG SUBTOTALS ===');
-      console.log('subtotalCompany:', subtotalCompany);
-      console.log('subtotalEmployee:', subtotalEmployee);
-      console.log('================================');
-      
-      // Debug: Check final calculations
-      console.log('=== DEBUG FINAL CALCULATIONS ===');
-      console.log('Basic Salary:', form.basic_salary);
-      console.log('Total Allowances:', totalAllowances);
-      console.log('Company Contributions:', companyContributions);
-      console.log('Employee Deductions:', employeeDeductions);
-      console.log('Total Manual Deduction:', totalManualDeduction);
-      console.log('Total Deduction:', totalDeduction);
-      console.log('Gross Salary:', grossSalary);
-      console.log('Total Pendapatan:', totalPendapatan);
-      console.log('Net Salary:', netSalary);
-      console.log('User ID:', user?.id);
-      console.log('Form created_by:', form.created_by);
-      console.log('================================');
-      
-      // Create the complete payroll data object
       const payrollData = {
         ...form,
         gross_salary: grossSalary,
         net_salary: netSalary,
-        
-        // Tunjangan dari Data Salary
         position_allowance: positionAllowance,
         management_allowance: managementAllowance,
         phone_allowance: phoneAllowance,
         incentive_allowance: incentiveAllowance,
         overtime_allowance: overtimeAllowance,
         total_allowances: totalAllowances,
-        
-        // Komponen Payroll yang Dihitung - Perusahaan
         bpjs_health_company: bpjsHealthCompany,
         jht_company: jhtCompany,
         jkk_company: jkkCompany,
         jkm_company: jkmCompany,
         jp_company: jpCompany,
         subtotal_company: subtotalCompany,
-        
-        // Komponen Payroll yang Dihitung - Karyawan
         bpjs_health_employee: bpjsHealthEmployee,
         jht_employee: jhtEmployee,
         jp_employee: jpEmployee,
         subtotal_employee: subtotalEmployee,
-        
-        // Deductions Manual
         kasbon: manualDeductions.kasbon,
         telat: manualDeductions.telat,
         angsuran_kredit: manualDeductions.angsuran_kredit,
-        
-        // Total Deductions
         total_deductions_bpjs: subtotalCompany + subtotalEmployee,
-        total_deductions_manual: totalManualDeduction, // Add total_deductions_manual
-        
-        // Total Pendapatan (Gaji + Tunjangan + BPJS Perusahaan)
+        total_deductions_manual: totalManualDeduction,
         total_pendapatan: totalPendapatan,
-        
-        // Additional fields yang diperlukan database (tidak duplikat)
-        bpjs_employee: employeeDeductions, // Total BPJS karyawan
-        bpjs_company: companyContributions, // Total BPJS perusahaan
-        pph21: 0, // Pajak PPh21 (bisa diisi manual nanti)
-        jkk: jkkCompany, // JKK (hanya ada di perusahaan)
-        jkm: jkmCompany, // JKM (hanya ada di perusahaan)
-
-        
-        // Additional fields
+        bpjs_employee: employeeDeductions,
+        bpjs_company: companyContributions,
+        pph21: 0,
+        jkk: jkkCompany,
+        jkm: jkmCompany,
         created_by: user.id,
         approved_by: null,
         approved_at: null
       };
-      
-      console.log('=== FINAL PAYROLL DATA TO BE SENT ===');
-      console.log('Payroll data to be sent:', payrollData);
-      console.log('Key fields check:');
-      console.log('- subtotal_company:', payrollData.subtotal_company);
-      console.log('- subtotal_employee:', payrollData.subtotal_employee);
-      console.log('- total_pendapatan:', payrollData.total_pendapatan);
-      console.log('- created_by:', payrollData.created_by);
-      console.log('Additional fields check:');
-      console.log('- bpjs_employee:', payrollData.bpjs_employee);
-      console.log('- bpjs_company:', payrollData.bpjs_company);
-      console.log('- pph21:', payrollData.pph21);
-      console.log('- jkk:', payrollData.jkk);
-      console.log('- jkm:', payrollData.jkm);
-      
-      console.log('================================');
       
       const res = await fetch(`${API_URL}/api/payrolls`, {
         method: "POST",
@@ -707,9 +495,6 @@ export default function PayrollManagement() {
         throw new Error(errorData.error || "Gagal tambah payroll");
       }
       
-      const result = await res.json();
-      console.log('Payroll created successfully:', result);
-      
       setModalOpen(false);
       setForm({ 
         employee_id: "", 
@@ -720,46 +505,30 @@ export default function PayrollManagement() {
         net_salary: 0, 
         payment_date: "", 
         status: "PAID",
-        
-        // Tunjangan dari Data Salary
         position_allowance: 0,
         management_allowance: 0,
         phone_allowance: 0,
         incentive_allowance: 0,
         overtime_allowance: 0,
         total_allowances: 0,
-        
-        // Komponen Payroll yang Dihitung - Perusahaan
         bpjs_health_company: 0,
         jht_company: 0,
         jkk_company: 0,
         jkm_company: 0,
         jp_company: 0,
         subtotal_company: 0,
-        
-        // Komponen Payroll yang Dihitung - Karyawan
         bpjs_health_employee: 0,
         jht_employee: 0,
         jp_employee: 0,
         subtotal_employee: 0,
-        
-        // Pajak
         pph21: 0,
-        
-        // Deductions Manual
         kasbon: 0,
         telat: 0,
         angsuran_kredit: 0,
-        
-        // Total Deductions
         total_deductions_bpjs: 0,
-        total_deductions_manual: 0, // Reset total_deductions_manual
-        
-        // Total Pendapatan (Gaji + Tunjangan + BPJS Perusahaan)
+        total_deductions_manual: 0,
         total_pendapatan: 0,
-        
-        // Additional fields
-        created_by: user?.id,
+        created_by: user?.id || "",
         approved_by: null,
         approved_at: null
       });
@@ -782,7 +551,6 @@ export default function PayrollManagement() {
     }
   };
 
-  // Search & Pagination
   const filteredPayrolls = payrolls.filter((p) => {
     const searchTerm = search.toLowerCase();
     return (
@@ -797,7 +565,6 @@ export default function PayrollManagement() {
   const totalPages = Math.ceil(filteredPayrolls.length / pageSize);
   const pagedPayrolls = filteredPayrolls.slice((page - 1) * pageSize, page * pageSize);
 
-  // Group components by type for better display
   const incomeComponents = calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)'));
   const deductionComponents = calculatedComponents.filter(c => c.type === 'deduction' && c.name.includes('(Karyawan)'));
 
@@ -961,14 +728,6 @@ export default function PayrollManagement() {
                             min="0"
                             className={manualDeductions.kasbon > 0 && getTotalManualDeductions(manualDeductions) > form.net_salary ? 'border-red-500' : ''}
                           />
-                          <div className="text-xs text-gray-500 mt-1">
-                            {formatCurrency(manualDeductions.kasbon)}
-                          </div>
-                          {manualDeductions.kasbon > 0 && getTotalManualDeductions(manualDeductions) > form.net_salary && (
-                            <div className="text-xs text-red-500 mt-1">
-                              ⚠️ Melebihi batas maksimal
-                            </div>
-                          )}
                         </div>
                         <div>
                           <Label htmlFor="telat">Telat</Label>
@@ -981,14 +740,6 @@ export default function PayrollManagement() {
                             min="0"
                             className={manualDeductions.telat > 0 && getTotalManualDeductions(manualDeductions) > form.net_salary ? 'border-red-500' : ''}
                           />
-                          <div className="text-xs text-gray-500 mt-1">
-                            {formatCurrency(manualDeductions.telat)}
-                          </div>
-                          {manualDeductions.telat > 0 && getTotalManualDeductions(manualDeductions) > form.net_salary && (
-                            <div className="text-xs text-red-500 mt-1">
-                              ⚠️ Melebihi batas maksimal
-                            </div>
-                          )}
                         </div>
                         <div>
                           <Label htmlFor="angsuran_kredit">Angsuran Kredit</Label>
@@ -1001,33 +752,15 @@ export default function PayrollManagement() {
                             min="0"
                             className={manualDeductions.angsuran_kredit > 0 && getTotalManualDeductions(manualDeductions) > form.net_salary ? 'border-red-500' : ''}
                           />
-                          <div className="text-xs text-gray-500 mt-1">
-                            {formatCurrency(manualDeductions.angsuran_kredit)}
-                          </div>
-                          {manualDeductions.angsuran_kredit > 0 && getTotalManualDeductions(manualDeductions) > form.net_salary && (
-                            <div className="text-xs text-red-500 mt-1">
-                              ⚠️ Melebihi batas maksimal
-                            </div>
-                          )}
                         </div>
                       </div>
-                      {(manualDeductions.kasbon > 0 || manualDeductions.telat > 0 || manualDeductions.angsuran_kredit > 0) && (
-                        <div className="bg-red-50 p-3 rounded-lg">
-                          <div className="flex justify-between items-center">
-                            <span className="font-medium text-sm text-red-800">Total Potongan Manual</span>
-                            <span className="text-sm font-semibold text-red-600">
-                              - {formatCurrency(getTotalManualDeductions(manualDeductions))}
-                            </span>
-                          </div>
-                        </div>
-                      )}
                       
                       {/* Warning message for total deductions */}
                       {getTotalManualDeductions(manualDeductions) > form.net_salary && (
                         <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                           <div className="flex items-center text-red-700">
                             <span className="text-sm font-medium">
-                              ⚠️ Total potongan manual ({formatCurrency(getTotalManualDeductions(manualDeductions))}) melebihi total diterima ({formatCurrency(form.net_salary)})
+                              ⚠️ Total potongan manual melebihi total diterima
                             </span>
                           </div>
                         </div>
@@ -1038,150 +771,40 @@ export default function PayrollManagement() {
                     <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
                       <h3 className="font-semibold text-gray-900 border-b pb-2">Ringkasan Perhitungan</h3>
                       
-                      {/* Basic Salary and Allowances */}
                       <div className="grid grid-cols-2 gap-4">
                       <div>
-                          <Label htmlFor="basic_salary_display">Gaji Pokok</Label>
-                        <Input 
-                            id="basic_salary_display"
-                          type="text" 
-                            value={formatCurrency(form.basic_salary)} 
-                          readOnly
-                          className="bg-white font-semibold"
-                        />
+                          <Label>Gaji Pokok</Label>
+                        <Input type="text" value={formatCurrency(form.basic_salary)} readOnly className="bg-white font-semibold" />
                       </div>
                       <div>
-                          <Label htmlFor="total_allowances_display">Total Tunjangan</Label>
-                        <Input 
-                            id="total_allowances_display"
-                          type="text" 
-                            value={formatCurrency(form.total_allowances)} 
-                            readOnly
-                            className="bg-white font-semibold text-blue-600"
-                          />
+                          <Label>Total Tunjangan</Label>
+                        <Input type="text" value={formatCurrency(form.total_allowances)} readOnly className="bg-white font-semibold text-blue-600" />
                         </div>
                       </div>
                       
-                      {/* BPJS Perusahaan - PENDAPATAN TETAP */}
-                      <div className="space-y-2">
-                        <h4 className="font-medium text-gray-800">PENDAPATAN TETAP (Perusahaan)</h4>
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div>BPJS Ketenagakerjaan JHT: {formatCurrency(form.jht_company)}</div>
-                          <div>BPJS Ketenagakerjaan JKM: {formatCurrency(form.jkm_company)}</div>
-                          <div>BPJS Ketenagakerjaan JKK: {formatCurrency(form.jkk_company)}</div>
-                          <div>BPJS Jaminan Pensiun: {formatCurrency(form.jp_company)}</div>
-                          <div>BPJS Kesehatan: {formatCurrency(form.bpjs_health_company)}</div>
-                        </div>
-                        <div className="border-t pt-2">
-                          <Label htmlFor="subtotal_company">SUB TOTAL (Perusahaan)</Label>
-                          <Input 
-                            id="subtotal_company"
-                            type="text" 
-                            value={formatCurrency(form.subtotal_company)} 
-                            readOnly
-                            className="bg-white font-semibold text-green-600"
-                          />
-                        </div>
+                      <div className="border-t pt-2">
+                        <Label>SUB TOTAL (Kontribusi Perusahaan)</Label>
+                        <Input type="text" value={formatCurrency(form.subtotal_company)} readOnly className="bg-white font-semibold text-green-600" />
                       </div>
                       
-                      {/* Total Pendapatan (Gaji + Tunjangan + BPJS Perusahaan) */}
                       <div>
-                        <Label htmlFor="total_pendapatan_display">Total Pendapatan</Label>
-                        <Input 
-                          id="total_pendapatan_display"
-                          type="text" 
-                          value={formatCurrency(form.total_pendapatan)} 
-                          readOnly
-                          className="bg-white font-semibold text-green-600"
-                        />
+                        <Label>Total Pendapatan (Gaji + Tunjangan + Kontribusi Perusahaan)</Label>
+                        <Input type="text" value={formatCurrency(form.total_pendapatan)} readOnly className="bg-white font-semibold text-green-600" />
                       </div>
                       
-                      {/* Deductions */}
-                      <div className="space-y-2">
-                        <h4 className="font-medium text-gray-800">POTONGAN</h4>
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div>BPJS Kesehatan (Karyawan): {formatCurrency(form.bpjs_health_employee)}</div>
-                          <div>BPJS Ketenagakerjaan JHT (Karyawan): {formatCurrency(form.jht_employee)}</div>
-                          <div>BPJS Jaminan Pensiun (Karyawan): {formatCurrency(form.jp_employee)}</div>
-                        </div>
-                        <div className="border-t pt-2">
-                          <Label htmlFor="subtotal_employee">SUB TOTAL (Potongan Karyawan)</Label>
-                          <Input 
-                            id="subtotal_employee"
-                            type="text" 
-                            value={formatCurrency(form.subtotal_employee)} 
-                            readOnly
-                            className="bg-white font-semibold text-red-600"
-                          />
-                        </div>
+                      <div className="border-t pt-2">
+                        <Label>SUB TOTAL (Potongan BPJS Karyawan)</Label>
+                        <Input type="text" value={formatCurrency(form.subtotal_employee)} readOnly className="bg-white font-semibold text-red-600" />
                       </div>
                       
-                      {/* Manual Deductions */}
-                      <div className="grid grid-cols-3 gap-4">
-                        <div>
-                          <Label htmlFor="kasbon_display">KASBON</Label>
-                          <Input 
-                            id="kasbon_display"
-                            type="text" 
-                            value={formatCurrency(form.kasbon)} 
-                            readOnly
-                            className="bg-white font-semibold text-red-600"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="telat_display">Telat</Label>
-                          <Input 
-                            id="telat_display"
-                            type="text" 
-                            value={formatCurrency(form.telat)} 
-                            readOnly
-                            className="bg-white font-semibold text-red-600"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="angsuran_kredit_display">Angsuran Kredit</Label>
-                          <Input 
-                            id="angsuran_kredit_display"
-                            type="text" 
-                            value={formatCurrency(form.angsuran_kredit)} 
-                            readOnly
-                            className="bg-white font-semibold text-red-600"
-                          />
-                        </div>
-                      </div>
-                      
-                      {/* Final Totals */}
-                      <div className="grid grid-cols-2 gap-4 border-t pt-4">
-                        <div>
-                                            <Label htmlFor="total_deductions_bpjs">TOTAL PEMOTONGAN BPJS</Label>
-                  <Input 
-                    id="total_deductions_bpjs"
-                    type="text" 
-                    value={formatCurrency(form.total_deductions_bpjs)} 
-                          readOnly
-                          className="bg-white font-semibold text-red-600"
-                        />
-                      </div>
                       <div>
-                        <Label htmlFor="total_deductions_manual">TOTAL PEMOTONGAN MANUAL</Label>
-                        <Input 
-                          id="total_deductions_manual"
-                          type="text" 
-                          value={formatCurrency(form.total_deductions_manual)} 
-                          readOnly
-                          className="bg-white font-semibold text-red-600"
-                        />
+                        <Label>TOTAL PEMOTONGAN MANUAL</Label>
+                        <Input type="text" value={formatCurrency(getTotalManualDeductions(manualDeductions))} readOnly className="bg-white font-semibold text-red-600" />
                       </div>
-                      <div>
-                        <Label htmlFor="net_salary">Total Diterima</Label>
-                        <Input 
-                          id="net_salary"
-                          type="text" 
-                          value={formatCurrency(form.net_salary)} 
-                          readOnly
-                          className="bg-white font-semibold text-green-600"
-                        />
-                        </div>
+                      
+                      <div className="border-t pt-4">
+                        <Label>Total Diterima (Gaji Bersih)</Label>
+                        <Input type="text" value={formatCurrency(form.net_salary)} readOnly className="bg-white font-bold text-lg text-green-700" />
                       </div>
                     </div>
 
@@ -1233,7 +856,6 @@ export default function PayrollManagement() {
               <CardDescription>Kelola data payroll seluruh karyawan</CardDescription>
             </CardHeader>
             <CardContent>
-              {/* Search Bar */}
               <div className="flex gap-2 mb-4">
                 <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -1250,7 +872,6 @@ export default function PayrollManagement() {
                   Cari
                 </Button>
               </div>
-              {/* Tabel Payroll */}
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -1275,12 +896,12 @@ export default function PayrollManagement() {
                     <TableRow key={p.id}>
                       <TableCell>{p.employee?.first_name || '-'} {p.employee?.last_name || ''}</TableCell>
                       <TableCell>{p.employee?.position || '-'}</TableCell>
-                      <TableCell>{p.pay_period_start} s/d {p.pay_period_end}</TableCell>
-                      <TableCell>{formatCurrency(Number(p.gross_salary))}</TableCell>
-                                              <TableCell>{formatCurrency(Number(p.total_deductions_bpjs))}</TableCell>
+                      <TableCell>{new Date(p.pay_period_start).toLocaleDateString('id-ID')} s/d {new Date(p.pay_period_end).toLocaleDateString('id-ID')}</TableCell>
+                      <TableCell>{formatCurrency(Number(p.basic_salary))}</TableCell>
+                      <TableCell>{formatCurrency(Number(p.total_deductions_bpjs))}</TableCell>
                       <TableCell>{formatCurrency(Number(p.total_deductions_manual))}</TableCell>
                       <TableCell>{formatCurrency(Number(p.net_salary))}</TableCell>
-                      <TableCell>{p.payment_date}</TableCell>
+                      <TableCell>{new Date(p.payment_date).toLocaleDateString('id-ID')}</TableCell>
                       <TableCell>{p.status}</TableCell>
                       <TableCell>
                         <Button variant="outline" size="sm" onClick={() => handleDelete(p.id)}>
@@ -1291,11 +912,10 @@ export default function PayrollManagement() {
                   ))}
                 </TableBody>
               </Table>
-              {/* Pagination Controls */}
               <div className="flex justify-center items-center mt-4 gap-2">
                 <Button 
                   variant="outline" 
-                  onClick={() => setPage(page - 1)} 
+                  onClick={() => setPage(p => Math.max(1, p - 1))} 
                   disabled={page === 1}
                 >
                   &lt; Sebelumnya
@@ -1303,7 +923,7 @@ export default function PayrollManagement() {
                 <span>Halaman {page} dari {totalPages}</span>
                 <Button 
                   variant="outline" 
-                  onClick={() => setPage(page + 1)} 
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))} 
                   disabled={page === totalPages}
                 >
                   Selanjutnya &gt;
@@ -1315,4 +935,4 @@ export default function PayrollManagement() {
       </main>
     </div>
   );
-} 
+}
