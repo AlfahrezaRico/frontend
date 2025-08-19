@@ -303,11 +303,10 @@ const KaryawanDashboard = () => {
       let yPos = 15;
 
       // Helper to format currency
-      const formatCurrency = (amount) => {
-        if (amount === null || amount === undefined || isNaN(Number(amount))) return 'Rp 0';
-        return `Rp ${Math.floor(Number(amount)).toLocaleString('id-ID')}`;
-      };
-
+const formatCurrency = (amount) => {
+  if (amount === null || amount === undefined || isNaN(Number(amount))) return 'Rp 0';
+  return `Rp ${Math.round(Number(amount)).toLocaleString('id-ID')}`; // <--- INI PERBAIKANNYA
+};
       // Helper to calculate percentage string, removing trailing .00 or .X0
       const getPercentageString = (value, base) => {
           if (!base || base == 0) return '';
