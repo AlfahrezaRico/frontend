@@ -21,6 +21,7 @@ export const PayrollContent = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [selectedPayroll, setSelectedPayroll] = useState<any>(null);
   const [employees, setEmployees] = useState<any[]>([]);
   const [payrollComponents, setPayrollComponents] = useState<any[]>([]);
@@ -378,13 +379,13 @@ export const PayrollContent = () => {
   useEffect(() => {
     // Only trigger calculation when employee changes or payroll components are loaded
     // Don't trigger on gross_salary changes to prevent infinite loop
-    if (form.basic_salary > 0 && payrollComponents.length > 0 && form.employee_id && !isCalculating) {
+    if (form.basic_salary > 0 && payrollComponents.length > 0 && form.employee_id && !isCalculating && !isEditing) {
       // Reset calculated components first to prevent accumulation
       setCalculatedComponents([]);
       // Use basic_salary (from salary data) instead of gross_salary to prevent loop
       calculatePayrollComponents(form.basic_salary);
     }
-  }, [payrollComponents, form.employee_id, form.basic_salary]); // jangan tergantung manualDeductions agar input manual tidak memicu kalkulasi ulang
+  }, [payrollComponents, form.employee_id, form.basic_salary, isEditing]); // jangan tergantung manualDeductions agar input manual tidak memicu kalkulasi ulang
 
   const handleFormChange = (field: string, value: any) => {
     if (field === 'employee_id') {
@@ -707,6 +708,7 @@ export const PayrollContent = () => {
   // Handler untuk Edit Payroll
   const handleEditPayroll = (payroll: any) => {
     setSelectedPayroll(payroll);
+    setIsEditing(true);
     
     // Populate calculatedComponents with existing payroll data for proper editing
     const existingComponents = [
@@ -831,36 +833,17 @@ export const PayrollContent = () => {
     if (!selectedPayroll) return;
 
     try {
-      // Hitung ulang seperti Tambah Payroll
-      const totalAllowances = (form.position_allowance || 0) + (form.management_allowance || 0) + (form.phone_allowance || 0) + (form.incentive_allowance || 0) + (form.overtime_allowance || 0);
-
-      const bpjsHealthCompany = calculatedComponents.find(c => c.name === 'BPJS Kesehatan (Perusahaan)' && c.type === 'income')?.amount || form.bpjs_health_company || 0;
-      const jhtCompany = calculatedComponents.find(c => c.name === 'BPJS Jaminan Hari Tua (Perusahaan)' && c.type === 'income')?.amount || form.jht_company || 0;
-      const jkkCompany = calculatedComponents.find(c => c.name === 'BPJS Jaminan Kecelakaan Kerja (Perusahaan)' && c.type === 'income')?.amount || form.jkk_company || 0;
-      const jkmCompany = calculatedComponents.find(c => c.name === 'BPJS Jaminan Kematian (Perusahaan)' && c.type === 'income')?.amount || form.jkm_company || 0;
-      const jpCompany = calculatedComponents.find(c => c.name === 'BPJS Jaminan Pensiun (Perusahaan)' && c.type === 'income')?.amount || form.jp_company || 0;
-
-      const bpjsHealthEmployee = calculatedComponents.find(c => c.name === 'BPJS Kesehatan (Karyawan)' && c.type === 'deduction')?.amount || form.bpjs_health_employee || 0;
-      const jhtEmployee = calculatedComponents.find(c => c.name === 'BPJS Jaminan Hari Tua (Karyawan)' && c.type === 'deduction')?.amount || form.jht_employee || 0;
-      const jpEmployee = calculatedComponents.find(c => c.name === 'BPJS Jaminan Pensiun (Karyawan)' && c.type === 'deduction')?.amount || form.jp_employee || 0;
-
-      const subtotalCompany = bpjsHealthCompany + jhtCompany + jkkCompany + jkmCompany + jpCompany;
-      const subtotalEmployee = bpjsHealthEmployee + jhtEmployee + jpEmployee;
-
-      const totalManualDeduction = (form.kasbon || 0) + (form.telat || 0) + (form.angsuran_kredit || 0);
-      const totalDeduction = subtotalEmployee + totalManualDeduction;
-
-      const grossSalary = (form.basic_salary || 0) + totalAllowances;
-      const totalPendapatan = (form.basic_salary || 0) + totalAllowances + subtotalCompany;
-      const netSalary = totalPendapatan - totalDeduction;
+      // Jangan hitung ulang saat edit; gunakan nilai yang ada di form
+      const subtotalCompany = (form.bpjs_health_company || 0) + (form.jht_company || 0) + (form.jkk_company || 0) + (form.jkm_company || 0) + (form.jp_company || 0);
+      const subtotalEmployee = (form.bpjs_health_employee || 0) + (form.jht_employee || 0) + (form.jp_employee || 0);
 
       const payload = {
         employee_id: form.employee_id,
         pay_period_start: form.pay_period_start,
         pay_period_end: form.pay_period_end,
         basic_salary: form.basic_salary,
-        gross_salary: grossSalary,
-        net_salary: netSalary,
+        gross_salary: form.gross_salary,
+        net_salary: form.net_salary,
         payment_date: form.payment_date,
         status: form.status,
 
@@ -870,20 +853,20 @@ export const PayrollContent = () => {
         phone_allowance: form.phone_allowance,
         incentive_allowance: form.incentive_allowance,
         overtime_allowance: form.overtime_allowance,
-        total_allowances: totalAllowances,
+        total_allowances: form.total_allowances,
 
         // Komponen perusahaan
-        bpjs_health_company: bpjsHealthCompany,
-        jht_company: jhtCompany,
-        jkk_company: jkkCompany,
-        jkm_company: jkmCompany,
-        jp_company: jpCompany,
+        bpjs_health_company: form.bpjs_health_company,
+        jht_company: form.jht_company,
+        jkk_company: form.jkk_company,
+        jkm_company: form.jkm_company,
+        jp_company: form.jp_company,
         subtotal_company: subtotalCompany,
 
         // Komponen karyawan
-        bpjs_health_employee: bpjsHealthEmployee,
-        jht_employee: jhtEmployee,
-        jp_employee: jpEmployee,
+        bpjs_health_employee: form.bpjs_health_employee,
+        jht_employee: form.jht_employee,
+        jp_employee: form.jp_employee,
         subtotal_employee: subtotalEmployee,
 
         // Manual deductions
@@ -892,15 +875,15 @@ export const PayrollContent = () => {
         angsuran_kredit: form.angsuran_kredit,
 
         // Totals
-        total_deductions_bpjs: subtotalCompany + subtotalEmployee, // BPJS Perusahaan + BPJS Karyawan
-        total_deductions_manual: totalManualDeduction,
-        total_pendapatan: totalPendapatan,
+        total_deductions_bpjs: subtotalCompany + subtotalEmployee,
+        total_deductions_manual: (form.kasbon || 0) + (form.telat || 0) + (form.angsuran_kredit || 0),
+        total_pendapatan: (form.basic_salary || 0) + (form.total_allowances || 0) + subtotalCompany,
 
         // Legacy/Additional
         bpjs_employee: subtotalEmployee,
         bpjs_company: subtotalCompany,
-        jkk: jkkCompany,
-        jkm: jkmCompany
+        jkk: form.jkk_company,
+        jkm: form.jkm_company
       };
 
       const response = await fetch(`${API_URL}/api/payrolls/${selectedPayroll.id}`, {
@@ -2212,6 +2195,7 @@ export const PayrollContent = () => {
           setTotalPendapatan(0);
           setAutoDeductionsTotal(0);
           setManualDeductionsTotal(0);
+          setIsEditing(false);
         }
         setEditModalOpen(open);
       }}>
