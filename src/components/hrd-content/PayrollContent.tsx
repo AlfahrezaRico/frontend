@@ -116,11 +116,6 @@ export const PayrollContent = () => {
           return payrollDate.getMonth() === thisMonth && payrollDate.getFullYear() === thisYear;
         });
         
-        // Debug: Log data payroll yang di-fetch
-        console.log('=== PAYROLL DATA DEBUG ===');
-        console.log('Raw payroll data:', data);
-        console.log('Payroll records count:', data.length);
-        
         // Perbaikan perhitungan dengan validasi tipe data dan nilai
         const totalAmount = data.reduce((sum: number, p: any) => {
           let netSalary = 0;
@@ -149,7 +144,6 @@ export const PayrollContent = () => {
             netSalary = 0;
           }
           
-          console.log(`Payroll ${p.id}: net_salary = ${p.net_salary}, converted = ${netSalary}, type: ${typeof p.net_salary}`);
           return sum + netSalary;
         }, 0);
         
@@ -158,13 +152,6 @@ export const PayrollContent = () => {
         // Validasi final untuk memastikan nilai yang masuk akal
         const finalTotalAmount = isNaN(totalAmount) || totalAmount > 1000000000000 ? 0 : totalAmount;
         const finalAvgSalary = isNaN(avgSalary) || avgSalary > 1000000000000 ? 0 : avgSalary;
-        
-        console.log('Calculated stats:');
-        console.log('- Raw total amount:', totalAmount);
-        console.log('- Raw average salary:', avgSalary);
-        console.log('- Final total amount:', finalTotalAmount);
-        console.log('- Final average salary:', finalAvgSalary);
-        console.log('- This month payrolls:', thisMonthPayrolls.length);
         
         setStats({
           total: data.length,
@@ -316,13 +303,10 @@ export const PayrollContent = () => {
       
       // Update komponen payroll yang dihitung
       if (data.calculated_components) {
-        const components = data.calculated_components;
-        console.log('Received calculated components from backend:', components);
-        
+        const components = data.calculated_components;        
         // Log komponen BPJS untuk debugging
         components.forEach(comp => {
           if (comp.name.includes('BPJS')) {
-            console.log(`Component: ${comp.name}, Percentage: ${comp.percentage}%, Amount: ${comp.amount}, Type: ${comp.type}, Category: ${comp.category}`);
           }
         });
         
@@ -1399,7 +1383,6 @@ export const PayrollContent = () => {
                         <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PERUSAHAAN</h4>
                         <div className="space-y-2">
                           {calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).map((component, index) => {
-                            console.log(`Rendering company BPJS component: ${component.name}, percentage: ${component.percentage}`);
                             return (
                             <div key={index} className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
                               <div className="flex-1">
@@ -1430,7 +1413,6 @@ export const PayrollContent = () => {
                           <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">KARYAWAN</h4>
                           <div className="space-y-2">
                             {calculatedComponents.filter(c => c.type === 'deduction' && c.name.includes('(Karyawan)')).map((component, index) => {
-                              console.log(`Rendering employee BPJS component: ${component.name}, percentage: ${component.percentage}`);
                               return (
                               <div key={index} className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
                                 <div className="flex-1">
@@ -2367,7 +2349,6 @@ export const PayrollContent = () => {
                       <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PERUSAHAAN</h4>
                       <div className="space-y-2">
                         {calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).map((component, index) => {
-                          console.log(`Rendering company BPJS component: ${component.name}, percentage: ${component.percentage}`);
                           return (
                           <div key={index} className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
                               <div className="flex-1">
@@ -2394,7 +2375,6 @@ export const PayrollContent = () => {
                     <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">KARYAWAN</h4>
                     <div className="space-y-2">
                       {calculatedComponents.filter(c => c.type === 'deduction' && c.name.includes('(Karyawan)')).map((component, index) => {
-                        console.log(`Rendering employee BPJS component: ${component.name}, percentage: ${component.percentage}`);
                         return (
                         <div key={index} className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
                             <div className="flex-1">
