@@ -2354,7 +2354,20 @@ export const PayrollContent = () => {
                     <div className="flex justify-between items-center py-3 px-4 bg-green-100 rounded-lg border border-green-300">
                       <span className="font-semibold text-gray-800">SUB TOTAL</span>
                       <span className="font-bold text-green-800">
-                        {formatCurrency(calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).reduce((sum, c) => sum + c.amount, 0))}
+                        {(() => {
+                          const bpjsIncome = calculatedComponents
+                            .filter(c => c.type === 'income' && c.name.includes('(Perusahaan)'))
+                            .reduce((sum, c) => sum + c.amount, 0);
+                          const selectedSalary = salaryData.find(salary => salary.employee_id === form.employee_id);
+                          let fixedAllow = 0;
+                          if (selectedSalary) {
+                            const posAllowance = typeof selectedSalary.position_allowance === 'string' ? parseFloat(selectedSalary.position_allowance) || 0 : selectedSalary.position_allowance || 0;
+                            const mgmtAllowance = typeof selectedSalary.management_allowance === 'string' ? parseFloat(selectedSalary.management_allowance) || 0 : selectedSalary.management_allowance || 0;
+                            const phoneAllowance = typeof selectedSalary.phone_allowance === 'string' ? parseFloat(selectedSalary.phone_allowance) || 0 : selectedSalary.phone_allowance || 0;
+                            fixedAllow = posAllowance + mgmtAllowance + phoneAllowance;
+                          }
+                          return formatCurrency(bpjsIncome + fixedAllow);
+                        })()}
                       </span>
                     </div>
                   </div>
