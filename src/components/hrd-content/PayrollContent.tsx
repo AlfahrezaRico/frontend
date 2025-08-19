@@ -1394,51 +1394,36 @@ export const PayrollContent = () => {
                          <h3 className="text-lg font-bold text-gray-800">PEMOTONGAN</h3>
                        </div>
                        
-                                               {/* PERUSAHAAN */}
-                        <div className="space-y-3">
-                          <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PERUSAHAAN</h4>
-                          <div className="space-y-2">
-                            {calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).map((component, index) => {
-                              console.log(`Rendering company BPJS component: ${component.name}, percentage: ${component.percentage}`);
-                              return (
-                              <div key={index} className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
-                                <div className="flex-1">
-                                  <span className="font-medium text-sm text-gray-800">{component.name}</span>
-                                    <div className="text-xs text-gray-600 mt-1">
-                                      {component.percentage}% dari gaji pokok murni
-                                    </div>
-                                </div>
-                                <span className="text-sm font-bold text-orange-700 ml-4">
-                                  {formatCurrency(component.amount)}
-                                </span>
+                        {/* PERUSAHAAN */}
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PERUSAHAAN</h4>
+                        <div className="space-y-2">
+                          {calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).map((component, index) => {
+                            console.log(`Rendering company BPJS component: ${component.name}, percentage: ${component.percentage}`);
+                            return (
+                            <div key={index} className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
+                              <div className="flex-1">
+                                <span className="font-medium text-sm text-gray-800">{component.name}</span>
+                                  <div className="text-xs text-gray-600 mt-1">
+                                    {component.percentage}% dari gaji pokok murni
+                                  </div>
                               </div>
-                              );
-                            })}
-                            <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
-                              <span className="font-medium text-sm text-gray-800">Tunjangan Jabatan</span>
-                              <span className="text-sm font-bold text-green-700 ml-4">{formatCurrency(form.position_allowance || 0)}</span>
-                          </div>
-                            <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
-                              <span className="font-medium text-sm text-gray-800">Tunjangan Pengurus</span>
-                              <span className="text-sm font-bold text-green-700 ml-4">{formatCurrency(form.management_allowance || 0)}</span>
+                              <span className="text-sm font-bold text-orange-700 ml-4">
+                                {formatCurrency(component.amount)}
+                              </span>
                             </div>
-                            <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
-                              <span className="font-medium text-sm text-gray-800">Tunjangan Pulsa</span>
-                              <span className="text-sm font-bold text-green-700 ml-4">{formatCurrency(form.phone_allowance || 0)}</span>
-                            </div>
-                          </div>
-                          <div className="flex justify-between items-center py-3 px-4 bg-green-100 rounded-lg border border-green-300">
-                            <span className="font-semibold text-gray-800">SUB TOTAL</span>
-                            <span className="font-bold text-green-800">
-                              {formatCurrency(
-                                calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).reduce((sum, c) => sum + c.amount, 0)
-                                + (form.position_allowance || 0)
-                                + (form.management_allowance || 0)
-                                + (form.phone_allowance || 0)
-                              )}
-                            </span>
-                          </div>
+                            );
+                          })}
                         </div>
+                        <div className="flex justify-between items-center py-3 px-4 bg-orange-100 rounded-lg border border-orange-300">
+                          <span className="font-semibold text-gray-800">SUB TOTAL</span>
+                          <span className="font-bold text-orange-800">
+                            {formatCurrency(
+                              calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).reduce((sum, c) => sum + c.amount, 0)
+                            )}
+                          </span>
+                        </div>
+                      </div>
                        
                                                {/* KARYAWAN */}
                         <div className="space-y-3">
@@ -2356,7 +2341,6 @@ export const PayrollContent = () => {
 </div>
 
                   {/* PENDAPATAN TIDAK TETAP (Tunjangan dari form) */}
-                  {/* PENDAPATAN TIDAK TETAP */}
 <div className="space-y-3">
     <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PENDAPATAN TIDAK TETAP</h4>
     <div className="space-y-2">
@@ -2392,32 +2376,32 @@ export const PayrollContent = () => {
                     <h3 className="text-lg font-bold text-gray-800">PEMOTONGAN</h3>
                   </div>
 
-                  {/* PERUSAHAAN */}
-                  <div className="space-y-3">
-                    <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PERUSAHAAN</h4>
-                    <div className="space-y-2">
-                      {calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).map((component, index) => {
-                        console.log(`Rendering company BPJS component: ${component.name}, percentage: ${component.percentage}`);
-                        return (
-                        <div key={index} className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
-                            <div className="flex-1">
-                          <span className="font-medium text-sm text-gray-800">{component.name}</span>
-                              <div className="text-xs text-gray-600 mt-1">
-                                {component.percentage}% dari gaji pokok murni
+                 {/* PERUSAHAAN */}
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PERUSAHAAN</h4>
+                      <div className="space-y-2">
+                        {calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).map((component, index) => {
+                          console.log(`Rendering company BPJS component: ${component.name}, percentage: ${component.percentage}`);
+                          return (
+                          <div key={index} className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
+                              <div className="flex-1">
+                            <span className="font-medium text-sm text-gray-800">{component.name}</span>
+                                <div className="text-xs text-gray-600 mt-1">
+                                  {component.percentage}% dari gaji pokok murni
+                                </div>
                               </div>
-                            </div>
-                          <span className="text-sm font-bold text-orange-700 ml-4">{formatCurrency(component.amount)}</span>
-                        </div>
-                        );
-                      })}
+                            <span className="text-sm font-bold text-orange-700 ml-4">{formatCurrency(component.amount)}</span>
+                          </div>
+                          );
+                        })}
+                      </div>
+                      <div className="flex justify-between items-center py-3 px-4 bg-orange-100 rounded-lg border border-orange-300">
+                        <span className="font-semibold text-gray-800">SUB TOTAL</span>
+                        <span className="font-bold text-orange-800">
+                          {formatCurrency(calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).reduce((sum, c) => sum + c.amount, 0))}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex justify-between items-center py-3 px-4 bg-orange-100 rounded-lg border border-orange-300">
-                      <span className="font-semibold text-gray-800">SUB TOTAL</span>
-                      <span className="font-bold text-orange-800">
-                        {formatCurrency(calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).reduce((sum, c) => sum + c.amount, 0))}
-                      </span>
-                    </div>
-                  </div>
 
                   {/* KARYAWAN */}
                   <div className="space-y-3">
