@@ -273,14 +273,12 @@ const UserManagement = () => {
       } catch (e) {
         data = { error: 'Gagal parse response dari server.' };
       }
-      console.log('CSV BULK SUBMIT RESPONSE:', res, data);
       if (!res.ok) {
         setCsvResult({ error: data.error || 'Gagal upload user', results: data.results, url });
       } else {
         setCsvResult({ ...data, url });
       }
     } catch (err) {
-      console.log('CSV BULK SUBMIT ERROR:', err, 'URL:', BACKEND_URL ? `${BACKEND_URL}/api/users/bulk` : '/api/users/bulk', 'Payload:', csvUsers);
       let errorMsg = err instanceof Error ? err.message : String(err);
       if (errorMsg === 'Failed to fetch') {
         errorMsg += '. Cek koneksi ke backend, CORS, atau URL backend.';

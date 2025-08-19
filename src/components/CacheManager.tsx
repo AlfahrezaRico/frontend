@@ -20,9 +20,7 @@ export const CacheManager = () => {
           clearedCount++;
         }
       });
-      
-      console.log(`Cleared ${clearedCount} cache items`);
-      alert(`Cache berhasil dibersihkan! ${clearedCount} item dihapus.`);
+
     } catch (error) {
       console.error('Error clearing cache:', error);
       alert('Error saat membersihkan cache');
@@ -43,9 +41,7 @@ export const CacheManager = () => {
           clearedCount++;
         }
       });
-      
-      console.log(`Cleared ${clearedCount} NIK validation cache items`);
-      alert(`NIK validation cache berhasil dibersihkan! ${clearedCount} item dihapus.`);
+
     } catch (error) {
       console.error('Error clearing NIK validation cache:', error);
       alert('Error saat membersihkan NIK validation cache');
@@ -67,8 +63,7 @@ export const CacheManager = () => {
         }
       });
       
-      console.log(`Cleared ${clearedCount} NIK format cache items`);
-      alert(`NIK format cache berhasil dibersihkan! ${clearedCount} item dihapus.`);
+
     } catch (error) {
       console.error('Error clearing NIK format cache:', error);
       alert('Error saat membersihkan NIK format cache');
@@ -93,13 +88,11 @@ export const CacheManager = () => {
           if (hasProblematicNIK) {
             localStorage.removeItem(key);
             clearedCount++;
-            console.log('Removed problematic cache:', key);
           }
         }
       });
       
-      console.log(`Cleared ${clearedCount} problematic NIK cache items`);
-      alert(`Cache NIK bermasalah berhasil dibersihkan! ${clearedCount} item dihapus.`);
+
     } catch (error) {
       console.error('Error clearing specific NIK cache:', error);
       alert('Error saat membersihkan cache NIK spesifik');
@@ -126,8 +119,7 @@ export const CacheManager = () => {
         }
       });
       
-      console.log(info);
-      alert(info);
+
     } catch (error) {
       console.error('Error showing cache info:', error);
       alert('Error saat menampilkan info cache');

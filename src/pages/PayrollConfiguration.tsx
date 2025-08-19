@@ -49,7 +49,6 @@ const PayrollConfiguration = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  console.log('PayrollConfiguration component rendered'); // Debug log
   
   const [components, setComponents] = useState<PayrollComponent[]>([]);
   const [filteredComponents, setFilteredComponents] = useState<PayrollComponent[]>([]);
@@ -85,7 +84,6 @@ const PayrollConfiguration = () => {
       if (!res.ok) throw new Error('Failed to fetch components');
       const data = await res.json();
       setComponents(data);
-      console.log('Components fetched from backend:', data);
     } catch (error) {
       console.error('Error fetching components:', error);
       toast({
@@ -105,25 +103,10 @@ const PayrollConfiguration = () => {
       if (!res.ok) throw new Error('Failed to fetch stats');
       const data = await res.json();
       setStats(data);
-      console.log('Stats fetched from backend:', data);
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
   };
-
-  // Debug log when component mounts
-  useEffect(() => {
-    console.log('PayrollConfiguration component mounted');
-    console.log('Current components:', components);
-    console.log('Current URL:', window.location.pathname);
-    
-    // Log untuk debugging navigation
-    console.log('PayrollConfiguration: Component successfully mounted and rendered');
-    
-    // Fetch data from backend
-    fetchComponents();
-    fetchStats();
-  }, []);
 
   // Filter components
   const filterComponents = () => {
@@ -329,8 +312,6 @@ const PayrollConfiguration = () => {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
-
-  console.log('PayrollConfiguration rendering with stats:', stats); // Debug log
 
   // Error boundary - catch any errors and prevent redirect
   try {

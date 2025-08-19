@@ -113,7 +113,6 @@ const AddEmployeeDialog = ({ onEmployeeAdded }: { onEmployeeAdded: () => void })
      
      if (!validationResult.isValid) {
        // Jika validasi gagal, coba bersihkan cache dan validasi ulang
-       console.log('Validation failed, clearing cache and retrying...');
        clearValidationCache(departmentName);
        
        // Validasi ulang tanpa cache

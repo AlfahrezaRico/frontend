@@ -13,7 +13,6 @@ export const useNIKFormat = (departmentName: string) => {
     const cacheKey = `${NIK_FORMAT_CACHE_KEY}_${departmentName}`;
     const cached = LocalCache.get<string>(cacheKey);
     if (cached) {
-      console.log(`Using cached NIK format for ${departmentName}:`, cached);
       return cached;
     }
     return null;

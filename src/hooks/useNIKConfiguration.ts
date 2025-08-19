@@ -325,7 +325,6 @@ export const useNIKConfiguration = () => {
         return nik;
       }
 
-      console.log('Calling generate NIK endpoint for department:', departmentName);
       const res = await fetch(`${API_URL}/api/department-nik-configs/${encodeURIComponent(departmentName)}/generate-next`, {
         method: 'POST',
       });
@@ -336,9 +335,7 @@ export const useNIKConfiguration = () => {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
 
-      const data = await res.json();
-      console.log('Response from generate NIK endpoint:', data);
-      
+      const data = await res.json();      
       // Update sequence di state
       setConfigurations(prev => prev.map(c => 
         c.department_name === departmentName 
@@ -351,8 +348,7 @@ export const useNIKConfiguration = () => {
         throw new Error('Response tidak mengandung next_nik');
       }
       
-      console.log('Generated NIK:', data.next_nik);
-      return data.next_nik;
+
     } catch (err) {
       console.error('Error generating NIK:', err);
       throw err;

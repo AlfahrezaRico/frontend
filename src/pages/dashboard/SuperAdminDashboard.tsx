@@ -47,8 +47,6 @@ const SuperAdminDashboard = () => {
       const API_URL = import.meta.env.VITE_API_URL || '';
       const url = API_URL ? `${API_URL}/api/employees/bulk` : '/api/employees/bulk';
       
-      console.log('Uploading to:', url);
-      console.log('Data count:', csvEmployees.length);
       
       const res = await fetch(url, {
         method: 'POST',

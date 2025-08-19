@@ -24,7 +24,6 @@ export const useNIKValidation = () => {
     const cacheKey = `${NIK_VALIDATION_CACHE_KEY}_${departmentName}_${nikInput}`;
     const cached = LocalCache.get<ValidationResult>(cacheKey);
     if (cached) {
-      console.log(`Using cached NIK validation for ${departmentName}:`, cached);
       return cached;
     }
     return null;
