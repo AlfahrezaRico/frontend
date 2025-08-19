@@ -272,7 +272,7 @@ const KaryawanDashboard = () => {
   };
 
    
-      // Generate and download PDF slip gaji
+  // Generate and download PDF slip gaji
   const handleDownloadSlipGaji = async () => {
     if (!selectedPayrollId) {
       toast({
@@ -412,11 +412,26 @@ const KaryawanDashboard = () => {
       if (Number(payroll.jp_company) > 0) yPos = drawDataRow(yPos, `BPJS Jaminan Pensiun ${getPercentageString(payroll.jp_company, payroll.basic_salary)}`, formatCurrency(payroll.jp_company));
       if (Number(payroll.bpjs_health_company) > 0) yPos = drawDataRow(yPos, `BPJS Kesehatan ${getPercentageString(payroll.bpjs_health_company, payroll.basic_salary)}`, formatCurrency(payroll.bpjs_health_company));
       
-      const subTotalPendapatanTetap = (Number(payroll.basic_salary) || 0) + (Number(payroll.subtotal_company) || 0);
+      // --- PENAMBAHAN TUNJANGAN TETAP ---
+      yPos = drawDataRow(yPos, 'Tunjangan Jabatan', formatCurrency(payroll.position_allowance));
+      yPos = drawDataRow(yPos, 'Tunjangan Pengurus', formatCurrency(payroll.management_allowance));
+      yPos = drawDataRow(yPos, 'Tunjangan Pulsa', formatCurrency(payroll.phone_allowance));
+      // --- AKHIR PENAMBAHAN ---
+      
+      const subTotalPendapatanTetap = (Number(payroll.basic_salary) || 0) + 
+                                      (Number(payroll.subtotal_company) || 0) +
+                                      (Number(payroll.position_allowance) || 0) +
+                                      (Number(payroll.management_allowance) || 0) +
+                                      (Number(payroll.phone_allowance) || 0);
       yPos = drawDataRow(yPos, 'SUB TOTAL', formatCurrency(subTotalPendapatanTetap), [228, 248, 233], true); // Light Green
       
       yPos = drawSubHeader(yPos, 'PENDAPATAN TIDAK TETAP');
-      const subTotalPendapatanTidakTetap = (Number(payroll.total_allowances) || 0); // Assuming total_allowances = incentive + overtime
+      // --- PENAMBAHAN TUNJANGAN TIDAK TETAP ---
+      yPos = drawDataRow(yPos, 'Tunjangan Insentif', formatCurrency(payroll.incentive_allowance));
+      yPos = drawDataRow(yPos, 'Tunjangan Lembur', formatCurrency(payroll.overtime_allowance));
+      // --- AKHIR PENAMBAHAN ---
+
+      const subTotalPendapatanTidakTetap = (Number(payroll.incentive_allowance) || 0) + (Number(payroll.overtime_allowance) || 0);
       yPos = drawDataRow(yPos, 'SUB TOTAL', formatCurrency(subTotalPendapatanTidakTetap), [228, 248, 233], true); // Light Green
 
       yPos = drawSectionHeader(yPos, 'TOTAL PENDAPATAN', [29, 78, 216]); // Blue
