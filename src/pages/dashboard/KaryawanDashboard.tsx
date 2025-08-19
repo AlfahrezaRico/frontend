@@ -271,159 +271,207 @@ const KaryawanDashboard = () => {
     fetchAvailablePayrolls();
   };
 
-    // Generate and download PDF slip gaji
-    const handleDownloadSlipGaji = async () => {
-      if (!selectedPayrollId) {
-        toast({
-          title: 'Error',
-          description: 'Silakan pilih tanggal pembayaran terlebih dahulu',
-          variant: 'destructive'
-        });
-        return;
+   
+      // Generate and download PDF slip gaji
+  const handleDownloadSlipGaji = async () => {
+    if (!selectedPayrollId) {
+      toast({
+        title: 'Error',
+        description: 'Silakan pilih tanggal pembayaran terlebih dahulu',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setDownloadingSlip(true);
+    try {
+      const payroll = availablePayrolls.find(p => p.id === selectedPayrollId);
+      if (!payroll) {
+        throw new Error('Data payroll tidak ditemukan');
       }
-  
-      setDownloadingSlip(true);
+
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+        compress: true
+      });
+      
+      const margin = 10;
+      const pageWidth = doc.internal.pageSize.width;
+      const contentWidth = pageWidth - (margin * 2);
+      let yPos = 15;
+
+      // Helper to format currency
+      const formatCurrency = (amount) => {
+        if (amount === null || amount === undefined || isNaN(Number(amount))) return 'Rp 0';
+        return `Rp ${Math.floor(Number(amount)).toLocaleString('id-ID')}`;
+      };
+
+      // Helper to calculate percentage string, removing trailing .00 or .X0
+      const getPercentageString = (value, base) => {
+          if (!base || base == 0) return '';
+          const percentage = ((Number(value) / Number(base)) * 100).toFixed(2).replace(/\.00$/, '').replace(/\.([1-9])0$/, '.$1');
+          return `${percentage}%`;
+      };
+      
+      // --- DRAW HEADER ---
       try {
-        const payroll = availablePayrolls.find(p => p.id === selectedPayrollId);
-        if (!payroll) {
-          throw new Error('Data payroll tidak ditemukan');
+        const response = await fetch('/logo.jpg');
+        if (response.ok) {
+          const blob = await response.blob();
+          const reader = new FileReader();
+          const base64Promise = new Promise<string>((resolve, reject) => {
+            reader.onloadend = () => reader.result ? resolve(reader.result as string) : reject(new Error('Failed to read file'));
+            reader.onerror = reject;
+          });
+          reader.readAsDataURL(blob);
+          const base64Logo = await base64Promise;
+          doc.addImage(base64Logo, 'JPEG', margin, yPos - 8, 25, 12);
         }
-  
-        const doc = new jsPDF({
-          orientation: 'portrait',
-          unit: 'mm',
-          format: 'a4',
-          compress: true
-        });
-        
-        const margin = 10;
-        const pageWidth = doc.internal.pageSize.width;
-        const contentWidth = pageWidth - (margin * 2);
-        
-        const drawTableCell = (x, y, width, height, text, align = 'left', fontSize = 8, isBold = false, bgColor = null, textColor = [0, 0, 0]) => {
+      } catch (logoError) {
+        console.error('Error loading logo:', logoError);
+      }
+
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text('SLIP GAJI KARYAWAN', pageWidth / 2, yPos, { align: 'center' });
+      yPos += 15;
+
+      // --- DRAW EMPLOYEE INFO TABLE ---
+      const infoYStart = yPos;
+      const rowHeight = 6;
+      const col1X = margin;
+      const col2X = margin + 25;
+      const col3X = margin + 95;
+      const col4X = margin + 120;
+
+      doc.setFillColor(248, 250, 252); // Light gray background
+      doc.rect(margin, infoYStart, contentWidth, rowHeight * 4, 'F');
+
+      const infoData = [
+          { key: 'NAMA', value: `${profile?.first_name || ''} ${profile?.last_name || ''}`, key2: 'JABATAN', value2: profile?.position || '-' },
+          { key: 'NIK', value: profile?.nik || '-', key2: 'STATUS', value2: payroll.status },
+          { key: 'UNIT / CABANG', value: 'PUSAT', key2: 'TANGGAL', value2: format(new Date(payroll.payment_date), 'dd-MMM-yyyy', { locale: id }) },
+          { key: 'DIVISI / GROUP', value: profile?.departemen?.nama || 'OPERASIONAL', key2: profile?.bank_name || 'BANK', value2: profile?.bank_account_number || '-' }
+      ];
+
+      infoData.forEach((row, index) => {
+          const currentY = infoYStart + (index * rowHeight) + 4;
+          doc.setFont(undefined, 'bold');
+          doc.setFontSize(8);
+          doc.text(row.key, col1X, currentY);
+          doc.text(row.key2, col3X, currentY);
+
+          doc.setFont(undefined, 'normal');
+          doc.text(row.value, col2X, currentY);
+          doc.text(row.value2, col4X, currentY);
+      });
+      yPos = infoYStart + (rowHeight * 4) + 5;
+
+      // --- DRAW PAYROLL DETAILS ---
+      const drawSectionHeader = (y, text, bgColor) => {
+          doc.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
+          doc.rect(margin, y, contentWidth, 7, 'F');
+          doc.setFontSize(9);
+          doc.setFont(undefined, 'bold');
+          const isDarkBg = (bgColor[0] * 0.299 + bgColor[1] * 0.587 + bgColor[2] * 0.114) < 186;
+          doc.setTextColor(isDarkBg ? 255 : 0, isDarkBg ? 255 : 0, isDarkBg ? 255 : 0);
+          doc.text(text, margin + 2, y + 5);
+          return y + 7;
+      };
+
+      const drawSubHeader = (y, text) => {
+          doc.setFontSize(8);
+          doc.setFont(undefined, 'bold');
+          doc.setTextColor(0,0,0);
+          doc.text(text, margin + 2, y + 5);
+          return y + 7;
+      };
+
+      const drawDataRow = (y, label, value, bgColor = null, isBold = false) => {
           if (bgColor) {
               doc.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
-              doc.rect(x, y, width, height, 'F');
+              doc.rect(margin, y, contentWidth, 6, 'F');
           }
-          
-          doc.setFontSize(fontSize);
+          doc.setFontSize(8);
           doc.setFont(undefined, isBold ? 'bold' : 'normal');
-          doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-          
-          let textX = x + 2; // Left align with padding
-          if (align === 'right') textX = x + width - 2;
-          
-          doc.text(String(text || ''), textX, y + height / 2 + (fontSize / 4), { align });
-        };
-  
-        const drawTableRow = (y, height, col1Text, col2Text, isHeader = false, isTotal = false) => {
-          const col1Width = contentWidth * 0.7;
-          const col2Width = contentWidth * 0.3;
-          
-          const bgColor = isHeader ? [220, 220, 220] : null;
-          const textColor = isHeader ? [0,0,0] : [0,0,0];
-  
-          doc.setDrawColor(150, 150, 150);
-          doc.rect(margin, y, contentWidth, height); // Row border
-  
-          doc.line(margin + col1Width, y, margin + col1Width, y + height); // Vertical separator
-  
-          drawTableCell(margin, y, col1Width, height, col1Text, 'left', 8, isHeader || isTotal, bgColor, textColor);
-          drawTableCell(margin + col1Width, y, col2Width, height, col2Text, 'right', 8, isHeader || isTotal, bgColor, textColor);
-          
-          return y + height;
-        };
-  
-        const formatCurrency = (amount) => {
-          if (amount === null || amount === undefined || isNaN(Number(amount))) return '0';
-          return Math.floor(Number(amount)).toLocaleString('id-ID');
-        };
-  
-        const calculatePercentage = (amount, base) => {
-          if (!base || base == 0) return '';
-          return ((Number(amount) / Number(base)) * 100).toFixed(2).replace('.00','') + '%';
-        };
-  
-        let yPos = margin;
-  
-        // Header (simplified for focus on table)
-        doc.setFontSize(14);
-        doc.setFont(undefined, 'bold');
-        doc.text('SLIP GAJI KARYAWAN', pageWidth / 2, yPos, { align: 'center' });
-        yPos += 8;
-        doc.setFontSize(10);
-        doc.setFont(undefined, 'normal');
-        doc.text(`Periode: ${format(new Date(payroll.pay_period_start), 'dd MMM', { locale: id })} - ${format(new Date(payroll.pay_period_end), 'dd MMM yyyy', { locale: id })}`, pageWidth / 2, yPos, { align: 'center' });
-        yPos += 8;
-        // Employee info can be added here if needed
-  
-        // PENDAPATAN
-        yPos = drawTableRow(yPos, 8, 'PENDAPATAN', '', true);
-        yPos = drawTableRow(yPos, 7, 'PENDAPATAN TETAP', '');
-        yPos = drawTableRow(yPos, 7, 'Gaji Pokok', formatCurrency(payroll.basic_salary));
-        if (Number(payroll.jht_company) > 0) yPos = drawTableRow(yPos, 7, `BPJS Ketenagakerjaan JHT ${calculatePercentage(payroll.jht_company, payroll.basic_salary)}`, formatCurrency(payroll.jht_company));
-        if (Number(payroll.jkm_company) > 0) yPos = drawTableRow(yPos, 7, `BPJS Ketenagakerjaan JKM ${calculatePercentage(payroll.jkm_company, payroll.basic_salary)}`, formatCurrency(payroll.jkm_company));
-        if (Number(payroll.jkk_company) > 0) yPos = drawTableRow(yPos, 7, `BPJS Ketenagakerjaan JKK ${calculatePercentage(payroll.jkk_company, payroll.basic_salary)}`, formatCurrency(payroll.jkk_company));
-        if (Number(payroll.jp_company) > 0) yPos = drawTableRow(yPos, 7, `BPJS Jaminan Pensiun ${calculatePercentage(payroll.jp_company, payroll.basic_salary)}`, formatCurrency(payroll.jp_company));
-        if (Number(payroll.bpjs_health_company) > 0) yPos = drawTableRow(yPos, 7, `BPJS Kesehatan ${calculatePercentage(payroll.bpjs_health_company, payroll.basic_salary)}`, formatCurrency(payroll.bpjs_health_company));
-        if (Number(payroll.position_allowance) > 0) yPos = drawTableRow(yPos, 7, 'Tunjangan Jabatan', formatCurrency(payroll.position_allowance));
-        if (Number(payroll.management_allowance) > 0) yPos = drawTableRow(yPos, 7, 'Tunjangan Pengurus', formatCurrency(payroll.management_allowance));
-        if (Number(payroll.phone_allowance) > 0) yPos = drawTableRow(yPos, 7, 'Tunjangan Pulsa', formatCurrency(payroll.phone_allowance));
-        const subTotalPendapatanTetap = (Number(payroll.basic_salary) || 0) + (Number(payroll.bpjs_company) || 0) + (Number(payroll.position_allowance) || 0) + (Number(payroll.management_allowance) || 0) + (Number(payroll.phone_allowance) || 0);
-        yPos = drawTableRow(yPos, 7, 'SUB TOTAL', formatCurrency(subTotalPendapatanTetap), false, true);
-        
-        yPos = drawTableRow(yPos, 7, 'PENDAPATAN TIDAK TETAP', '');
-        if (Number(payroll.incentive_allowance) > 0) yPos = drawTableRow(yPos, 7, 'Tunjangan Insentif', formatCurrency(payroll.incentive_allowance));
-        else yPos = drawTableRow(yPos, 7, 'Tunjangan Insentif', '0');
-        if (Number(payroll.overtime_allowance) > 0) yPos = drawTableRow(yPos, 7, 'Tunjangan Lembur', formatCurrency(payroll.overtime_allowance));
-        else yPos = drawTableRow(yPos, 7, 'Tunjangan Lembur', '0');
-        const subTotalPendapatanTidakTetap = (Number(payroll.incentive_allowance) || 0) + (Number(payroll.overtime_allowance) || 0);
-        yPos = drawTableRow(yPos, 7, 'SUB TOTAL', formatCurrency(subTotalPendapatanTidakTetap), false, true);
-        yPos = drawTableRow(yPos, 8, 'TOTAL PENDAPATAN', formatCurrency(payroll.total_pendapatan), false, true);
-  
-        // PEMOTONGAN
-        yPos = drawTableRow(yPos, 8, 'PEMOTONGAN', '', true);
-        yPos = drawTableRow(yPos, 7, 'PERUSAHAAN', '');
-        if (Number(payroll.jht_company) > 0) yPos = drawTableRow(yPos, 7, `BPJS Ketenagakerjaan JHT ${calculatePercentage(payroll.jht_company, payroll.basic_salary)}`, formatCurrency(payroll.jht_company));
-        if (Number(payroll.jkm_company) > 0) yPos = drawTableRow(yPos, 7, `BPJS Ketenagakerjaan JKM ${calculatePercentage(payroll.jkm_company, payroll.basic_salary)}`, formatCurrency(payroll.jkm_company));
-        if (Number(payroll.jkk_company) > 0) yPos = drawTableRow(yPos, 7, `BPJS Ketenagakerjaan JKK ${calculatePercentage(payroll.jkk_company, payroll.basic_salary)}`, formatCurrency(payroll.jkk_company));
-        if (Number(payroll.jp_company) > 0) yPos = drawTableRow(yPos, 7, `BPJS Jaminan Pensiun ${calculatePercentage(payroll.jp_company, payroll.basic_salary)}`, formatCurrency(payroll.jp_company));
-        if (Number(payroll.bpjs_health_company) > 0) yPos = drawTableRow(yPos, 7, `BPJS Kesehatan ${calculatePercentage(payroll.bpjs_health_company, payroll.basic_salary)}`, formatCurrency(payroll.bpjs_health_company));
-        yPos = drawTableRow(yPos, 7, 'SUB TOTAL', formatCurrency(payroll.subtotal_company || payroll.bpjs_company), false, true);
-  
-        yPos = drawTableRow(yPos, 7, 'KARYAWAN', '');
-        if (Number(payroll.bpjs_health_employee) > 0) yPos = drawTableRow(yPos, 7, `BPJS Kesehatan ${calculatePercentage(payroll.bpjs_health_employee, payroll.basic_salary)}`, formatCurrency(payroll.bpjs_health_employee));
-        if (Number(payroll.jht_employee) > 0) yPos = drawTableRow(yPos, 7, `BPJS Ketenagakerjaan JHT ${calculatePercentage(payroll.jht_employee, payroll.basic_salary)}`, formatCurrency(payroll.jht_employee));
-        if (Number(payroll.jp_employee) > 0) yPos = drawTableRow(yPos, 7, `BPJS Jaminan Pensiun ${calculatePercentage(payroll.jp_employee, payroll.basic_salary)}`, formatCurrency(payroll.jp_employee));
-        if (Number(payroll.kasbon) > 0) yPos = drawTableRow(yPos, 7, 'KASBON', formatCurrency(payroll.kasbon)); else yPos = drawTableRow(yPos, 7, 'KASBON', '0');
-        if (Number(payroll.angsuran_kredit) > 0) yPos = drawTableRow(yPos, 7, 'Angsuran Kredit', formatCurrency(payroll.angsuran_kredit)); else yPos = drawTableRow(yPos, 7, 'Angsuran Kredit', '0');
-        if (Number(payroll.telat) > 0) yPos = drawTableRow(yPos, 7, 'Telat', formatCurrency(payroll.telat)); else yPos = drawTableRow(yPos, 7, 'Telat', '0');
-        // Handle ALFA if it exists, otherwise show 0
-        const alfaDeduction = payroll.alfa || 0;
-        yPos = drawTableRow(yPos, 7, 'ALFA', formatCurrency(alfaDeduction));
-        const subTotalKaryawan = (Number(payroll.subtotal_employee) || 0) + (Number(payroll.total_deductions_manual) || 0);
-        yPos = drawTableRow(yPos, 7, 'SUB TOTAL', formatCurrency(subTotalKaryawan), false, true);
-        
-        const totalPotongan = (Number(payroll.subtotal_company) || 0) + subTotalKaryawan;
-        yPos = drawTableRow(yPos, 8, 'TOTAL PEMOTONGAN', formatCurrency(totalPotongan), false, true);
-  
-        // PENGHASILAN BERSIH
-        yPos = drawTableRow(yPos, 8, 'PENGHASILAN BERSIH', formatCurrency(payroll.net_salary), true, true);
-  
-        const fileName = `SlipGaji_${profile?.first_name}_${format(new Date(payroll.payment_date), 'yyyyMMdd')}.pdf`;
-        doc.save(fileName);
-        
-        toast({ title: 'Berhasil', description: 'Slip gaji berhasil diunduh' });
-        
-        setSlipGajiDialogOpen(false);
-        setSelectedPayrollId('');
-      } catch (error) {
-        console.error('Error generating slip gaji:', error);
-        toast({ title: 'Error', description: 'Gagal membuat slip gaji', variant: 'destructive' });
-      } finally {
-        setDownloadingSlip(false);
-      }
-    };
+          doc.setTextColor(0,0,0);
+          doc.text(label, margin + 4, y + 4.5);
+          doc.text(value, pageWidth - margin - 4, y + 4.5, { align: 'right' });
+          return y + 6;
+      };
+      
+      // PENDAPATAN
+      yPos = drawSectionHeader(yPos, 'PENDAPATAN', [229, 239, 247]); // Light Blue
+      yPos = drawSubHeader(yPos, 'PENDAPATAN TETAP');
+      yPos = drawDataRow(yPos, 'Gaji Pokok', formatCurrency(payroll.basic_salary));
+      if (Number(payroll.jht_company) > 0) yPos = drawDataRow(yPos, `BPJS Ketenagakerjaan JHT ${getPercentageString(payroll.jht_company, payroll.basic_salary)}`, formatCurrency(payroll.jht_company));
+      if (Number(payroll.jkm_company) > 0) yPos = drawDataRow(yPos, `BPJS Ketenagakerjaan JKM ${getPercentageString(payroll.jkm_company, payroll.basic_salary)}`, formatCurrency(payroll.jkm_company));
+      if (Number(payroll.jkk_company) > 0) yPos = drawDataRow(yPos, `BPJS Ketenagakerjaan JKK ${getPercentageString(payroll.jkk_company, payroll.basic_salary)}`, formatCurrency(payroll.jkk_company));
+      if (Number(payroll.jp_company) > 0) yPos = drawDataRow(yPos, `BPJS Jaminan Pensiun ${getPercentageString(payroll.jp_company, payroll.basic_salary)}`, formatCurrency(payroll.jp_company));
+      if (Number(payroll.bpjs_health_company) > 0) yPos = drawDataRow(yPos, `BPJS Kesehatan ${getPercentageString(payroll.bpjs_health_company, payroll.basic_salary)}`, formatCurrency(payroll.bpjs_health_company));
+      
+      const subTotalPendapatanTetap = (Number(payroll.basic_salary) || 0) + (Number(payroll.subtotal_company) || 0);
+      yPos = drawDataRow(yPos, 'SUB TOTAL', formatCurrency(subTotalPendapatanTetap), [228, 248, 233], true); // Light Green
+      
+      yPos = drawSubHeader(yPos, 'PENDAPATAN TIDAK TETAP');
+      const subTotalPendapatanTidakTetap = (Number(payroll.total_allowances) || 0); // Assuming total_allowances = incentive + overtime
+      yPos = drawDataRow(yPos, 'SUB TOTAL', formatCurrency(subTotalPendapatanTidakTetap), [228, 248, 233], true); // Light Green
+
+      yPos = drawSectionHeader(yPos, 'TOTAL PENDAPATAN', [29, 78, 216]); // Blue
+      doc.text(formatCurrency(payroll.total_pendapatan), pageWidth - margin - 4, yPos - 2, { align: 'right' });
+      
+      // PEMOTONGAN
+      yPos += 3;
+      yPos = drawSectionHeader(yPos, 'PEMOTONGAN', [254, 226, 226]); // Light Red
+      yPos = drawSubHeader(yPos, 'PERUSAHAAN');
+      if (Number(payroll.jht_company) > 0) yPos = drawDataRow(yPos, `BPJS Ketenagakerjaan JHT ${getPercentageString(payroll.jht_company, payroll.basic_salary)}`, formatCurrency(payroll.jht_company));
+      if (Number(payroll.jkm_company) > 0) yPos = drawDataRow(yPos, `BPJS Ketenagakerjaan JKM ${getPercentageString(payroll.jkm_company, payroll.basic_salary)}`, formatCurrency(payroll.jkm_company));
+      if (Number(payroll.jkk_company) > 0) yPos = drawDataRow(yPos, `BPJS Ketenagakerjaan JKK ${getPercentageString(payroll.jkk_company, payroll.basic_salary)}`, formatCurrency(payroll.jkk_company));
+      if (Number(payroll.jp_company) > 0) yPos = drawDataRow(yPos, `BPJS Jaminan Pensiun ${getPercentageString(payroll.jp_company, payroll.basic_salary)}`, formatCurrency(payroll.jp_company));
+      if (Number(payroll.bpjs_health_company) > 0) yPos = drawDataRow(yPos, `BPJS Kesehatan ${getPercentageString(payroll.bpjs_health_company, payroll.basic_salary)}`, formatCurrency(payroll.bpjs_health_company));
+      yPos = drawDataRow(yPos, 'SUB TOTAL', formatCurrency(payroll.subtotal_company), [254, 226, 226], true); // Light Red
+      
+      yPos = drawSubHeader(yPos, 'KARYAWAN');
+      if (Number(payroll.bpjs_health_employee) > 0) yPos = drawDataRow(yPos, `BPJS Kesehatan ${getPercentageString(payroll.bpjs_health_employee, payroll.basic_salary)}`, formatCurrency(payroll.bpjs_health_employee));
+      if (Number(payroll.jht_employee) > 0) yPos = drawDataRow(yPos, `BPJS Ketenagakerjaan JHT ${getPercentageString(payroll.jht_employee, payroll.basic_salary)}`, formatCurrency(payroll.jht_employee));
+      if (Number(payroll.jp_employee) > 0) yPos = drawDataRow(yPos, `BPJS Jaminan Pensiun ${getPercentageString(payroll.jp_employee, payroll.basic_salary)}`, formatCurrency(payroll.jp_employee));
+      yPos = drawDataRow(yPos, 'KASBON', formatCurrency(payroll.kasbon));
+      yPos = drawDataRow(yPos, 'Angsuran Kredit', formatCurrency(payroll.angsuran_kredit));
+      yPos = drawDataRow(yPos, 'Telat', formatCurrency(payroll.telat));
+      const subTotalKaryawan = (Number(payroll.subtotal_employee) || 0) + (Number(payroll.total_deductions_manual) || 0);
+      yPos = drawDataRow(yPos, 'SUB TOTAL', formatCurrency(subTotalKaryawan), [254, 226, 226], true); // Light Red
+
+      const totalPotongan = (Number(payroll.total_deductions_bpjs) || 0) + (Number(payroll.total_deductions_manual) || 0);
+      yPos = drawSectionHeader(yPos, 'TOTAL PEMOTONGAN', [220, 38, 38]); // Red
+      doc.text(formatCurrency(totalPotongan), pageWidth - margin - 4, yPos - 2, { align: 'right' });
+      
+      // PENGHASILAN BERSIH
+      yPos = drawSectionHeader(yPos, 'PENGHASILAN BERSIH', [29, 78, 216]); // Blue
+      doc.text(formatCurrency(payroll.net_salary), pageWidth - margin - 4, yPos - 2, { align: 'right' });
+      
+      // --- FOOTER ---
+      doc.setFontSize(7);
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(150, 150, 150);
+      doc.text(`Dicetak pada: ${format(new Date(), 'dd MMM yyyy HH:mm', { locale: id })}`, pageWidth / 2, yPos + 5, { align: 'center' });
+
+      // --- SAVE PDF ---
+      const fileName = `SlipGaji_${profile?.first_name}_${format(new Date(payroll.payment_date), 'yyyyMMdd')}.pdf`;
+      doc.save(fileName);
+      
+      toast({ title: 'Berhasil', description: 'Slip gaji berhasil diunduh' });
+      setSlipGajiDialogOpen(false);
+      setSelectedPayrollId('');
+    } catch (error) {
+      console.error('Error generating slip gaji:', error);
+      toast({ title: 'Error', description: 'Gagal membuat slip gaji', variant: 'destructive' });
+    } finally {
+      setDownloadingSlip(false);
+    }
+  };
+
   const handleNotificationClick = async (request: any) => {
     try {
       // Mark notification as read
