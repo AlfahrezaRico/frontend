@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Clock, Users, CheckCircle, XCircle, Calendar, Upload, Download, FileSpreadsheet, RefreshCw, Eye } from "lucide-react";
+import { Clock, Users, CheckCircle, XCircle, Calendar, Upload, Download, FileSpreadsheet, RefreshCw, Eye, Pencil } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -28,6 +28,8 @@ export const AttendanceContent = () => {
   const pageSize = 10;
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailRecord, setDetailRecord] = useState<any | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editNotes, setEditNotes] = useState("");
 
   const fetchAttendance = async () => {
     setLoadingTable(true);
@@ -71,6 +73,27 @@ export const AttendanceContent = () => {
   const openDetail = (rec: any) => {
     setDetailRecord(rec);
     setDetailOpen(true);
+  };
+  const openEdit = (rec: any) => {
+    setDetailRecord(rec);
+    setEditNotes(rec.notes || "");
+    setEditOpen(true);
+  };
+  const saveNotes = async () => {
+    if (!detailRecord) return;
+    try {
+      const res = await fetch(`${API_URL}/api/attendance-records`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: detailRecord.id, notes: editNotes })
+      });
+      if (!res.ok) throw new Error('Gagal menyimpan catatan');
+      toast({ title: 'Tersimpan', description: 'Catatan berhasil diperbarui' });
+      setEditOpen(false);
+      await fetchAttendance();
+    } catch (e: any) {
+      toast({ title: 'Error', description: e.message || 'Gagal menyimpan catatan', variant: 'destructive' });
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -249,10 +272,15 @@ export const AttendanceContent = () => {
                       <TableCell>{rec.check_out_time ? new Date(rec.check_out_time).toLocaleTimeString('id-ID') : '-'}</TableCell>
                       <TableCell>{rec.status}</TableCell>
                       <TableCell>{rec.notes || '-'}</TableCell>
-                      <TableCell className="text-right pr-6">
-                        <Button size="sm" variant="outline" onClick={() => openDetail(rec)}>
-                          <Eye className="h-4 w-4 mr-2" /> Detail
+                      <TableCell className="text-right pr-6 flex justify-end gap-2">
+                        <Button size="icon" variant="outline" onClick={() => openDetail(rec)}>
+                          <Eye className="h-4 w-4" />
                         </Button>
+                        {rec.status === 'LATE' && (
+                          <Button size="sm" variant="outline" onClick={() => openEdit(rec)}>
+                            <Pencil className="h-4 w-4 mr-2" /> Edit
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -290,16 +318,37 @@ export const AttendanceContent = () => {
           </DialogHeader>
           {detailRecord && (
             <div className="space-y-2 text-sm">
+              <div><span className="text-gray-500">NIK: </span>{detailRecord.employee?.nik ?? '-'}</div>
               <div><span className="text-gray-500">Nama: </span>{detailRecord.employee ? `${detailRecord.employee.first_name ?? ''} ${detailRecord.employee.last_name ?? ''}`.trim() : '-'}</div>
               <div><span className="text-gray-500">Tanggal: </span>{new Date(detailRecord.date).toLocaleDateString('id-ID')}</div>
               <div><span className="text-gray-500">Jam Masuk: </span>{detailRecord.check_in_time ? new Date(detailRecord.check_in_time).toLocaleTimeString('id-ID') : '-'}</div>
               <div><span className="text-gray-500">Jam Keluar: </span>{detailRecord.check_out_time ? new Date(detailRecord.check_out_time).toLocaleTimeString('id-ID') : '-'}</div>
               <div><span className="text-gray-500">Status: </span>{detailRecord.status}</div>
+              <div><span className="text-gray-500">Posisi: </span>{detailRecord.employee?.position ?? '-'}</div>
+              <div><span className="text-gray-500">Departemen: </span>{detailRecord.employee?.department ?? '-'}</div>
+              <div><span className="text-gray-500">Jenis Status Karyawan: </span>{detailRecord.employee?.statusJenis?.name ?? '-'}</div>
               <div><span className="text-gray-500">Catatan: </span>{detailRecord.notes || '-'}</div>
             </div>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setDetailOpen(false)}>Tutup</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Notes Dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Catatan Absensi</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="notes">Catatan</Label>
+            <Input id="notes" value={editNotes} onChange={(e)=>setEditNotes(e.target.value)} placeholder="Masukkan catatan" />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={()=>setEditOpen(false)}>Batal</Button>
+            <Button onClick={saveNotes}>Simpan</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
