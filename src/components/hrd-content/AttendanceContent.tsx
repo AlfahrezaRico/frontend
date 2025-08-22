@@ -312,22 +312,55 @@ export const AttendanceContent = () => {
 
       {/* Detail Dialog */}
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle>Detail Absensi</DialogTitle>
           </DialogHeader>
           {detailRecord && (
-            <div className="space-y-2 text-sm">
-              <div><span className="text-gray-500">NIK: </span>{detailRecord.employee?.nik ?? '-'}</div>
-              <div><span className="text-gray-500">Nama: </span>{detailRecord.employee ? `${detailRecord.employee.first_name ?? ''} ${detailRecord.employee.last_name ?? ''}`.trim() : '-'}</div>
-              <div><span className="text-gray-500">Tanggal: </span>{new Date(detailRecord.date).toLocaleDateString('id-ID')}</div>
-              <div><span className="text-gray-500">Jam Masuk: </span>{detailRecord.check_in_time ? new Date(detailRecord.check_in_time).toLocaleTimeString('id-ID') : '-'}</div>
-              <div><span className="text-gray-500">Jam Keluar: </span>{detailRecord.check_out_time ? new Date(detailRecord.check_out_time).toLocaleTimeString('id-ID') : '-'}</div>
-              <div><span className="text-gray-500">Status: </span>{detailRecord.status}</div>
-              <div><span className="text-gray-500">Posisi: </span>{detailRecord.employee?.position ?? '-'}</div>
-              <div><span className="text-gray-500">Departemen: </span>{detailRecord.employee?.department ?? '-'}</div>
-              <div><span className="text-gray-500">Jenis Status Karyawan: </span>{detailRecord.employee?.statusJenis?.name ?? '-'}</div>
-              <div><span className="text-gray-500">Catatan: </span>{detailRecord.notes || '-'}</div>
+            <div className="space-y-4">
+              {/* Header Card */}
+              <div className="rounded-lg bg-slate-50 border p-4 flex items-center justify-between">
+                <div>
+                  <div className="text-2xl font-bold">{detailRecord.employee ? `${detailRecord.employee.first_name ?? ''} ${detailRecord.employee.last_name ?? ''}`.trim() : '-'}</div>
+                  <div className="text-sm text-slate-600">NIK {detailRecord.employee?.nik ?? '-'}</div>
+                </div>
+                <div className="flex gap-2">
+                  {detailRecord.employee?.position && (
+                    <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700">{detailRecord.employee.position}</span>
+                  )}
+                  {detailRecord.status && (
+                    <span className="px-2 py-1 text-xs rounded-full bg-slate-200 text-slate-700">{detailRecord.status}</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Grid details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div className="rounded-lg border p-3">
+                  <div className="text-slate-500">Tanggal</div>
+                  <div className="font-medium">{new Date(detailRecord.date).toLocaleDateString('id-ID')}</div>
+                </div>
+                <div className="rounded-lg border p-3">
+                  <div className="text-slate-500">Departemen</div>
+                  <div className="font-medium">{detailRecord.employee?.departemen?.nama ?? '-'}</div>
+                </div>
+                <div className="rounded-lg border p-3">
+                  <div className="text-slate-500">Jam Masuk</div>
+                  <div className="font-medium">{detailRecord.check_in_time ? new Date(detailRecord.check_in_time).toLocaleTimeString('id-ID') : '-'}</div>
+                </div>
+                <div className="rounded-lg border p-3">
+                  <div className="text-slate-500">Jam Keluar</div>
+                  <div className="font-medium">{detailRecord.check_out_time ? new Date(detailRecord.check_out_time).toLocaleTimeString('id-ID') : '-'}</div>
+                </div>
+                <div className="rounded-lg border p-3">
+                  <div className="text-slate-500">Jenis Status Karyawan</div>
+                  <div className="font-medium">{detailRecord.employee?.statusJenis?.name ?? '-'}</div>
+                </div>
+                <div className="rounded-lg border p-3">
+                  <div className="text-slate-500">Catatan</div>
+                  <div className="font-medium">{detailRecord.notes || '-'}</div>
+                </div>
+              </div>
             </div>
           )}
           <DialogFooter>
