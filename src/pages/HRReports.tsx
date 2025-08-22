@@ -53,39 +53,40 @@ const HRReports = () => {
     const tf = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: 'Asia/Jakarta' });
     const df = new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Asia/Jakarta' });
 
+    const isTimeString = (v: any) => typeof v === 'string' && /^\d{1,2}:\d{2}(:\d{2})?$/.test(v.trim());
+    const pad2 = (n: number) => String(n).padStart(2, '0');
+    const formatTime = (v: any) => {
+      if (!v) return '';
+      if (isTimeString(v)) {
+        const parts = v.trim().split(':');
+        const h = pad2(Number(parts[0]));
+        const m = pad2(Number(parts[1]));
+        const s = pad2(Number(parts[2] ?? '0'));
+        return `'${h}:${m}:${s}`; // force Excel text
+      }
+      const d = new Date(v);
+      if (isNaN(d.getTime())) return '';
+      const t = tf.format(d); // HH:MM:SS in WIB
+      return `'${t}`;
+    };
+    const formatDate = (v: any) => {
+      if (!v) return '';
+      const d = new Date(v);
+      if (isNaN(d.getTime())) return '';
+      return `'${df.format(d)}`; // force text to avoid locale coercion
+    };
+
     const data = filteredAttendance.map(rec => ({
       'NIK': rec.employee?.nik || '-',
       'Nama': rec.employee ? `${rec.employee.first_name} ${rec.employee.last_name}` : '-',
       'Departemen': rec.employee?.department || rec.employee?.departemen?.nama || '-',
-      'Tanggal': rec.date ? df.format(new Date(rec.date)) : '',
-      'Check In': rec.check_in_time ? tf.format(new Date(rec.check_in_time)) : '',
-      'Check Out': rec.check_out_time ? tf.format(new Date(rec.check_out_time)) : '',
+      'Tanggal': formatDate(rec.date),
+      'Check In': formatTime(rec.check_in_time),
+      'Check Out': formatTime(rec.check_out_time),
       'Status': rec.status || '',
       'Notes': rec.notes || ''
     }));
     const worksheet = XLSX.utils.json_to_sheet(data);
-
-    // Force text for time/date columns so Excel does not auto-format with locale
-    const range = XLSX.utils.decode_range(worksheet['!ref'] as string);
-    const findCol = (header: string) => {
-      for (let c = range.s.c; c <= range.e.c; c++) {
-        const addr = XLSX.utils.encode_cell({ c, r: 0 });
-        const cell = worksheet[addr];
-        if (cell && String(cell.v).trim() === header) return c;
-      }
-      return -1;
-    };
-    const colsToText = ['Tanggal', 'Check In', 'Check Out'];
-    const colIdxs = colsToText.map(findCol).filter(c => c >= 0);
-    for (const c of colIdxs) {
-      for (let r = 1; r <= range.e.r; r++) {
-        const addr = XLSX.utils.encode_cell({ c, r });
-        const cell = worksheet[addr];
-        if (cell && cell.v !== undefined && cell.v !== null) {
-          worksheet[addr] = { t: 's', v: String(cell.v) } as any;
-        }
-      }
-    }
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Absensi');
