@@ -222,15 +222,10 @@ const AttendanceManagement = () => {
   const downloadTemplate = () => {
     // Create comprehensive template data with sample records
     const templateData = [
-      ['nik', 'date', 'check_in_time', 'check_out_time', 'status', 'notes'],
-      ['OPR00001', '2025-01-15', '08:00:00', '17:00:00', 'PRESENT', 'Hadir tepat waktu'],
-      ['OPR00001', '2025-01-16', '08:30:00', '17:30:00', 'LATE', 'Terlambat 30 menit'],
-      ['OPR00001', '2025-01-17', '', '', 'ABSENT', 'Sakit'],
-      ['OPR00001', '2025-01-18', '08:15:00', '17:15:00', 'LATE', 'Terlambat 15 menit'],
-      ['OPR00001', '2025-01-19', '08:00:00', '16:00:00', 'HALF_DAY', 'Pulang lebih awal'],
-      ['', '2025-01-20', '08:00:00', '17:00:00', 'PRESENT', 'Contoh data - ganti NIK'],
-      ['', '2025-01-21', '09:00:00', '18:00:00', 'LATE', 'Contoh data - ganti NIK'],
-      ['', '2025-01-22', '', '', 'ABSENT', 'Contoh data - ganti NIK']
+      ['nik', 'date', 'check_in_time', 'check_out_time', 'notes'],
+      ['OPR00001', '2025-01-15', '08:00:00', '17:00:00', 'Hadir tepat waktu'],
+      ['OPR00001', '2025-01-16', '08:05:00', '17:00:00', 'Akan dihitung LATE otomatis'],
+      ['OPR00001', '2025-01-17', '12:00:00', '17:00:00', 'Akan dihitung HALF_DAY otomatis']
     ];
 
     // Create CSV content with proper formatting
@@ -252,21 +247,14 @@ const AttendanceManagement = () => {
       'INSTRUKSI PENGISIAN:',
       '1. nik: Nomor Induk Karyawan (wajib diisi) - sesuai NIK di sistem',
       '2. date: Tanggal absensi dalam format YYYY-MM-DD (wajib diisi)',
-      '3. check_in_time: Jam masuk dalam format HH:MM:SS (opsional)',
-      '4. check_out_time: Jam keluar dalam format HH:MM:SS (opsional)',
-      '5. status: PRESENT, ABSENT, LATE, atau HALF_DAY (opsional, default: PRESENT)',
-      '6. notes: Catatan tambahan (opsional)',
+      '3. check_in_time: Jam masuk dalam format HH:MM:SS (wajib diisi)',
+      '4. check_out_time: Jam keluar dalam format HH:MM:SS (wajib diisi)',
+      '5. notes: Catatan tambahan (opsional)',
       '',
-      'STATUS YANG VALID:',
-      '- PRESENT: Hadir tepat waktu',
-      '- ABSENT: Tidak hadir',
-      '- LATE: Terlambat',
-      '- HALF_DAY: Setengah hari',
-      '',
-      'FORMAT WAKTU:',
-      '- Masuk: 08:00:00 (jam 8 pagi)',
-      '- Keluar: 17:00:00 (jam 5 sore)',
-      '- Kosongkan jika tidak ada data',
+      'STATUS Dihitung Otomatis oleh Sistem:',
+      '- check_in_time > 08:00:00  -> LATE',
+      '- check_in_time = 12:00:00  -> HALF_DAY',
+      '- check_in_time <= 08:00:00 -> PRESENT',
       '',
       'CATATAN PENTING:',
       '- Hapus baris contoh sebelum upload',
@@ -582,7 +570,7 @@ const AttendanceManagement = () => {
                 className="mt-1"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Maksimal ukuran file: 10MB. Kolom: nik, date, check_in_time, check_out_time, status, notes
+                Maksimal ukuran file: 10MB. Kolom wajib: nik, date, check_in_time, check_out_time. Notes optional. Status dihitung otomatis.
               </p>
             </div>
 

@@ -91,10 +91,10 @@ export const AttendanceContent = () => {
 
   const downloadTemplate = () => {
     const templateData = [
-      ['nik', 'date', 'check_in_time', 'check_out_time', 'status', 'notes'],
-      ['OPR00001', '2025-01-15', '08:00:00', '17:00:00', 'PRESENT', 'Hadir tepat waktu'],
-      ['OPR00001', '2025-01-16', '08:30:00', '17:30:00', 'LATE', 'Terlambat 30 menit'],
-      ['OPR00001', '2025-01-17', '', '', 'ABSENT', 'Sakit']
+      ['nik', 'date', 'check_in_time', 'check_out_time', 'notes'],
+      ['OPR00001', '2025-01-15', '08:00:00', '17:00:00', 'Hadir tepat waktu'],
+      ['OPR00001', '2025-01-16', '08:05:00', '17:00:00', 'Akan dihitung LATE otomatis'],
+      ['OPR00001', '2025-01-17', '12:00:00', '17:00:00', 'Akan dihitung HALF_DAY otomatis']
     ];
     const csvContent = templateData.map(row => row.map(cell => {
       if (cell.includes(',') || cell.includes('"') || cell.includes('\n')) {
@@ -106,8 +106,11 @@ export const AttendanceContent = () => {
       'TEMPLATE BULK UPLOAD ABSENSI',
       '================================',
       '',
-      'Kolom: nik, date, check_in_time, check_out_time, status, notes',
-      'Status valid: PRESENT, ABSENT, LATE, HALF_DAY',
+      'Kolom wajib: nik, date, check_in_time, check_out_time (notes optional)',
+      'Status tidak perlu diisi. Sistem akan menghitung otomatis:',
+      '- Jika check_in_time > 08:00:00 maka status LATE',
+      '- Jika check_in_time = 12:00:00 maka status HALF_DAY',
+      '- Jika <= 08:00:00 maka status PRESENT',
       '',
       csvContent
     ].join('\n');
@@ -169,7 +172,7 @@ export const AttendanceContent = () => {
             <div>
               <Label htmlFor="file-upload-dashboard">Pilih File Excel/CSV</Label>
               <Input id="file-upload-dashboard" type="file" accept=".xlsx,.xls,.csv" onChange={handleFileChange} className="mt-1" />
-              <p className="text-xs text-gray-500 mt-1">Maksimal 10MB. Kolom: nik, date, check_in_time, check_out_time, status, notes</p>
+              <p className="text-xs text-gray-500 mt-1">Maksimal 10MB. Kolom wajib: nik, date, check_in_time, check_out_time. Notes optional. Status dihitung otomatis.</p>
             </div>
             {uploadFile && (
               <div className="p-3 bg-blue-50 rounded-lg">
