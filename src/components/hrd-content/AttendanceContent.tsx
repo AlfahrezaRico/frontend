@@ -4,8 +4,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Clock, Users, CheckCircle, XCircle, Calendar, Upload, Download, FileSpreadsheet } from "lucide-react";
-import { useState } from "react";
+import { Clock, Users, CheckCircle, XCircle, Calendar, Upload, Download, FileSpreadsheet, RefreshCw } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export const AttendanceContent = () => {
@@ -17,6 +17,29 @@ export const AttendanceContent = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const API_URL = import.meta.env.VITE_API_URL || '';
   const selectedMonth = new Date().toISOString().slice(0, 7);
+
+  // New: table state for today's attendance
+  const [attendanceRecords, setAttendanceRecords] = useState<any[]>([]);
+  const [loadingTable, setLoadingTable] = useState(false);
+
+  const fetchAttendanceToday = async () => {
+    setLoadingTable(true);
+    try {
+      const res = await fetch(`${API_URL}/api/attendance-records`);
+      if (res.ok) {
+        const data = await res.json();
+        setAttendanceRecords(Array.isArray(data) ? data : []);
+      }
+    } catch (e) {
+      console.error('Fetch attendance error:', e);
+    } finally {
+      setLoadingTable(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAttendanceToday();
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -85,6 +108,8 @@ export const AttendanceContent = () => {
       setBulkUploadOpen(false);
       setUploadFile(null);
       setUploadProgress(0);
+      // refresh table after upload
+      await fetchAttendanceToday();
     } catch (error: any) {
       setUploadProgress(0);
       toast({ title: 'Error', description: error.message || 'Gagal upload file', variant: 'destructive' });
@@ -143,23 +168,62 @@ export const AttendanceContent = () => {
             <Download className="h-4 w-4 mr-2" />
             Template
           </Button>
+          <Button onClick={fetchAttendanceToday} variant="outline" className="border-green-600 text-green-600 hover:bg-green-50">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
         </div>
       </div>
 
-
-
-      {/* Content Placeholder */}
+      {/* Table showing today's attendance */}
       <Card>
         <CardHeader>
           <CardTitle>Absensi Hari Ini</CardTitle>
           <CardDescription>Daftar kehadiran karyawan untuk hari ini</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-12 text-muted-foreground">
-            <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>Gunakan tombol di kanan atas untuk masuk ke halaman absensi lengkap</p>
-            <p className="text-sm">Di sana tersedia fitur Bulk Upload (CSV/XLSX) dan Template</p>
-          </div>
+          {loadingTable ? (
+            <div className="text-center py-8">Memuat data...</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="text-left border-b">
+                    <th className="py-2 pr-4">Nama Karyawan</th>
+                    <th className="py-2 pr-4">Tanggal</th>
+                    <th className="py-2 pr-4">Jam Masuk</th>
+                    <th className="py-2 pr-4">Jam Keluar</th>
+                    <th className="py-2 pr-4">Status</th>
+                    <th className="py-2 pr-4">Catatan</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {attendanceRecords
+                    .filter((rec: any) => {
+                      const recDate = new Date(rec.date).toISOString().slice(0,10);
+                      const today = new Date().toISOString().slice(0,10);
+                      return recDate === today;
+                    })
+                    .map((rec: any) => (
+                      <tr key={rec.id} className="border-b">
+                        <td className="py-2 pr-4">{rec.employee ? `${rec.employee.first_name ?? ''} ${rec.employee.last_name ?? ''}`.trim() : ''}</td>
+                        <td className="py-2 pr-4">{new Date(rec.date).toLocaleDateString('id-ID')}</td>
+                        <td className="py-2 pr-4">{rec.check_in_time ? new Date(rec.check_in_time).toLocaleTimeString('id-ID') : '-'}</td>
+                        <td className="py-2 pr-4">{rec.check_out_time ? new Date(rec.check_out_time).toLocaleTimeString('id-ID') : '-'}</td>
+                        <td className="py-2 pr-4">{rec.status}</td>
+                        <td className="py-2 pr-4">{rec.notes || '-'}</td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+              {attendanceRecords.filter((rec: any) => new Date(rec.date).toISOString().slice(0,10) === new Date().toISOString().slice(0,10)).length === 0 && (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Tidak ada data absensi untuk hari ini</p>
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
