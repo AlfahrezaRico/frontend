@@ -64,6 +64,29 @@ const HRReports = () => {
       'Notes': rec.notes || ''
     }));
     const worksheet = XLSX.utils.json_to_sheet(data);
+
+    // Force text for time/date columns so Excel does not auto-format with locale
+    const range = XLSX.utils.decode_range(worksheet['!ref'] as string);
+    const findCol = (header: string) => {
+      for (let c = range.s.c; c <= range.e.c; c++) {
+        const addr = XLSX.utils.encode_cell({ c, r: 0 });
+        const cell = worksheet[addr];
+        if (cell && String(cell.v).trim() === header) return c;
+      }
+      return -1;
+    };
+    const colsToText = ['Tanggal', 'Check In', 'Check Out'];
+    const colIdxs = colsToText.map(findCol).filter(c => c >= 0);
+    for (const c of colIdxs) {
+      for (let r = 1; r <= range.e.r; r++) {
+        const addr = XLSX.utils.encode_cell({ c, r });
+        const cell = worksheet[addr];
+        if (cell && cell.v !== undefined && cell.v !== null) {
+          worksheet[addr] = { t: 's', v: String(cell.v) } as any;
+        }
+      }
+    }
+
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Absensi');
     XLSX.writeFile(workbook, `Laporan_Absensi_${selectedMonth}.xlsx`);
