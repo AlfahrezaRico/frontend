@@ -116,6 +116,11 @@ export const PayrollContent = () => {
           return payrollDate.getMonth() === thisMonth && payrollDate.getFullYear() === thisYear;
         });
         
+        // Debug: Log data payroll yang di-fetch
+        console.log('=== PAYROLL DATA DEBUG ===');
+        console.log('Raw payroll data:', data);
+        console.log('Payroll records count:', data.length);
+        
         // Perbaikan perhitungan dengan validasi tipe data dan nilai
         const totalAmount = data.reduce((sum: number, p: any) => {
           let netSalary = 0;
@@ -144,6 +149,7 @@ export const PayrollContent = () => {
             netSalary = 0;
           }
           
+          console.log(`Payroll ${p.id}: net_salary = ${p.net_salary}, converted = ${netSalary}, type: ${typeof p.net_salary}`);
           return sum + netSalary;
         }, 0);
         
@@ -152,6 +158,13 @@ export const PayrollContent = () => {
         // Validasi final untuk memastikan nilai yang masuk akal
         const finalTotalAmount = isNaN(totalAmount) || totalAmount > 1000000000000 ? 0 : totalAmount;
         const finalAvgSalary = isNaN(avgSalary) || avgSalary > 1000000000000 ? 0 : avgSalary;
+        
+        console.log('Calculated stats:');
+        console.log('- Raw total amount:', totalAmount);
+        console.log('- Raw average salary:', avgSalary);
+        console.log('- Final total amount:', finalTotalAmount);
+        console.log('- Final average salary:', finalAvgSalary);
+        console.log('- This month payrolls:', thisMonthPayrolls.length);
         
         setStats({
           total: data.length,
@@ -303,10 +316,13 @@ export const PayrollContent = () => {
       
       // Update komponen payroll yang dihitung
       if (data.calculated_components) {
-        const components = data.calculated_components;        
+        const components = data.calculated_components;
+        console.log('Received calculated components from backend:', components);
+        
         // Log komponen BPJS untuk debugging
         components.forEach(comp => {
           if (comp.name.includes('BPJS')) {
+            console.log(`Component: ${comp.name}, Percentage: ${comp.percentage}%, Amount: ${comp.amount}, Type: ${comp.type}, Category: ${comp.category}`);
           }
         });
         
@@ -1280,88 +1296,131 @@ export const PayrollContent = () => {
                        </div>
                        
                        {/* PENDAPATAN TETAP */}
-<div className="space-y-3">
-    <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PENDAPATAN TETAP</h4>
-    <div className="space-y-2">
-        <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
-            <span className="font-medium text-sm text-gray-800">Gaji Pokok</span>
-            <span className="text-sm font-bold text-green-700">
-                {formatCurrency(form.basic_salary)}
-            </span>
-        </div>
-        <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
-            <span className="font-medium text-sm text-gray-800">Tunjangan Jabatan</span>
-            <span className="text-sm font-semibold text-green-700">
-                {formatCurrency(form.position_allowance)}
-            </span>
-        </div>
-        <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
-            <span className="font-medium text-sm text-gray-800">Tunjangan Pengurus</span>
-            <span className="text-sm font-semibold text-green-700">
-                {formatCurrency(form.management_allowance)}
-            </span>
-        </div>
-        <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
-            <span className="font-medium text-sm text-gray-800">Tunjangan Pulsa</span>
-            <span className="text-sm font-semibold text-green-700">
-                {formatCurrency(form.phone_allowance)}
-            </span>
-        </div>
-        {calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).map((component, index) => (
-        <div key={index} className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
-            <div className="flex-1">
-            <span className="font-medium text-sm text-gray-800">{component.name}</span>
-            <div className="text-xs text-gray-600 mt-1">
-                {component.percentage}% dari gaji pokok murni
-            </div>
-            </div>
-            <span className="text-sm font-bold text-green-700 ml-4">
-            {formatCurrency(component.amount)}
-            </span>
-        </div>
-        ))}
-    </div>
-    <div className="flex justify-between items-center py-3 px-4 bg-green-100 rounded-lg border border-green-300">
-        <span className="font-semibold text-gray-800">SUB TOTAL</span>
-        <span className="font-bold text-green-800">
-        {formatCurrency(
-            (form.basic_salary || 0) +
-            (form.position_allowance || 0) +
-            (form.management_allowance || 0) +
-            (form.phone_allowance || 0) +
-            calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).reduce((sum, c) => sum + c.amount, 0)
-        )}
-        </span>
-    </div>
-</div>
+                       <div className="space-y-3">
+                         <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PENDAPATAN TETAP</h4>
+                         <div className="space-y-2">
+                           {calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).map((component, index) => (
+                             <div key={index} className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
+                               <div className="flex-1">
+                                 <span className="font-medium text-sm text-gray-800">{component.name}</span>
+                                   <div className="text-xs text-gray-600 mt-1">
+                                     {component.percentage}% dari gaji pokok murni
+                                   </div>
+                               </div>
+                               <span className="text-sm font-bold text-green-700 ml-4">
+                                 {formatCurrency(component.amount)}
+                               </span>
+                             </div>
+                           ))}
+                         </div>
+                         <div className="flex justify-between items-center py-3 px-4 bg-green-100 rounded-lg border border-green-300">
+                           <span className="font-semibold text-gray-800">SUB TOTAL</span>
+                           <span className="font-bold text-green-800">
+                             {formatCurrency(calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).reduce((sum, c) => sum + c.amount, 0))}
+                           </span>
+                         </div>
+                       </div>
                        
                        {/* PENDAPATAN TIDAK TETAP */}
-<div className="space-y-3">
-    <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PENDAPATAN TIDAK TETAP</h4>
-    <div className="space-y-2">
-        <div className="flex justify-between items-center py-2 px-3 bg-blue-50 rounded-lg border border-blue-200">
-            <span className="font-medium text-sm text-gray-800">Tunjangan Insentif</span>
-            <span className="text-sm font-semibold text-blue-700">
-                {formatCurrency(form.incentive_allowance)}
-            </span>
-        </div>
-        <div className="flex justify-between items-center py-2 px-3 bg-blue-50 rounded-lg border border-blue-200">
-            <span className="font-medium text-sm text-gray-800">Tunjangan Lembur</span>
-            <span className="text-sm font-semibold text-blue-700">
-                {formatCurrency(form.overtime_allowance)}
-            </span>
-        </div>
-    </div>
-    <div className="flex justify-between items-center py-3 px-4 bg-blue-100 rounded-lg border border-blue-300">
-        <span className="font-semibold text-gray-800">SUB TOTAL</span>
-        <span className="font-bold text-blue-800">
-        {formatCurrency(
-            (form.incentive_allowance || 0) +
-            (form.overtime_allowance || 0)
-        )}
-        </span>
-    </div>
-</div>
+                       <div className="space-y-3">
+                         <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PENDAPATAN TIDAK TETAP</h4>
+                         <div className="space-y-2">
+                           <div className="flex justify-between items-center py-2 px-3 bg-blue-50 rounded-lg border border-blue-200">
+                             <span className="font-medium text-sm text-gray-800">Tunjangan Jabatan</span>
+                             <span className="text-sm font-semibold text-blue-700">
+                               {(() => {
+                                 const selectedSalary = salaryData.find(salary => salary.employee_id === form.employee_id);
+                                 if (selectedSalary) {
+                                   const posAllowance = typeof selectedSalary.position_allowance === 'string' ? 
+                                     parseFloat(selectedSalary.position_allowance) || 0 : selectedSalary.position_allowance || 0;
+                                   return formatCurrency(posAllowance);
+                                 }
+                                 return formatCurrency(0);
+                               })()}
+                             </span>
+                           </div>
+                           <div className="flex justify-between items-center py-2 px-3 bg-blue-50 rounded-lg border border-blue-200">
+                             <span className="font-medium text-sm text-gray-800">Tunjangan Pengurus</span>
+                             <span className="text-sm font-semibold text-blue-700">
+                               {(() => {
+                                 const selectedSalary = salaryData.find(salary => salary.employee_id === form.employee_id);
+                                 if (selectedSalary) {
+                                   const mgmtAllowance = typeof selectedSalary.management_allowance === 'string' ? 
+                                     parseFloat(selectedSalary.management_allowance) || 0 : selectedSalary.management_allowance || 0;
+                                   return formatCurrency(mgmtAllowance);
+                                 }
+                                 return formatCurrency(0);
+                               })()}
+                             </span>
+                           </div>
+                           <div className="flex justify-between items-center py-2 px-3 bg-blue-50 rounded-lg border border-blue-200">
+                             <span className="font-medium text-sm text-gray-800">Tunjangan Pulsa</span>
+                             <span className="text-sm font-semibold text-blue-700">
+                               {(() => {
+                                 const selectedSalary = salaryData.find(salary => salary.employee_id === form.employee_id);
+                                 if (selectedSalary) {
+                                   const phoneAllowance = typeof selectedSalary.phone_allowance === 'string' ? 
+                                     parseFloat(selectedSalary.phone_allowance) || 0 : selectedSalary.phone_allowance || 0;
+                                   return formatCurrency(phoneAllowance);
+                                 }
+                                 return formatCurrency(0);
+                               })()}
+                             </span>
+                           </div>
+                           <div className="flex justify-between items-center py-2 px-3 bg-blue-50 rounded-lg border border-blue-200">
+                             <span className="font-medium text-sm text-gray-800">Tunjangan Insentif</span>
+                             <span className="text-sm font-semibold text-blue-700">
+                               {(() => {
+                                 const selectedSalary = salaryData.find(salary => salary.employee_id === form.employee_id);
+                                 if (selectedSalary) {
+                                   const incentiveAllowance = typeof selectedSalary.incentive_allowance === 'string' ? 
+                                     parseFloat(selectedSalary.incentive_allowance) || 0 : selectedSalary.incentive_allowance || 0;
+                                   return formatCurrency(incentiveAllowance);
+                                 }
+                                 return formatCurrency(0);
+                               })()}
+                             </span>
+                           </div>
+                           <div className="flex justify-between items-center py-2 px-3 bg-blue-50 rounded-lg border border-blue-200">
+                             <span className="font-medium text-sm text-gray-800">Tunjangan Lembur</span>
+                             <span className="text-sm font-semibold text-blue-700">
+                               {(() => {
+                                 const selectedSalary = salaryData.find(salary => salary.employee_id === form.employee_id);
+                                 if (selectedSalary) {
+                                   const overtimeAllowance = typeof selectedSalary.overtime_allowance === 'string' ? 
+                                     parseFloat(selectedSalary.overtime_allowance) || 0 : selectedSalary.overtime_allowance || 0;
+                                   return formatCurrency(overtimeAllowance);
+                                 }
+                                 return formatCurrency(0);
+                               })()}
+                             </span>
+                           </div>
+                         </div>
+                         <div className="flex justify-between items-center py-3 px-4 bg-blue-100 rounded-lg border border-blue-300">
+                           <span className="font-semibold text-gray-800">SUB TOTAL</span>
+                           <span className="font-bold text-blue-800">
+                             {(() => {
+                               const selectedSalary = salaryData.find(salary => salary.employee_id === form.employee_id);
+                               if (selectedSalary) {
+                                 const posAllowance = typeof selectedSalary.position_allowance === 'string' ? 
+                                   parseFloat(selectedSalary.position_allowance) || 0 : selectedSalary.position_allowance || 0;
+                                 const mgmtAllowance = typeof selectedSalary.management_allowance === 'string' ? 
+                                   parseFloat(selectedSalary.management_allowance) || 0 : selectedSalary.management_allowance || 0;
+                                 const phoneAllowance = typeof selectedSalary.phone_allowance === 'string' ? 
+                                   parseFloat(selectedSalary.phone_allowance) || 0 : selectedSalary.phone_allowance || 0;
+                                 const incentiveAllowance = typeof selectedSalary.incentive_allowance === 'string' ? 
+                                   parseFloat(selectedSalary.incentive_allowance) || 0 : selectedSalary.incentive_allowance || 0;
+                                 const overtimeAllowance = typeof selectedSalary.overtime_allowance === 'string' ? 
+                                   parseFloat(selectedSalary.overtime_allowance) || 0 : selectedSalary.overtime_allowance || 0;
+                                 
+                                 const totalAllowances = posAllowance + mgmtAllowance + phoneAllowance + incentiveAllowance + overtimeAllowance;
+                                 return formatCurrency(totalAllowances);
+                               }
+                               return formatCurrency(0);
+                             })()}
+                           </span>
+                         </div>
+                       </div>
                        
                        {/* TOTAL PENDAPATAN */}
                        <div className="flex justify-between items-center py-4 px-5 bg-green-200 rounded-lg border-2 border-green-400">
@@ -1378,41 +1437,58 @@ export const PayrollContent = () => {
                          <h3 className="text-lg font-bold text-gray-800">PEMOTONGAN</h3>
                        </div>
                        
-                        {/* PERUSAHAAN */}
-                      <div className="space-y-3">
-                        <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PERUSAHAAN</h4>
-                        <div className="space-y-2">
-                          {calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).map((component, index) => {
-                            return (
-                            <div key={index} className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
-                              <div className="flex-1">
-                                <span className="font-medium text-sm text-gray-800">{component.name}</span>
-                                  <div className="text-xs text-gray-600 mt-1">
-                                    {component.percentage}% dari gaji pokok murni
-                                  </div>
+                                               {/* PERUSAHAAN */}
+                        <div className="space-y-3">
+                          <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PERUSAHAAN</h4>
+                          <div className="space-y-2">
+                            {calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).map((component, index) => {
+                              console.log(`Rendering company BPJS component: ${component.name}, percentage: ${component.percentage}`);
+                              return (
+                              <div key={index} className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
+                                <div className="flex-1">
+                                  <span className="font-medium text-sm text-gray-800">{component.name}</span>
+                                    <div className="text-xs text-gray-600 mt-1">
+                                      {component.percentage}% dari gaji pokok murni
+                                    </div>
+                                </div>
+                                <span className="text-sm font-bold text-orange-700 ml-4">
+                                  {formatCurrency(component.amount)}
+                                </span>
                               </div>
-                              <span className="text-sm font-bold text-orange-700 ml-4">
-                                {formatCurrency(component.amount)}
-                              </span>
+                              );
+                            })}
+                            <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
+                              <span className="font-medium text-sm text-gray-800">Tunjangan Jabatan</span>
+                              <span className="text-sm font-bold text-green-700 ml-4">{formatCurrency(form.position_allowance || 0)}</span>
+                          </div>
+                            <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
+                              <span className="font-medium text-sm text-gray-800">Tunjangan Pengurus</span>
+                              <span className="text-sm font-bold text-green-700 ml-4">{formatCurrency(form.management_allowance || 0)}</span>
                             </div>
-                            );
-                          })}
+                            <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
+                              <span className="font-medium text-sm text-gray-800">Tunjangan Pulsa</span>
+                              <span className="text-sm font-bold text-green-700 ml-4">{formatCurrency(form.phone_allowance || 0)}</span>
+                            </div>
+                          </div>
+                          <div className="flex justify-between items-center py-3 px-4 bg-green-100 rounded-lg border border-green-300">
+                            <span className="font-semibold text-gray-800">SUB TOTAL</span>
+                            <span className="font-bold text-green-800">
+                              {formatCurrency(
+                                calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).reduce((sum, c) => sum + c.amount, 0)
+                                + (form.position_allowance || 0)
+                                + (form.management_allowance || 0)
+                                + (form.phone_allowance || 0)
+                              )}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex justify-between items-center py-3 px-4 bg-orange-100 rounded-lg border border-orange-300">
-                          <span className="font-semibold text-gray-800">SUB TOTAL</span>
-                          <span className="font-bold text-orange-800">
-                            {formatCurrency(
-                              calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).reduce((sum, c) => sum + c.amount, 0)
-                            )}
-                          </span>
-                        </div>
-                      </div>
                        
                                                {/* KARYAWAN */}
                         <div className="space-y-3">
                           <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">KARYAWAN</h4>
                           <div className="space-y-2">
                             {calculatedComponents.filter(c => c.type === 'deduction' && c.name.includes('(Karyawan)')).map((component, index) => {
+                              console.log(`Rendering employee BPJS component: ${component.name}, percentage: ${component.percentage}`);
                               return (
                               <div key={index} className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
                                 <div className="flex-1">
@@ -1678,160 +1754,174 @@ export const PayrollContent = () => {
               </div>
 
               {/* PENDAPATAN Section */}
-<div className="space-y-4">
-  <div className="bg-gray-100 px-4 py-3 rounded-lg">
-    <h3 className="text-lg font-bold text-gray-800">PENDAPATAN</h3>
-  </div>
-  
-  {/* PENDAPATAN TETAP */}
-  <div className="space-y-3">
-    <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PENDAPATAN TETAP</h4>
-    <div className="space-y-2">
-      <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
-        <span className="font-medium text-sm text-gray-800">Gaji Pokok</span>
-        <span className="text-sm font-bold text-green-700 ml-4">
-          {formatCurrency(Number(selectedPayroll.basic_salary) || 0)}
-        </span>
-      </div>
-      {Number(selectedPayroll.position_allowance) > 0 && (
-        <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
-          <span className="font-medium text-sm text-gray-800">Tunjangan Jabatan</span>
-          <span className="text-sm font-semibold text-green-700">
-            {formatCurrency(Number(selectedPayroll.position_allowance))}
-          </span>
-        </div>
-      )}
-      {Number(selectedPayroll.management_allowance) > 0 && (
-        <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
-          <span className="font-medium text-sm text-gray-800">Tunjangan Pengurus</span>
-          <span className="text-sm font-semibold text-green-700">
-            {formatCurrency(Number(selectedPayroll.management_allowance))}
-          </span>
-        </div>
-      )}
-      {Number(selectedPayroll.phone_allowance) > 0 && (
-        <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
-          <span className="font-medium text-sm text-gray-800">Tunjangan Pulsa</span>
-          <span className="text-sm font-semibold text-green-700">
-            {formatCurrency(Number(selectedPayroll.phone_allowance))}
-          </span>
-        </div>
-      )}
-      
-      {/* BPJS Company Contributions */}
-      {Number(selectedPayroll?.bpjs_health_company ?? 0) > 0 && (
-        <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
-          <div>
-            <span className="font-medium text-sm text-gray-800">BPJS Kesehatan (Perusahaan)</span>
-          </div>
-          <span className="text-sm font-bold text-green-700 ml-4">
-            {formatCurrency(Number(selectedPayroll?.bpjs_health_company ?? 0))}
-          </span>
-        </div>
-      )}
-      
-      {Number(selectedPayroll?.jht_company ?? 0) > 0 && (
-        <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
-          <div>
-            <span className="font-medium text-sm text-gray-800">BPJS Ketenagakerjaan JHT (Perusahaan)</span>
-          </div>
-          <span className="text-sm font-bold text-green-700 ml-4">
-            {formatCurrency(Number(selectedPayroll?.jht_company ?? 0))}
-          </span>
-        </div>
-      )}
-      
-      {Number(selectedPayroll?.jkm_company ?? 0) > 0 && (
-        <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
-          <div>
-            <span className="font-medium text-sm text-gray-800">BPJS Ketenagakerjaan JKM (Perusahaan)</span>
-          </div>
-          <span className="text-sm font-bold text-green-700 ml-4">
-            {formatCurrency(Number(selectedPayroll?.jkm_company ?? 0))}
-          </span>
-        </div>
-      )}
-      
-      {Number(selectedPayroll?.jkk_company ?? 0) > 0 && (
-        <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
-          <div>
-            <span className="font-medium text-sm text-gray-800">BPJS Ketenagakerjaan JKK (Perusahaan)</span>
-          </div>
-          <span className="text-sm font-bold text-green-700 ml-4">
-            {formatCurrency(Number(selectedPayroll?.jkk_company ?? 0))}
-          </span>
-        </div>
-      )}
-      
-      {Number(selectedPayroll?.jp_company ?? 0) > 0 && (
-        <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
-          <div>
-            <span className="font-medium text-sm text-gray-800">BPJS Jaminan Pensiun (Perusahaan)</span>
-          </div>
-          <span className="text-sm font-bold text-green-700 ml-4">
-            {formatCurrency(Number(selectedPayroll?.jp_company ?? 0))}
-          </span>
-        </div>
-      )}
-    </div>
-    <div className="flex justify-between items-center py-3 px-4 bg-green-100 rounded-lg border border-green-300">
-      <span className="font-semibold text-gray-800">SUB TOTAL</span>
-      <span className="font-bold text-green-800">
-        {formatCurrency(
-          (Number(selectedPayroll?.basic_salary ?? 0)) +
-          (Number(selectedPayroll?.position_allowance ?? 0)) +
-          (Number(selectedPayroll?.management_allowance ?? 0)) +
-          (Number(selectedPayroll?.phone_allowance ?? 0)) +
-          (Number(selectedPayroll?.bpjs_health_company ?? 0)) +
-          (Number(selectedPayroll?.jht_company ?? 0)) +
-          (Number(selectedPayroll?.jkm_company ?? 0)) +
-          (Number(selectedPayroll?.jkk_company ?? 0)) +
-          (Number(selectedPayroll?.jp_company ?? 0))
-        )}
-      </span>
-    </div>
-  </div>
-  
-  {/* PENDAPATAN TIDAK TETAP */}
-  <div className="space-y-3">
-    <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PENDAPATAN TIDAK TETAP</h4>
-    <div className="space-y-2">
-      {Number(selectedPayroll.incentive_allowance) > 0 && (
-        <div className="flex justify-between items-center py-2 px-3 bg-blue-50 rounded-lg border border-blue-200">
-          <span className="font-medium text-sm text-gray-800">Tunjangan Insentif</span>
-          <span className="text-sm font-semibold text-blue-700">
-            {formatCurrency(Number(selectedPayroll.incentive_allowance))}
-          </span>
-        </div>
-      )}
-      {Number(selectedPayroll.overtime_allowance) > 0 && (
-        <div className="flex justify-between items-center py-2 px-3 bg-blue-50 rounded-lg border border-blue-200">
-          <span className="font-medium text-sm text-gray-800">Tunjangan Lembur</span>
-          <span className="text-sm font-semibold text-blue-700">
-            {formatCurrency(Number(selectedPayroll.overtime_allowance))}
-          </span>
-        </div>
-      )}
-    </div>
-    <div className="flex justify-between items-center py-3 px-4 bg-blue-100 rounded-lg border border-blue-300">
-      <span className="font-semibold text-gray-800">SUB TOTAL</span>
-      <span className="font-bold text-blue-800">
-        {formatCurrency(
-          (Number(selectedPayroll.incentive_allowance) || 0) +
-          (Number(selectedPayroll.overtime_allowance) || 0)
-        )}
-      </span>
-    </div>
-  </div>
-  
-  {/* TOTAL PENDAPATAN */}
-  <div className="flex justify-between items-center py-4 px-5 bg-green-200 rounded-lg border-2 border-green-400">
-    <span className="text-xl font-bold text-gray-800">TOTAL PENDAPATAN</span>
-    <span className="text-2xl font-bold text-green-800">
-      {formatCurrency(Number(selectedPayroll.gross_salary) || 0)}
-    </span>
-  </div>
-</div>
+              <div className="space-y-4">
+                <div className="bg-gray-100 px-4 py-3 rounded-lg">
+                  <h3 className="text-lg font-bold text-gray-800">PENDAPATAN</h3>
+                </div>
+                
+                {/* PENDAPATAN TETAP */}
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PENDAPATAN TETAP</h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
+                      <span className="font-medium text-sm text-gray-800">Gaji Pokok</span>
+                      <span className="text-sm font-bold text-green-700 ml-4">
+                        {formatCurrency(selectedPayroll.basic_salary || 0)}
+                      </span>
+                    </div>
+                    
+                    {/* BPJS Company Contributions */}
+                    {Number(selectedPayroll?.bpjs_health_company ?? 0) > 0 && (
+                      <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
+                        <div>
+                          <span className="font-medium text-sm text-gray-800">BPJS Kesehatan (Perusahaan)</span>
+                          <span className="text-xs text-gray-500 block">
+                            {((Number(selectedPayroll?.bpjs_health_company ?? 0) / Number(selectedPayroll?.basic_salary ?? 1)) * 100).toFixed(1)}% dari gaji pokok
+                          </span>
+                        </div>
+                        <span className="text-sm font-bold text-green-700 ml-4">
+                          {formatCurrency(Number(selectedPayroll?.bpjs_health_company ?? 0))}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {Number(selectedPayroll?.jht_company ?? 0) > 0 && (
+                      <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
+                        <div>
+                          <span className="font-medium text-sm text-gray-800">BPJS Ketenagakerjaan JHT (Perusahaan)</span>
+                          <span className="text-xs text-gray-500 block">
+                            {((Number(selectedPayroll?.jht_company ?? 0) / Number(selectedPayroll?.basic_salary ?? 1)) * 100).toFixed(1)}% dari gaji pokok
+                          </span>
+                        </div>
+                        <span className="text-sm font-bold text-green-700 ml-4">
+                          {formatCurrency(Number(selectedPayroll?.jht_company ?? 0))}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {Number(selectedPayroll?.jkm_company ?? 0) > 0 && (
+                      <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
+                        <div>
+                          <span className="font-medium text-sm text-gray-800">BPJS Ketenagakerjaan JKM (Perusahaan)</span>
+                          <span className="text-xs text-gray-500 block">
+                            {((Number(selectedPayroll?.jkm_company ?? 0) / Number(selectedPayroll?.basic_salary ?? 1)) * 100).toFixed(1)}% dari gaji pokok
+                          </span>
+                        </div>
+                        <span className="text-sm font-bold text-green-700 ml-4">
+                          {formatCurrency(Number(selectedPayroll?.jkm_company ?? 0))}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {Number(selectedPayroll?.jkk_company ?? 0) > 0 && (
+                      <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
+                        <div>
+                          <span className="font-medium text-sm text-gray-800">BPJS Ketenagakerjaan JKK (Perusahaan)</span>
+                          <span className="text-xs text-gray-500 block">
+                            {((Number(selectedPayroll?.jkk_company ?? 0) / Number(selectedPayroll?.basic_salary ?? 1)) * 100).toFixed(1)}% dari gaji pokok
+                          </span>
+                        </div>
+                        <span className="text-sm font-bold text-green-700 ml-4">
+                          {formatCurrency(Number(selectedPayroll?.jkk_company ?? 0))}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {Number(selectedPayroll?.jp_company ?? 0) > 0 && (
+                      <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
+                        <div>
+                          <span className="font-medium text-sm text-gray-800">BPJS Jaminan Pensiun (Perusahaan)</span>
+                          <span className="text-xs text-gray-500 block">
+                            {((Number(selectedPayroll?.jp_company ?? 0) / Number(selectedPayroll?.basic_salary ?? 1)) * 100).toFixed(1)}% dari gaji pokok
+                          </span>
+                        </div>
+                        <span className="text-sm font-bold text-green-700 ml-4">
+                          {formatCurrency(Number(selectedPayroll?.jp_company ?? 0))}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex justify-between items-center py-3 px-4 bg-green-100 rounded-lg border border-green-300">
+                    <span className="font-semibold text-gray-800">SUB TOTAL</span>
+                    <span className="font-bold text-green-800">
+                      {formatCurrency(Number(selectedPayroll?.subtotal_company ?? 0) || (Number(selectedPayroll?.basic_salary ?? 0) + Number(selectedPayroll?.bpjs_health_company ?? 0) + Number(selectedPayroll?.jht_company ?? 0) + Number(selectedPayroll?.jkm_company ?? 0) + Number(selectedPayroll?.jkk_company ?? 0) + Number(selectedPayroll?.jp_company ?? 0)))}
+                    </span>
+                  </div>
+                </div>
+                
+                {/* PENDAPATAN TIDAK TETAP */}
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PENDAPATAN TIDAK TETAP</h4>
+                  <div className="space-y-2">
+                    {selectedPayroll.position_allowance > 0 && (
+                      <div className="flex justify-between items-center py-2 px-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <span className="font-medium text-sm text-gray-800">Tunjangan Jabatan</span>
+                        <span className="text-sm font-semibold text-blue-700">
+                          {formatCurrency(selectedPayroll.position_allowance)}
+                        </span>
+                      </div>
+                    )}
+                    {selectedPayroll.management_allowance > 0 && (
+                      <div className="flex justify-between items-center py-2 px-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <span className="font-medium text-sm text-gray-800">Tunjangan Pengurus</span>
+                        <span className="text-sm font-semibold text-blue-700">
+                          {formatCurrency(selectedPayroll.management_allowance)}
+                        </span>
+                      </div>
+                    )}
+                    {selectedPayroll.phone_allowance > 0 && (
+                      <div className="flex justify-between items-center py-2 px-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <span className="font-medium text-sm text-gray-800">Tunjangan Pulsa</span>
+                        <span className="text-sm font-semibold text-blue-700">
+                          {formatCurrency(selectedPayroll.phone_allowance)}
+                        </span>
+                      </div>
+                    )}
+                    {selectedPayroll.incentive_allowance > 0 && (
+                      <div className="flex justify-between items-center py-2 px-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <span className="font-medium text-sm text-gray-800">Tunjangan Insentif</span>
+                        <span className="text-sm font-semibold text-blue-700">
+                          {formatCurrency(selectedPayroll.incentive_allowance)}
+                        </span>
+                      </div>
+                    )}
+                    {selectedPayroll.overtime_allowance > 0 && (
+                      <div className="flex justify-between items-center py-2 px-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <span className="font-medium text-sm text-gray-800">Tunjangan Lembur</span>
+                        <span className="text-sm font-semibold text-blue-700">
+                          {formatCurrency(selectedPayroll.overtime_allowance)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex justify-between items-center py-3 px-4 bg-blue-100 rounded-lg border border-blue-300">
+                    <span className="font-semibold text-gray-800">SUB TOTAL</span>
+                    <span className="font-bold text-blue-800">
+                      {formatCurrency(selectedPayroll.total_allowances || 0)}
+                    </span>
+                  </div>
+                </div>
+                
+                {/* TOTAL PENDAPATAN */}
+                <div className="flex justify-between items-center py-4 px-5 bg-green-200 rounded-lg border-2 border-green-400">
+                  <span className="text-xl font-bold text-gray-800">TOTAL PENDAPATAN</span>
+                  <span className="text-2xl font-bold text-green-800">
+                    {formatCurrency(
+                      (Number(selectedPayroll.basic_salary) || 0) +
+                      (Number(selectedPayroll.position_allowance) || 0) +
+                      (Number(selectedPayroll.management_allowance) || 0) +
+                      (Number(selectedPayroll.phone_allowance) || 0) +
+                      (Number(selectedPayroll.incentive_allowance) || 0) +
+                      (Number(selectedPayroll.overtime_allowance) || 0) +
+                      (Number(selectedPayroll.bpjs_health_company) || 0) +
+                      (Number(selectedPayroll.jht_company) || 0) +
+                      (Number(selectedPayroll.jkk_company) || 0) +
+                      (Number(selectedPayroll.jkm_company) || 0) +
+                      (Number(selectedPayroll.jp_company) || 0)
+                    )}
+                  </span>
+                </div>
+              </div>
 
               {/* PEMOTONGAN Section */}
               <div className="space-y-4">
@@ -2261,73 +2351,76 @@ export const PayrollContent = () => {
                   </div>
 
                   {/* PENDAPATAN TETAP (BPJS Perusahaan) */}
-<div className="space-y-3">
-    <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PENDAPATAN TETAP</h4>
-    <div className="space-y-2">
-        <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
-            <span className="font-medium text-sm text-gray-800">Gaji Pokok</span>
-            <span className="text-sm font-bold text-green-700">{formatCurrency(form.basic_salary || 0)}</span>
-        </div>
-        <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
-            <span className="font-medium text-sm text-gray-800">Tunjangan Jabatan</span>
-            <span className="text-sm font-semibold text-green-700">{formatCurrency(form.position_allowance || 0)}</span>
-        </div>
-        <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
-            <span className="font-medium text-sm text-gray-800">Tunjangan Pengurus</span>
-            <span className="text-sm font-semibold text-green-700">{formatCurrency(form.management_allowance || 0)}</span>
-        </div>
-        <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
-            <span className="font-medium text-sm text-gray-800">Tunjangan Pulsa</span>
-            <span className="text-sm font-semibold text-green-700">{formatCurrency(form.phone_allowance || 0)}</span>
-        </div>
-        {calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).map((component, index) => (
-            <div key={index} className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
-            <div className="flex-1">
-                <span className="font-medium text-sm text-gray-800">{component.name}</span>
-                <div className="text-xs text-gray-600 mt-1">
-                {component.percentage}% dari gaji pokok murni
-                </div>
-            </div>
-            <span className="text-sm font-bold text-green-700 ml-4">
-                {formatCurrency(component.amount)}
-            </span>
-            </div>
-        ))}
-    </div>
-    <div className="flex justify-between items-center py-3 px-4 bg-green-100 rounded-lg border border-green-300">
-        <span className="font-semibold text-gray-800">SUB TOTAL</span>
-        <span className="font-bold text-green-800">
-        {formatCurrency(
-            (form.basic_salary || 0) +
-            (form.position_allowance || 0) +
-            (form.management_allowance || 0) +
-            (form.phone_allowance || 0) +
-            calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).reduce((sum, c) => sum + c.amount, 0)
-        )}
-        </span>
-    </div>
-</div>
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PENDAPATAN TETAP</h4>
+                    <div className="space-y-2">
+                      {calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).map((component, index) => (
+                        <div key={index} className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
+                          <div className="flex-1">
+                            <span className="font-medium text-sm text-gray-800">{component.name}</span>
+                              <div className="text-xs text-gray-600 mt-1">
+                                {component.percentage}% dari gaji pokok murni
+                              </div>
+                          </div>
+                          <span className="text-sm font-bold text-green-700 ml-4">
+                            {formatCurrency(component.amount)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex justify-between items-center py-3 px-4 bg-green-100 rounded-lg border border-green-300">
+                      <span className="font-semibold text-gray-800">SUB TOTAL</span>
+                      <span className="font-bold text-green-800">
+                        {(() => {
+                          const bpjsIncome = calculatedComponents
+                            .filter(c => c.type === 'income' && c.name.includes('(Perusahaan)'))
+                            .reduce((sum, c) => sum + c.amount, 0);
+                          const selectedSalary = salaryData.find(salary => salary.employee_id === form.employee_id);
+                          let fixedAllow = 0;
+                          if (selectedSalary) {
+                            const posAllowance = typeof selectedSalary.position_allowance === 'string' ? parseFloat(selectedSalary.position_allowance) || 0 : selectedSalary.position_allowance || 0;
+                            const mgmtAllowance = typeof selectedSalary.management_allowance === 'string' ? parseFloat(selectedSalary.management_allowance) || 0 : selectedSalary.management_allowance || 0;
+                            const phoneAllowance = typeof selectedSalary.phone_allowance === 'string' ? parseFloat(selectedSalary.phone_allowance) || 0 : selectedSalary.phone_allowance || 0;
+                            fixedAllow = posAllowance + mgmtAllowance + phoneAllowance;
+                          }
+                          return formatCurrency(bpjsIncome + fixedAllow);
+                        })()}
+                      </span>
+                    </div>
+                  </div>
 
                   {/* PENDAPATAN TIDAK TETAP (Tunjangan dari form) */}
-<div className="space-y-3">
-    <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PENDAPATAN TIDAK TETAP</h4>
-    <div className="space-y-2">
-        <div className="flex justify-between items-center py-2 px-3 bg-blue-50 rounded-lg border border-blue-200">
-            <span className="font-medium text-sm text-gray-800">Tunjangan Insentif</span>
-            <span className="text-sm font-semibold text-blue-700">{formatCurrency(form.incentive_allowance || 0)}</span>
-        </div>
-        <div className="flex justify-between items-center py-2 px-3 bg-blue-50 rounded-lg border border-blue-200">
-            <span className="font-medium text-sm text-gray-800">Tunjangan Lembur</span>
-            <span className="text-sm font-semibold text-blue-700">{formatCurrency(form.overtime_allowance || 0)}</span>
-        </div>
-    </div>
-    <div className="flex justify-between items-center py-3 px-4 bg-blue-100 rounded-lg border border-blue-300">
-        <span className="font-semibold text-gray-800">SUB TOTAL</span>
-        <span className="font-bold text-blue-800">
-            {formatCurrency((form.incentive_allowance || 0) + (form.overtime_allowance || 0))}
-        </span>
-    </div>
-</div>
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PENDAPATAN TIDAK TETAP</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center py-2 px-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <span className="font-medium text-sm text-gray-800">Tunjangan Jabatan</span>
+                        <span className="text-sm font-semibold text-blue-700">{formatCurrency(form.position_allowance || 0)}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 px-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <span className="font-medium text-sm text-gray-800">Tunjangan Pengurus</span>
+                        <span className="text-sm font-semibold text-blue-700">{formatCurrency(form.management_allowance || 0)}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 px-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <span className="font-medium text-sm text-gray-800">Tunjangan Pulsa</span>
+                        <span className="text-sm font-semibold text-blue-700">{formatCurrency(form.phone_allowance || 0)}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 px-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <span className="font-medium text-sm text-gray-800">Tunjangan Insentif</span>
+                        <span className="text-sm font-semibold text-blue-700">{formatCurrency(form.incentive_allowance || 0)}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 px-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <span className="font-medium text-sm text-gray-800">Tunjangan Lembur</span>
+                        <span className="text-sm font-semibold text-blue-700">{formatCurrency(form.overtime_allowance || 0)}</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center py-3 px-4 bg-blue-100 rounded-lg border border-blue-300">
+                      <span className="font-semibold text-gray-800">SUB TOTAL</span>
+                      <span className="font-bold text-blue-800">
+                        {formatCurrency((form.position_allowance || 0) + (form.management_allowance || 0) + (form.phone_allowance || 0) + (form.incentive_allowance || 0) + (form.overtime_allowance || 0))}
+                      </span>
+                    </div>
+                  </div>
 
                   {/* TOTAL PENDAPATAN (Gaji + Tunjangan) */}
                   <div className="flex justify-between items-center py-4 px-5 bg-green-200 rounded-lg border-2 border-green-400">
@@ -2344,37 +2437,39 @@ export const PayrollContent = () => {
                     <h3 className="text-lg font-bold text-gray-800">PEMOTONGAN</h3>
                   </div>
 
-                 {/* PERUSAHAAN */}
-                    <div className="space-y-3">
-                      <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PERUSAHAAN</h4>
-                      <div className="space-y-2">
-                        {calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).map((component, index) => {
-                          return (
-                          <div key={index} className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
-                              <div className="flex-1">
-                            <span className="font-medium text-sm text-gray-800">{component.name}</span>
-                                <div className="text-xs text-gray-600 mt-1">
-                                  {component.percentage}% dari gaji pokok murni
-                                </div>
+                  {/* PERUSAHAAN */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">PERUSAHAAN</h4>
+                    <div className="space-y-2">
+                      {calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).map((component, index) => {
+                        console.log(`Rendering company BPJS component: ${component.name}, percentage: ${component.percentage}`);
+                        return (
+                        <div key={index} className="flex justify-between items-center py-2 px-3 bg-orange-50 rounded-lg border border-orange-200">
+                            <div className="flex-1">
+                          <span className="font-medium text-sm text-gray-800">{component.name}</span>
+                              <div className="text-xs text-gray-600 mt-1">
+                                {component.percentage}% dari gaji pokok murni
                               </div>
-                            <span className="text-sm font-bold text-orange-700 ml-4">{formatCurrency(component.amount)}</span>
-                          </div>
-                          );
-                        })}
-                      </div>
-                      <div className="flex justify-between items-center py-3 px-4 bg-orange-100 rounded-lg border border-orange-300">
-                        <span className="font-semibold text-gray-800">SUB TOTAL</span>
-                        <span className="font-bold text-orange-800">
-                          {formatCurrency(calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).reduce((sum, c) => sum + c.amount, 0))}
-                        </span>
-                      </div>
+                            </div>
+                          <span className="text-sm font-bold text-orange-700 ml-4">{formatCurrency(component.amount)}</span>
+                        </div>
+                        );
+                      })}
                     </div>
+                    <div className="flex justify-between items-center py-3 px-4 bg-orange-100 rounded-lg border border-orange-300">
+                      <span className="font-semibold text-gray-800">SUB TOTAL</span>
+                      <span className="font-bold text-orange-800">
+                        {formatCurrency(calculatedComponents.filter(c => c.type === 'income' && c.name.includes('(Perusahaan)')).reduce((sum, c) => sum + c.amount, 0))}
+                      </span>
+                    </div>
+                  </div>
 
                   {/* KARYAWAN */}
                   <div className="space-y-3">
                     <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">KARYAWAN</h4>
                     <div className="space-y-2">
                       {calculatedComponents.filter(c => c.type === 'deduction' && c.name.includes('(Karyawan)')).map((component, index) => {
+                        console.log(`Rendering employee BPJS component: ${component.name}, percentage: ${component.percentage}`);
                         return (
                         <div key={index} className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg border border-red-200">
                             <div className="flex-1">
