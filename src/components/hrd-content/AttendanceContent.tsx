@@ -6,8 +6,10 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Clock, Users, CheckCircle, XCircle, Calendar, Upload, Download, FileSpreadsheet } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const AttendanceContent = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [bulkUploadOpen, setBulkUploadOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
