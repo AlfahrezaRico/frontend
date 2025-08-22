@@ -14,6 +14,7 @@ export const AttendanceContent = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const API_URL = import.meta.env.VITE_API_URL || '';
+  const selectedMonth = new Date().toISOString().slice(0, 7);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -55,6 +56,7 @@ export const AttendanceContent = () => {
     try {
       const formData = new FormData();
       formData.append('file', uploadFile);
+      formData.append('month', selectedMonth);
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => {
           if (prev >= 90) { clearInterval(progressInterval); return 90; }
