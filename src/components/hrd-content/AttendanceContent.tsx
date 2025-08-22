@@ -4,8 +4,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Clock, Users, CheckCircle, XCircle, Calendar, Upload, Download, FileSpreadsheet, RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Clock, Users, CheckCircle, XCircle, Calendar, Upload, Download, FileSpreadsheet, RefreshCw, Eye } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
@@ -17,13 +17,19 @@ export const AttendanceContent = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const API_URL = import.meta.env.VITE_API_URL || '';
-  const selectedMonth = new Date().toISOString().slice(0, 7);
+  const selectedMonthDefault = new Date().toISOString().slice(0, 7);
 
-  // New: table state for today's attendance
+  // New: table state for attendance
   const [attendanceRecords, setAttendanceRecords] = useState<any[]>([]);
   const [loadingTable, setLoadingTable] = useState(false);
+  const [search, setSearch] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState(selectedMonthDefault);
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailRecord, setDetailRecord] = useState<any | null>(null);
 
-  const fetchAttendanceToday = async () => {
+  const fetchAttendance = async () => {
     setLoadingTable(true);
     try {
       const res = await fetch(`${API_URL}/api/attendance-records`);
@@ -39,8 +45,33 @@ export const AttendanceContent = () => {
   };
 
   useEffect(() => {
-    fetchAttendanceToday();
+    fetchAttendance();
   }, []);
+
+  const filtered = useMemo(() => {
+    const month = selectedMonth;
+    return attendanceRecords
+      .filter((rec: any) => {
+        if (!month) return true;
+        const recMonth = new Date(rec.date).toISOString().slice(0, 7);
+        return recMonth === month;
+      })
+      .filter((rec: any) => {
+        if (!search.trim()) return true;
+        const q = search.toLowerCase();
+        const name = rec.employee ? `${rec.employee.first_name ?? ''} ${rec.employee.last_name ?? ''}`.toLowerCase() : '';
+        return name.includes(q) || (rec.status || '').toLowerCase().includes(q);
+      })
+      .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [attendanceRecords, selectedMonth, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+  const openDetail = (rec: any) => {
+    setDetailRecord(rec);
+    setDetailOpen(true);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -110,7 +141,7 @@ export const AttendanceContent = () => {
       setUploadFile(null);
       setUploadProgress(0);
       // refresh table after upload
-      await fetchAttendanceToday();
+      await fetchAttendance();
     } catch (error: any) {
       setUploadProgress(0);
       toast({ title: 'Error', description: error.message || 'Gagal upload file', variant: 'destructive' });
@@ -161,6 +192,11 @@ export const AttendanceContent = () => {
           <p className="text-gray-600">Monitor kehadiran dan jam kerja karyawan</p>
         </div>
         <div className="flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-2 mr-4">
+            <label className="text-sm text-gray-600">Filter Bulan:</label>
+            <input type="month" value={selectedMonth} onChange={(e) => { setSelectedMonth(e.target.value); setPage(1); }} className="border rounded px-2 py-1" />
+            <Input placeholder="Cari nama/status" value={search} onChange={(e)=>{ setSearch(e.target.value); setPage(1); }} className="w-52" />
+          </div>
           <Button onClick={() => setBulkUploadOpen(true)} className="bg-blue-600 hover:bg-blue-700">
             <Upload className="h-4 w-4 mr-2" />
             Bulk Upload
@@ -169,25 +205,29 @@ export const AttendanceContent = () => {
             <Download className="h-4 w-4 mr-2" />
             Template
           </Button>
-          <Button onClick={fetchAttendanceToday} variant="outline" className="border-green-600 text-green-600 hover:bg-green-50">
+          <Button onClick={fetchAttendance} variant="outline" className="border-green-600 text-green-600 hover:bg-green-50">
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
         </div>
       </div>
 
-      {/* Table showing today's attendance */}
+      {/* Table */}
       <Card>
         <CardHeader>
           <CardTitle>Absensi Hari Ini</CardTitle>
-          <CardDescription>Daftar kehadiran karyawan untuk hari ini</CardDescription>
+          <CardDescription>Daftar kehadiran karyawan</CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Filter bar (mobile) */}
+          <div className="md:hidden mb-3 flex items-center gap-2">
+            <input type="month" value={selectedMonth} onChange={(e) => { setSelectedMonth(e.target.value); setPage(1); }} className="border rounded px-2 py-1" />
+            <Input placeholder="Cari nama/status" value={search} onChange={(e)=>{ setSearch(e.target.value); setPage(1); }} />
+          </div>
           {loadingTable ? (
             <div className="text-center py-8">Memuat data...</div>
           ) : (
             <div className="overflow-x-auto">
-              {/* Use shared Table component for consistent styles */}
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -197,34 +237,72 @@ export const AttendanceContent = () => {
                     <TableHead>Jam Keluar</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Catatan</TableHead>
+                    <TableHead className="text-right pr-6">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {attendanceRecords
-                    .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                    .slice(0, 20)
-                    .map((rec: any) => (
-                      <TableRow key={rec.id}>
-                        <TableCell>{rec.employee ? `${rec.employee.first_name ?? ''} ${rec.employee.last_name ?? ''}`.trim() : ''}</TableCell>
-                        <TableCell>{new Date(rec.date).toLocaleDateString('id-ID')}</TableCell>
-                        <TableCell>{rec.check_in_time ? new Date(rec.check_in_time).toLocaleTimeString('id-ID') : '-'}</TableCell>
-                        <TableCell>{rec.check_out_time ? new Date(rec.check_out_time).toLocaleTimeString('id-ID') : '-'}</TableCell>
-                        <TableCell>{rec.status}</TableCell>
-                        <TableCell>{rec.notes || '-'}</TableCell>
-                      </TableRow>
-                    ))}
+                  {paged.map((rec: any) => (
+                    <TableRow key={rec.id}>
+                      <TableCell>{rec.employee ? `${rec.employee.first_name ?? ''} ${rec.employee.last_name ?? ''}`.trim() : ''}</TableCell>
+                      <TableCell>{new Date(rec.date).toLocaleDateString('id-ID')}</TableCell>
+                      <TableCell>{rec.check_in_time ? new Date(rec.check_in_time).toLocaleTimeString('id-ID') : '-'}</TableCell>
+                      <TableCell>{rec.check_out_time ? new Date(rec.check_out_time).toLocaleTimeString('id-ID') : '-'}</TableCell>
+                      <TableCell>{rec.status}</TableCell>
+                      <TableCell>{rec.notes || '-'}</TableCell>
+                      <TableCell className="text-right pr-6">
+                        <Button size="sm" variant="outline" onClick={() => openDetail(rec)}>
+                          <Eye className="h-4 w-4 mr-2" /> Detail
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
-              {attendanceRecords.length === 0 && (
+              {filtered.length === 0 && (
                 <div className="text-center py-12 text-muted-foreground">
                   <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>Tidak ada data absensi</p>
+                </div>
+              )}
+              {/* Pagination */}
+              {filtered.length > 0 && (
+                <div className="flex justify-between items-center mt-4">
+                  <div className="text-sm text-gray-600">
+                    Menampilkan {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, filtered.length)} dari {filtered.length}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" disabled={page === 1} onClick={() => setPage(p => Math.max(1, p - 1))}>{'<'} Sebelumnya</Button>
+                    <div className="px-3 py-2 text-sm">Halaman {page} / {totalPages}</div>
+                    <Button variant="outline" disabled={page === totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>Selanjutnya {'>'}</Button>
+                  </div>
                 </div>
               )}
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Detail Dialog */}
+      <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Detail Absensi</DialogTitle>
+          </DialogHeader>
+          {detailRecord && (
+            <div className="space-y-2 text-sm">
+              <div><span className="text-gray-500">Nama: </span>{detailRecord.employee ? `${detailRecord.employee.first_name ?? ''} ${detailRecord.employee.last_name ?? ''}`.trim() : '-'}</div>
+              <div><span className="text-gray-500">Tanggal: </span>{new Date(detailRecord.date).toLocaleDateString('id-ID')}</div>
+              <div><span className="text-gray-500">Jam Masuk: </span>{detailRecord.check_in_time ? new Date(detailRecord.check_in_time).toLocaleTimeString('id-ID') : '-'}</div>
+              <div><span className="text-gray-500">Jam Keluar: </span>{detailRecord.check_out_time ? new Date(detailRecord.check_out_time).toLocaleTimeString('id-ID') : '-'}</div>
+              <div><span className="text-gray-500">Status: </span>{detailRecord.status}</div>
+              <div><span className="text-gray-500">Catatan: </span>{detailRecord.notes || '-'}</div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDetailOpen(false)}>Tutup</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Bulk Upload Dialog (inline in dashboard) */}
       <Dialog open={bulkUploadOpen} onOpenChange={setBulkUploadOpen}>
