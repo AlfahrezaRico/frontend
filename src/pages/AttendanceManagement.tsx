@@ -295,7 +295,7 @@ const AttendanceManagement = () => {
     
     setIsLoading(true);
     try {
-      let url = `${API_URL}/api/attendance`;
+      let url = `${API_URL}/api/attendance-records`;
       
       if (location.state?.onlyMe && employeeId) {
         url += `?employee_id=${employeeId}`;
@@ -346,7 +346,7 @@ const AttendanceManagement = () => {
     }
     // Filter bulan
     if (selectedMonth) {
-      const recMonth = rec.date.slice(0, 7);
+      const recMonth = new Date(rec.date).toISOString().slice(0, 7);
       match = match && recMonth === selectedMonth;
     }
     return match;
