@@ -199,11 +199,7 @@ export const AttendanceContent = () => {
                 </thead>
                 <tbody>
                   {attendanceRecords
-                    .filter((rec: any) => {
-                      const recDate = new Date(rec.date).toISOString().slice(0,10);
-                      const today = new Date().toISOString().slice(0,10);
-                      return recDate === today;
-                    })
+                    .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
                     .map((rec: any) => (
                       <tr key={rec.id} className="border-b">
                         <td className="py-2 pr-4">{rec.employee ? `${rec.employee.first_name ?? ''} ${rec.employee.last_name ?? ''}`.trim() : ''}</td>
@@ -216,10 +212,10 @@ export const AttendanceContent = () => {
                     ))}
                 </tbody>
               </table>
-              {attendanceRecords.filter((rec: any) => new Date(rec.date).toISOString().slice(0,10) === new Date().toISOString().slice(0,10)).length === 0 && (
+              {attendanceRecords.length === 0 && (
                 <div className="text-center py-12 text-muted-foreground">
                   <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Tidak ada data absensi untuk hari ini</p>
+                  <p>Tidak ada data absensi</p>
                 </div>
               )}
             </div>
