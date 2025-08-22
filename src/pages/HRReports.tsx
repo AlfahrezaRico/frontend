@@ -50,12 +50,18 @@ const HRReports = () => {
   };
 
   const generateAttendanceReport = () => {
+    const tf = new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: 'Asia/Jakarta' });
+    const df = new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Asia/Jakarta' });
+
     const data = filteredAttendance.map(rec => ({
+      'NIK': rec.employee?.nik || '-',
       'Nama': rec.employee ? `${rec.employee.first_name} ${rec.employee.last_name}` : '-',
-      'Tanggal': rec.date ? new Date(rec.date).toLocaleDateString('id-ID') : '',
-      'Check In': rec.check_in_time ? new Date(rec.check_in_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '',
-      'Check Out': rec.check_out_time ? new Date(rec.check_out_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '',
+      'Departemen': rec.employee?.department || rec.employee?.departemen?.nama || '-',
+      'Tanggal': rec.date ? df.format(new Date(rec.date)) : '',
+      'Check In': rec.check_in_time ? tf.format(new Date(rec.check_in_time)) : '',
+      'Check Out': rec.check_out_time ? tf.format(new Date(rec.check_out_time)) : '',
       'Status': rec.status || '',
+      'Notes': rec.notes || ''
     }));
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();

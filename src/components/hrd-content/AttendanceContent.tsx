@@ -392,7 +392,7 @@ export const AttendanceContent = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center">
               <FileSpreadsheet className="h-5 w-5 mr-2" />
-              Bulk Upload Absensi
+              CSV Upload Absensi
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
