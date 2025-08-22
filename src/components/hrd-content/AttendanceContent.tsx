@@ -238,7 +238,7 @@ export const AttendanceContent = () => {
       {/* Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Absensi Hari Ini</CardTitle>
+          <CardTitle>Data Absensi Karyawan</CardTitle>
           <CardDescription>Daftar kehadiran karyawan</CardDescription>
         </CardHeader>
         <CardContent>
