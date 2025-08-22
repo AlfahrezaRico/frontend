@@ -276,7 +276,7 @@ export const AttendanceContent = () => {
                         <Button size="icon" variant="outline" onClick={() => openDetail(rec)}>
                           <Eye className="h-4 w-4" />
                         </Button>
-                        {rec.status === 'LATE' && (
+                        {rec.status === 'LATE' && (!rec.notes || String(rec.notes).trim() === '') && (
                           <Button size="icon" variant="outline" className="w-9 h-9" onClick={() => openEdit(rec)}>
                             <Pencil className="h-4 w-4" />
                           </Button>
