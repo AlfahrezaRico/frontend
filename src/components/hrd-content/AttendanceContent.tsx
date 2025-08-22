@@ -257,7 +257,7 @@ export const AttendanceContent = () => {
                     <TableHead>Nama Karyawan</TableHead>
                     <TableHead>Tanggal</TableHead>
                     <TableHead>Jam Masuk</TableHead>
-                    <TableHead>Jam Keluar</TableHead>
+                    <TableHead>Jam Pulang</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Catatan</TableHead>
                     <TableHead className="text-right pr-6">Aksi</TableHead>
@@ -299,9 +299,9 @@ export const AttendanceContent = () => {
                     Menampilkan {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, filtered.length)} dari {filtered.length}
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" disabled={page === 1} onClick={() => setPage(p => Math.max(1, p - 1))}>{'<'} Sebelumnya</Button>
+                    <Button variant="outline" disabled={page === 1} onClick={() => setPage(p => Math.max(1, p - 1))}>{'<'} Previous</Button>
                     <div className="px-3 py-2 text-sm">Halaman {page} / {totalPages}</div>
-                    <Button variant="outline" disabled={page === totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>Selanjutnya {'>'}</Button>
+                    <Button variant="outline" disabled={page === totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>Next {'>'}</Button>
                   </div>
                 </div>
               )}
