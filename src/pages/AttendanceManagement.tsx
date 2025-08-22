@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { formatTimeToString } from "@/utils/timeFormatter";
 
 const AttendanceManagement = () => {
   const navigate = useNavigate();
@@ -503,10 +504,10 @@ const AttendanceManagement = () => {
                         </TableCell>
                         <TableCell>{new Date(record.date).toLocaleDateString('id-ID')}</TableCell>
                         <TableCell>
-                          {record.check_in_time || '-'}
+                          {formatTimeToString(record.check_in_time)}
                         </TableCell>
                         <TableCell>
-                          {record.check_out_time || '-'}
+                          {formatTimeToString(record.check_out_time)}
                         </TableCell>
                         <TableCell>{getStatusBadge(record.status)}</TableCell>
                         <TableCell>{record.notes || '-'}</TableCell>
