@@ -32,6 +32,15 @@ const AttendanceManagement = () => {
 
   const API_URL = import.meta.env.VITE_API_URL || '';
 
+  // Determine visibility for HRD tools (bulk upload, template)
+  const isHRDLikeRole = (role: string | null) => {
+    if (!role) return false;
+    const r = role.toLowerCase();
+    return ['hrd', 'admin', 'superadmin', 'super_admin', 'super-admin'].includes(r);
+  };
+  const onHRDRoute = location.pathname?.toLowerCase().includes('/dashboard/hrd');
+  const canSeeHRDTools = isHRDLikeRole(userRole) || onHRDRoute;
+
   // Ambil employee_id user login
   useEffect(() => {
     const fetchEmployeeId = async () => {
@@ -436,8 +445,8 @@ const AttendanceManagement = () => {
                   />
                 </div>
                 
-                {/* Bulk Upload Section - Only show for HRD */}
-                {userRole === "hrd" && (
+                {/* Bulk Upload Section - Show for HRD-like roles or on HRD route */}
+                {canSeeHRDTools && (
                   <div className="flex items-center gap-2">
                     <Button
                       onClick={() => setBulkUploadOpen(true)}
