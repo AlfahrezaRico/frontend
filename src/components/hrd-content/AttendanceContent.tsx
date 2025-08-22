@@ -277,8 +277,8 @@ export const AttendanceContent = () => {
                           <Eye className="h-4 w-4" />
                         </Button>
                         {rec.status === 'LATE' && (
-                          <Button size="sm" variant="outline" onClick={() => openEdit(rec)}>
-                            <Pencil className="h-4 w-4 mr-2" /> Edit
+                          <Button size="icon" variant="outline" className="w-9 h-9" onClick={() => openEdit(rec)}>
+                            <Pencil className="h-4 w-4" />
                           </Button>
                         )}
                       </TableCell>
