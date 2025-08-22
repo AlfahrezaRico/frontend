@@ -268,8 +268,8 @@ export const AttendanceContent = () => {
                     <TableRow key={rec.id}>
                       <TableCell>{rec.employee ? `${rec.employee.first_name ?? ''} ${rec.employee.last_name ?? ''}`.trim() : ''}</TableCell>
                       <TableCell>{new Date(rec.date).toLocaleDateString('id-ID')}</TableCell>
-                      <TableCell>{rec.check_in_time ? new Date(rec.check_in_time).toLocaleTimeString('id-ID') : '-'}</TableCell>
-                      <TableCell>{rec.check_out_time ? new Date(rec.check_out_time).toLocaleTimeString('id-ID') : '-'}</TableCell>
+                      <TableCell>{rec.check_in_time || '-'}</TableCell>
+                      <TableCell>{rec.check_out_time || '-'}</TableCell>
                       <TableCell>{rec.status}</TableCell>
                       <TableCell>{rec.notes || '-'}</TableCell>
                       <TableCell className="text-right pr-6 flex justify-end gap-2">
@@ -346,11 +346,11 @@ export const AttendanceContent = () => {
                 </div>
                 <div className="rounded-lg border p-3">
                   <div className="text-slate-500">Jam Masuk</div>
-                  <div className="font-medium">{detailRecord.check_in_time ? new Date(detailRecord.check_in_time).toLocaleTimeString('id-ID') : '-'}</div>
+                  <div className="font-medium">{detailRecord.check_in_time || '-'}</div>
                 </div>
                 <div className="rounded-lg border p-3">
                   <div className="text-slate-500">Jam Keluar</div>
-                  <div className="font-medium">{detailRecord.check_out_time ? new Date(detailRecord.check_out_time).toLocaleTimeString('id-ID') : '-'}</div>
+                  <div className="font-medium">{detailRecord.check_out_time || '-'}</div>
                 </div>
                 <div className="rounded-lg border p-3">
                   <div className="text-slate-500">Jenis Status Karyawan</div>

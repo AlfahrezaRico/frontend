@@ -503,16 +503,10 @@ const AttendanceManagement = () => {
                         </TableCell>
                         <TableCell>{new Date(record.date).toLocaleDateString('id-ID')}</TableCell>
                         <TableCell>
-                          {record.check_in_time ?
-                            new Date(record.check_in_time).toLocaleTimeString('id-ID') :
-                            '-'
-                          }
+                          {record.check_in_time || '-'}
                         </TableCell>
                         <TableCell>
-                          {record.check_out_time ?
-                            new Date(record.check_out_time).toLocaleTimeString('id-ID') :
-                            '-'
-                          }
+                          {record.check_out_time || '-'}
                         </TableCell>
                         <TableCell>{getStatusBadge(record.status)}</TableCell>
                         <TableCell>{record.notes || '-'}</TableCell>
