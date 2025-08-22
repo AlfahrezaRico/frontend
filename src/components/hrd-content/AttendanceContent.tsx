@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Clock, Users, CheckCircle, XCircle, Calendar, Upload, Download, FileSpreadsheet, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export const AttendanceContent = () => {
   const navigate = useNavigate();
@@ -186,32 +187,34 @@ export const AttendanceContent = () => {
             <div className="text-center py-8">Memuat data...</div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr className="text-left border-b">
-                    <th className="py-2 pr-4">Nama Karyawan</th>
-                    <th className="py-2 pr-4">Tanggal</th>
-                    <th className="py-2 pr-4">Jam Masuk</th>
-                    <th className="py-2 pr-4">Jam Keluar</th>
-                    <th className="py-2 pr-4">Status</th>
-                    <th className="py-2 pr-4">Catatan</th>
-                  </tr>
-                </thead>
-                <tbody>
+              {/* Use shared Table component for consistent styles */}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nama Karyawan</TableHead>
+                    <TableHead>Tanggal</TableHead>
+                    <TableHead>Jam Masuk</TableHead>
+                    <TableHead>Jam Keluar</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Catatan</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {attendanceRecords
                     .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                    .slice(0, 20)
                     .map((rec: any) => (
-                      <tr key={rec.id} className="border-b">
-                        <td className="py-2 pr-4">{rec.employee ? `${rec.employee.first_name ?? ''} ${rec.employee.last_name ?? ''}`.trim() : ''}</td>
-                        <td className="py-2 pr-4">{new Date(rec.date).toLocaleDateString('id-ID')}</td>
-                        <td className="py-2 pr-4">{rec.check_in_time ? new Date(rec.check_in_time).toLocaleTimeString('id-ID') : '-'}</td>
-                        <td className="py-2 pr-4">{rec.check_out_time ? new Date(rec.check_out_time).toLocaleTimeString('id-ID') : '-'}</td>
-                        <td className="py-2 pr-4">{rec.status}</td>
-                        <td className="py-2 pr-4">{rec.notes || '-'}</td>
-                      </tr>
+                      <TableRow key={rec.id}>
+                        <TableCell>{rec.employee ? `${rec.employee.first_name ?? ''} ${rec.employee.last_name ?? ''}`.trim() : ''}</TableCell>
+                        <TableCell>{new Date(rec.date).toLocaleDateString('id-ID')}</TableCell>
+                        <TableCell>{rec.check_in_time ? new Date(rec.check_in_time).toLocaleTimeString('id-ID') : '-'}</TableCell>
+                        <TableCell>{rec.check_out_time ? new Date(rec.check_out_time).toLocaleTimeString('id-ID') : '-'}</TableCell>
+                        <TableCell>{rec.status}</TableCell>
+                        <TableCell>{rec.notes || '-'}</TableCell>
+                      </TableRow>
                     ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
               {attendanceRecords.length === 0 && (
                 <div className="text-center py-12 text-muted-foreground">
                   <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
