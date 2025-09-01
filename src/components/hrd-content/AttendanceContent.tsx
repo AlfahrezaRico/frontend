@@ -342,15 +342,15 @@ export const AttendanceContent = () => {
             <div className="overflow-x-auto">
               <Table className="border border-gray-200 rounded-lg overflow-hidden">
                 <TableHeader>
-                  <TableRow className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b-2 border-blue-200">
-                    <TableHead className="font-semibold text-blue-900 py-4">Nama Karyawan</TableHead>
-                    <TableHead className="font-semibold text-blue-900 py-4">Tanggal</TableHead>
-                    <TableHead className="font-semibold text-blue-900 py-4">Jam Masuk</TableHead>
-                    <TableHead className="font-semibold text-blue-900 py-4">Jam Pulang</TableHead>
-                    <TableHead className="font-semibold text-blue-900 py-4">Jam Kerja</TableHead>
-                    <TableHead className="font-semibold text-blue-900 py-4">Status</TableHead>
-                    <TableHead className="font-semibold text-blue-900 py-4">Catatan</TableHead>
-                    <TableHead className="font-semibold text-blue-900 py-4 text-right pr-6">Aksi</TableHead>
+                  <TableRow>
+                    <TableHead>Nama Karyawan</TableHead>
+                    <TableHead>Tanggal</TableHead>
+                    <TableHead>Jam Masuk</TableHead>
+                    <TableHead>Jam Pulang</TableHead>
+                    <TableHead>Jam Kerja</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Catatan</TableHead>
+                    <TableHead className="text-right pr-6">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
