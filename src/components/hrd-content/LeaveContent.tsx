@@ -11,6 +11,7 @@ import { Calendar, Clock, CheckCircle, XCircle, AlertCircle, Search, Eye, Check,
 import { useLeaveRequests } from '@/hooks/useLeaveRequests';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { calculateLeaveDuration } from '@/utils/timeFormatter';
 
 export const LeaveContent = () => {
   const { data: leaveRequests = [], isLoading, refetch } = useLeaveRequests();
@@ -166,11 +167,7 @@ export const LeaveContent = () => {
 
   const calculateDays = (startDate: string, endDate: string) => {
     if (!startDate || !endDate) return 0;
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-    return diffDays;
+    return calculateLeaveDuration(startDate, endDate);
   };
 
   return (
