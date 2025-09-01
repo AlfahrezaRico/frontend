@@ -340,19 +340,19 @@ export const AttendanceContent = () => {
             <div className="text-center py-8">Memuat data...</div>
           ) : (
             <div className="overflow-x-auto">
-              <Table className="border border-gray-200 rounded-lg overflow-hidden">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nama Karyawan</TableHead>
-                    <TableHead>Tanggal</TableHead>
-                    <TableHead>Jam Masuk</TableHead>
-                    <TableHead>Jam Pulang</TableHead>
-                    <TableHead>Jam Kerja</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Catatan</TableHead>
-                    <TableHead className="text-right pr-6">Aksi</TableHead>
-                  </TableRow>
-                </TableHeader>
+                             <Table className="border border-gray-200 rounded-lg overflow-hidden">
+                 <TableHeader>
+                   <TableRow className="bg-white border-b border-gray-200">
+                     <TableHead className="font-semibold text-gray-900 py-3">Nama Karyawan</TableHead>
+                     <TableHead className="font-semibold text-gray-900 py-3">Tanggal</TableHead>
+                     <TableHead className="font-semibold text-gray-900 py-3">Jam Masuk</TableHead>
+                     <TableHead className="font-semibold text-gray-900 py-3">Jam Pulang</TableHead>
+                     <TableHead className="font-semibold text-gray-900 py-3">Jam Kerja</TableHead>
+                     <TableHead className="font-semibold text-gray-900 py-3">Status</TableHead>
+                     <TableHead className="font-semibold text-gray-900 py-3">Catatan</TableHead>
+                     <TableHead className="font-semibold text-gray-900 py-3 text-right pr-6">Aksi</TableHead>
+                   </TableRow>
+                 </TableHeader>
                 <TableBody>
                   {paged.map((rec: any, index: number) => (
                     <TableRow 
