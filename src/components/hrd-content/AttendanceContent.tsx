@@ -265,77 +265,78 @@ export const AttendanceContent = () => {
   };
   return (
     <div className="space-y-6">
-             {/* Header */}
-       <div className="flex items-center justify-between mb-6">
-         <div>
-           <h2 className="text-3xl font-bold text-gray-900">
-             Data Absensi
-           </h2>
-           <p className="text-gray-600 mt-2 text-lg">Monitor kehadiran dan jam kerja karyawan</p>
-         </div>
-        <div className="flex items-center gap-3">
-          <div className="hidden md:flex items-center gap-3 mr-6">
-            <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm">
-              <label className="text-sm font-medium text-gray-700">Filter Bulan:</label>
-              <input 
-                type="month" 
-                value={selectedMonth} 
-                onChange={(e) => { setSelectedMonth(e.target.value); setPage(1); }} 
-                className="border-0 bg-transparent text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1" 
-              />
-            </div>
-            <div className="relative">
-              <Input 
-                placeholder="Cari nama/status" 
-                value={search} 
-                onChange={(e)=>{ setSearch(e.target.value); setPage(1); }} 
-                className="w-64 pl-10 pr-4 py-2 border-gray-200 focus:border-blue-500 focus:ring-blue-500 shadow-sm" 
-              />
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-          <Button 
-            onClick={() => setBulkUploadOpen(true)} 
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-6 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
-          >
-            <Upload className="h-4 w-4 mr-2" />
-            Bulk Upload
-          </Button>
-          <Button 
-            onClick={downloadTemplate} 
-            variant="outline" 
-            className="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 hover:border-blue-700 font-semibold px-6 py-2 rounded-lg transition-all duration-200"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Template
-          </Button>
-          <Button 
-            onClick={fetchAttendance} 
-            variant="outline" 
-            className="border-2 border-green-600 text-green-600 hover:bg-green-50 hover:border-green-700 font-semibold px-6 py-2 rounded-lg transition-all duration-200"
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-        </div>
-      </div>
+                    {/* Header */}
+       <div>
+         <h2 className="text-2xl font-bold text-gray-900">Data Absensi</h2>
+         <p className="text-gray-600">Monitor kehadiran dan jam kerja karyawan</p>
+       </div>
 
-             {/* Table */}
-       <Card className="shadow-sm border border-gray-200">
-         <CardHeader className="bg-gray-50 border-b border-gray-200">
-           <CardTitle className="text-xl font-bold text-gray-900">Data Absensi Karyawan</CardTitle>
-           <CardDescription className="text-gray-600">Daftar kehadiran karyawan</CardDescription>
+       {/* Search and Data Table */}
+       <Card>
+         <CardHeader>
+           <div className="flex items-center justify-between">
+             <div>
+               <CardTitle>Data Absensi Karyawan</CardTitle>
+               <CardDescription>Daftar kehadiran karyawan</CardDescription>
+             </div>
+             <div className="flex items-center gap-3">
+               <div className="hidden md:flex items-center gap-3">
+                 <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm">
+                   <label className="text-sm font-medium text-gray-700">Filter Bulan:</label>
+                   <input 
+                     type="month" 
+                     value={selectedMonth} 
+                     onChange={(e) => { setSelectedMonth(e.target.value); setPage(1); }} 
+                     className="border-0 bg-transparent text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1" 
+                   />
+                 </div>
+                 <div className="relative">
+                   <Input 
+                     placeholder="Cari nama/status" 
+                     value={search} 
+                     onChange={(e)=>{ setSearch(e.target.value); setPage(1); }} 
+                     className="w-64 pl-10 pr-4 py-2 border-gray-200 focus:border-blue-500 focus:ring-blue-500 shadow-sm" 
+                   />
+                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                     <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                     </svg>
+                   </div>
+                 </div>
+               </div>
+               <Button 
+                 onClick={() => setBulkUploadOpen(true)} 
+                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-6 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+               >
+                 <Upload className="h-4 w-4 mr-2" />
+                 Bulk Upload
+               </Button>
+               <Button 
+                 onClick={downloadTemplate} 
+                 variant="outline" 
+                 className="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 hover:border-blue-700 font-semibold px-6 py-2 rounded-lg transition-all duration-200"
+               >
+                 <Download className="h-4 w-4 mr-2" />
+                 Template
+               </Button>
+               <Button 
+                 onClick={fetchAttendance} 
+                 variant="outline" 
+                 className="border-2 border-green-600 text-green-600 hover:bg-green-50 hover:border-green-700 font-semibold px-6 py-2 rounded-lg transition-all duration-200"
+               >
+                 <RefreshCw className="h-4 w-4 mr-2" />
+                 Refresh
+               </Button>
+             </div>
+           </div>
          </CardHeader>
-        <CardContent>
-          {/* Filter bar (mobile) */}
-          <div className="md:hidden mb-3 flex items-center gap-2">
-            <input type="month" value={selectedMonth} onChange={(e) => { setSelectedMonth(e.target.value); setPage(1); }} className="border rounded px-2 py-1" />
-            <Input placeholder="Cari nama/status" value={search} onChange={(e)=>{ setSearch(e.target.value); setPage(1); }} />
-          </div>
+
+         <CardContent>
+           {/* Filter bar (mobile) */}
+           <div className="md:hidden mb-3 flex items-center gap-2">
+             <input type="month" value={selectedMonth} onChange={(e) => { setSelectedMonth(e.target.value); setPage(1); }} className="border rounded px-2 py-1" />
+             <Input placeholder="Cari nama/status" value={search} onChange={(e)=>{ setSearch(e.target.value); setPage(1); }} />
+           </div>
           {loadingTable ? (
             <div className="text-center py-8">Memuat data...</div>
           ) : (
