@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 import { DollarSign, Plus, TrendingUp, Users, Eye, Edit, Check, Trash2, Search, Filter } from "lucide-react";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+
 import { useToast } from '@/hooks/use-toast';
 
 const API_URL = import.meta.env.VITE_API_URL || "";
@@ -2831,20 +2831,38 @@ export const PayrollContent = () => {
                   ))}
                 </TableBody>
               </Table>
-              <div className="py-3">
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious onClick={(e) => { e.preventDefault(); setPage(p => Math.max(1, p - 1)); }} />
-                    </PaginationItem>
-                    <PaginationItem>
-                      <span className="px-3 text-sm text-muted-foreground">Halaman {page} dari {totalPages}</span>
-                    </PaginationItem>
-                    <PaginationItem>
-                      <PaginationNext onClick={(e) => { e.preventDefault(); setPage(p => Math.min(totalPages, p + 1)); }} />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
+              {/* Pagination */}
+              <div className="flex justify-between items-center mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="text-sm text-gray-600 font-medium">
+                  Menampilkan <span className="text-blue-600 font-semibold">{(page - 1) * pageSize + 1}</span> - <span className="text-blue-600 font-semibold">{Math.min(page * pageSize, filteredPayrolls.length)}</span> dari <span className="text-blue-600 font-semibold">{filteredPayrolls.length}</span> data
+                </div>
+                <div className="flex items-center gap-3">
+                  <Button 
+                    variant="outline" 
+                    disabled={page === 1} 
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    className="border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 rounded-lg"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Previous
+                  </Button>
+                  <div className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg">
+                    Halaman <span className="text-blue-600">{page}</span> dari <span className="text-blue-600">{totalPages}</span>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    disabled={page === totalPages} 
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    className="border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 rounded-lg"
+                  >
+                    Next
+                    <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Button>
+                </div>
               </div>
             </div>
           )}

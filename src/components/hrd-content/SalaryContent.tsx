@@ -744,29 +744,35 @@ export const SalaryContent = () => {
           )}
         </CardContent>
         {filteredData.length > itemsPerPage && (
-          <div className="flex items-center justify-between px-6 pb-6">
-            <div className="text-sm text-muted-foreground">
-              Menampilkan {startIndex + 1}-{endIndex} dari {filteredData.length} data
+          <div className="flex justify-between items-center mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200 mx-6 mb-6">
+            <div className="text-sm text-gray-600 font-medium">
+              Menampilkan <span className="text-blue-600 font-semibold">{startIndex + 1}</span> - <span className="text-blue-600 font-semibold">{endIndex}</span> dari <span className="text-blue-600 font-semibold">{filteredData.length}</span> data
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="outline" 
+                disabled={currentPage === 1} 
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="flex items-center gap-2"
+                className="border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 rounded-lg"
               >
-                Prev
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Previous
               </Button>
-              <span className="text-sm text-muted-foreground">Halaman {currentPage} dari {totalPages}</span>
-              <Button
-                variant="outline"
-                size="sm"
+              <div className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg">
+                Halaman <span className="text-blue-600">{currentPage}</span> dari <span className="text-blue-600">{totalPages}</span>
+              </div>
+              <Button 
+                variant="outline" 
+                disabled={currentPage === totalPages} 
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="flex items-center gap-2"
+                className="border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 rounded-lg"
               >
                 Next
+                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </Button>
             </div>
           </div>
