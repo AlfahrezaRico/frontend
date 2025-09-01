@@ -265,14 +265,14 @@ export const AttendanceContent = () => {
   };
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Data Absensi
-          </h2>
-          <p className="text-gray-600 mt-2 text-lg">Monitor kehadiran dan jam kerja karyawan</p>
-        </div>
+             {/* Header */}
+       <div className="flex items-center justify-between mb-6">
+         <div>
+           <h2 className="text-3xl font-bold text-gray-900">
+             Data Absensi
+           </h2>
+           <p className="text-gray-600 mt-2 text-lg">Monitor kehadiran dan jam kerja karyawan</p>
+         </div>
         <div className="flex items-center gap-3">
           <div className="hidden md:flex items-center gap-3 mr-6">
             <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm">
@@ -324,12 +324,12 @@ export const AttendanceContent = () => {
         </div>
       </div>
 
-      {/* Table */}
-      <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-blue-50/30">
-        <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
-          <CardTitle className="text-xl font-bold">Data Absensi Karyawan</CardTitle>
-          <CardDescription className="text-blue-100">Daftar kehadiran karyawan</CardDescription>
-        </CardHeader>
+             {/* Table */}
+       <Card className="shadow-sm border border-gray-200">
+         <CardHeader className="bg-gray-50 border-b border-gray-200">
+           <CardTitle className="text-xl font-bold text-gray-900">Data Absensi Karyawan</CardTitle>
+           <CardDescription className="text-gray-600">Daftar kehadiran karyawan</CardDescription>
+         </CardHeader>
         <CardContent>
           {/* Filter bar (mobile) */}
           <div className="md:hidden mb-3 flex items-center gap-2">
