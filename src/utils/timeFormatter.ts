@@ -24,9 +24,10 @@ export const formatTimeToString = (date: Date | string | null): string => {
     if (date instanceof Date) {
       if (isNaN(date.getTime())) return '-';
       
-      const hours = date.getHours().toString().padStart(2, '0');
-      const minutes = date.getMinutes().toString().padStart(2, '0');
-      const seconds = date.getSeconds().toString().padStart(2, '0');
+      // Use UTC methods to avoid timezone issues
+      const hours = date.getUTCHours().toString().padStart(2, '0');
+      const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+      const seconds = date.getUTCSeconds().toString().padStart(2, '0');
       
       return `${hours}:${minutes}:${seconds}`;
     }
@@ -36,9 +37,10 @@ export const formatTimeToString = (date: Date | string | null): string => {
       const dateObj = new Date(date);
       if (isNaN(dateObj.getTime())) return '-';
       
-      const hours = dateObj.getHours().toString().padStart(2, '0');
-      const minutes = dateObj.getMinutes().toString().padStart(2, '0');
-      const seconds = dateObj.getSeconds().toString().padStart(2, '0');
+      // Use UTC methods to avoid timezone issues
+      const hours = dateObj.getUTCHours().toString().padStart(2, '0');
+      const minutes = dateObj.getUTCMinutes().toString().padStart(2, '0');
+      const seconds = dateObj.getUTCSeconds().toString().padStart(2, '0');
       
       return `${hours}:${minutes}:${seconds}`;
     }
@@ -55,22 +57,8 @@ export const formatTimeToStringWithFix = (date: Date | string | null): string =>
   if (!date) return '-';
   
   try {
-    // If it's already a time string in HH:MM:SS format, check if it needs fixing
+    // If it's already a time string in HH:MM:SS format, return it directly
     if (typeof date === 'string' && /^\d{1,2}:\d{2}:\d{2}$/.test(date)) {
-      const [hours, minutes, seconds] = date.split(':').map(Number);
-      
-      // Specific fix for the observed issue:
-      // 00:40:00 should be 17:40:00 (jam pulang)
-      if (hours === 0) {
-        return `17:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-      }
-      
-      // 14:20:00 should be 07:20:00 (jam masuk)
-      if (hours >= 12) {
-        const fixedHours = hours - 7;
-        return `${fixedHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-      }
-      
       return date;
     }
     
@@ -85,31 +73,14 @@ export const formatTimeToStringWithFix = (date: Date | string | null): string =>
     
     if (isNaN(dateObj.getTime())) return '-';
     
-    // Check if the time is likely affected by timezone issues (7 hours off)
-    const hours = dateObj.getHours();
-    const minutes = dateObj.getMinutes();
-    const seconds = dateObj.getSeconds();
+    // Format time consistently using UTC methods to avoid timezone issues
+    const hours = dateObj.getUTCHours().toString().padStart(2, '0');
+    const minutes = dateObj.getUTCMinutes().toString().padStart(2, '0');
+    const seconds = dateObj.getUTCSeconds().toString().padStart(2, '0');
     
-    // Specific fix for the observed issue:
-    // 00:40:00 should be 17:40:00 (jam pulang)
-    if (hours === 0) {
-      return `17:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    }
-    
-    // 14:20:00 should be 07:20:00 (jam masuk)
-    if (hours >= 12) {
-      const fixedHours = hours - 7;
-      return `${fixedHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    }
-    
-    // If no fix needed, format normally
-    const formattedHours = hours.toString().padStart(2, '0');
-    const formattedMinutes = minutes.toString().padStart(2, '0');
-    const formattedSeconds = seconds.toString().padStart(2, '0');
-    
-    return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+    return `${hours}:${minutes}:${seconds}`;
   } catch (error) {
-    console.error('Error formatting time with fix:', error);
+    console.error('Error formatting time:', error);
     return '-';
   }
 };
@@ -131,8 +102,9 @@ export const isLateTime = (date: Date | string | null): boolean => {
       const dateObj = typeof date === 'string' ? new Date(date) : date;
       if (isNaN(dateObj.getTime())) return false;
       
-      hours = dateObj.getHours();
-      minutes = dateObj.getMinutes();
+      // Use UTC methods to avoid timezone issues
+      hours = dateObj.getUTCHours();
+      minutes = dateObj.getUTCMinutes();
     }
     
     return hours > 8 || (hours === 8 && minutes > 0);
@@ -141,23 +113,17 @@ export const isLateTime = (date: Date | string | null): boolean => {
   }
 };
 
-// Test function untuk memverifikasi logika perbaikan timezone
-export const testTimezoneFix = () => {
+// Test function untuk memverifikasi format waktu yang benar
+export const testTimeFormat = () => {
   const testCases = [
     // [input_time, expected_output, description]
-    ['14:20:00', '07:20:00', 'Jam masuk pagi (14:20 → 07:20)'],
-    ['00:40:00', '17:40:00', 'Jam pulang sore (00:40 → 17:40)'],
-    ['14:19:00', '07:19:00', 'Jam masuk pagi (14:19 → 07:19)'],
-    ['00:10:00', '17:10:00', 'Jam pulang sore (00:10 → 17:10)'],
-    ['14:40:00', '07:40:00', 'Jam masuk pagi (14:40 → 07:40)'],
-    ['00:02:00', '17:02:00', 'Jam pulang sore (00:02 → 17:02)'],
-    ['07:20:00', '07:20:00', 'Jam normal (tidak perlu perbaikan)'],
-    ['17:40:00', '17:40:00', 'Jam normal (tidak perlu perbaikan)'],
-    ['08:30:00', '08:30:00', 'Jam normal (tidak perlu perbaikan)'],
-    ['16:45:00', '16:45:00', 'Jam normal (tidak perlu perbaikan)'],
+    ['17:10:00', '17:10:00', 'Jam pulang sore (17:10)'],
+    ['07:20:00', '07:20:00', 'Jam masuk pagi (07:20)'],
+    ['08:00:00', '08:00:00', 'Jam masuk tepat waktu (08:00)'],
+    ['16:00:00', '16:00:00', 'Jam pulang normal (16:00)']
   ];
   
-  console.log('Testing timezone fix logic:');
+  console.log('Testing time format:');
   console.log('================================');
   testCases.forEach(([input, expected, description]) => {
     const result = formatTimeToStringWithFix(input);
