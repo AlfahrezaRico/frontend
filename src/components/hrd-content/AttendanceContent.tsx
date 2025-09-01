@@ -10,6 +10,18 @@ import { useNavigate } from "react-router-dom";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatTimeToStringWithFix } from "@/utils/timeFormatter";
 
+// Helper function to format working time from minutes to HH:MM format
+const formatWorkingTime = (minutes: number | null): string => {
+  if (minutes === null || minutes === undefined || minutes < 0) {
+    return '-';
+  }
+  
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  
+  return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+};
+
 export const AttendanceContent = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -197,6 +209,9 @@ export const AttendanceContent = () => {
       '- Jika check_in_time = 12:00:00 maka status HALF_DAY',
       '- Jika <= 08:00:00 maka status PRESENT',
       '',
+      'Jam Kerja (working_time) akan dihitung otomatis dari selisih check_out_time - check_in_time',
+      'dalam satuan menit dan ditampilkan dalam format HH:MM di sistem.',
+      '',
       csvContent
     ].join('\n');
     const blob = new Blob([instructions], { type: 'text/csv;charset=utf-8;' });
@@ -259,6 +274,7 @@ export const AttendanceContent = () => {
                     <TableHead>Tanggal</TableHead>
                     <TableHead>Jam Masuk</TableHead>
                     <TableHead>Jam Pulang</TableHead>
+                    <TableHead>Jam Kerja</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Catatan</TableHead>
                     <TableHead className="text-right pr-6">Aksi</TableHead>
@@ -271,6 +287,7 @@ export const AttendanceContent = () => {
                       <TableCell>{new Date(rec.date).toLocaleDateString('id-ID')}</TableCell>
                       <TableCell>{formatTimeToStringWithFix(rec.check_in_time)}</TableCell>
                       <TableCell>{formatTimeToStringWithFix(rec.check_out_time)}</TableCell>
+                      <TableCell>{formatWorkingTime(rec.working_time)}</TableCell>
                       <TableCell>{rec.status}</TableCell>
                       <TableCell>{rec.notes || '-'}</TableCell>
                       <TableCell className="text-right pr-6 flex justify-end gap-2">
@@ -352,6 +369,10 @@ export const AttendanceContent = () => {
                 <div className="rounded-lg border p-3">
                   <div className="text-slate-500">Jam Keluar</div>
                   <div className="font-medium">{formatTimeToStringWithFix(detailRecord.check_out_time)}</div>
+                </div>
+                <div className="rounded-lg border p-3">
+                  <div className="text-slate-500">Jam Kerja</div>
+                  <div className="font-medium">{formatWorkingTime(detailRecord.working_time)}</div>
                 </div>
                 <div className="rounded-lg border p-3">
                   <div className="text-slate-500">Jenis Status Karyawan</div>
