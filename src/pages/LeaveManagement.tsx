@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation } from 'react-router-dom';
+import { calculateLeaveDuration } from '@/utils/timeFormatter';
 
 const LeaveManagement = () => {
   const navigate = useNavigate();
@@ -148,10 +149,10 @@ const LeaveManagement = () => {
     try {
       // Validasi sisa cuti jika alasan bukan Sakit dan jenis cuti bukan Melahirkan
       if (formData.reason.toLowerCase() !== 'sakit' && formData.leave_type !== 'Melahirkan') {
-        // Hitung jumlah hari cuti
+        // Hitung jumlah hari cuti (tidak termasuk Sabtu dan Minggu)
         const start = new Date(formData.start_date);
         const end = new Date(formData.end_date);
-        const duration = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        const duration = calculateLeaveDuration(start, end);
         // Ambil sisa cuti
         const year = start.getFullYear();
         const API_URL = import.meta.env.VITE_API_URL || '';
@@ -346,6 +347,7 @@ const LeaveManagement = () => {
                       <TableHead>Jenis Cuti</TableHead>
                       <TableHead>Tanggal Mulai</TableHead>
                       <TableHead>Tanggal Selesai</TableHead>
+                      <TableHead>Durasi</TableHead>
                       <TableHead>Alasan</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Aksi</TableHead>
@@ -363,6 +365,7 @@ const LeaveManagement = () => {
                         <TableCell>{request.leave_type}</TableCell>
                         <TableCell>{new Date(request.start_date).toLocaleDateString('id-ID')}</TableCell>
                         <TableCell>{new Date(request.end_date).toLocaleDateString('id-ID')}</TableCell>
+                        <TableCell>{calculateLeaveDuration(request.start_date, request.end_date)} hari</TableCell>
                         <TableCell>{request.reason}</TableCell>
                         <TableCell>{getStatusBadge(request.status)}</TableCell>
                         <TableCell>
@@ -382,6 +385,7 @@ const LeaveManagement = () => {
                                   <div><b>Jenis Cuti:</b> {request.leave_type}</div>
                                   <div><b>Tanggal Mulai:</b> {new Date(request.start_date).toLocaleDateString('id-ID')}</div>
                                   <div><b>Tanggal Selesai:</b> {new Date(request.end_date).toLocaleDateString('id-ID')}</div>
+                                  <div><b>Durasi:</b> {calculateLeaveDuration(request.start_date, request.end_date)} hari</div>
                                   <div><b>Alasan:</b> {request.reason}</div>
                                   <div><b>Status:</b> {getStatusBadge(request.status)}</div>
                                   {request.status === 'APPROVED' && request.approved_by && (

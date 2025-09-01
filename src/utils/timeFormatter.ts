@@ -167,3 +167,62 @@ export const testTimezoneFix = () => {
   });
   console.log('================================');
 };
+
+// Function to calculate leave duration excluding weekends (Saturday and Sunday)
+export const calculateLeaveDuration = (startDate: any, endDate: any): number => {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+    return 0;
+  }
+  
+  // Ensure start date is before or equal to end date
+  if (start > end) {
+    return 0;
+  }
+  
+  let workDays = 0;
+  const currentDate = new Date(start);
+  
+  // Set time to 00:00:00 to avoid timezone issues
+  currentDate.setHours(0, 0, 0, 0);
+  
+  while (currentDate <= end) {
+    const dayOfWeek = currentDate.getDay(); // 0 = Sunday, 6 = Saturday
+    
+    // Only count weekdays (Monday = 1, Tuesday = 2, ..., Friday = 5)
+    if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+      workDays++;
+    }
+    
+    // Move to next day
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+  
+  return workDays;
+};
+
+// Test function untuk memverifikasi perhitungan durasi cuti
+export const testLeaveDuration = () => {
+  const testCases = [
+    // [start_date, end_date, expected_days, description]
+    ['2025-09-08', '2025-09-19', 10, 'Cuti 8-19 September (12 hari kalender, 10 hari kerja)'],
+    ['2025-09-01', '2025-09-05', 5, 'Cuti Senin-Jumat (5 hari kerja)'],
+    ['2025-09-06', '2025-09-07', 0, 'Cuti Sabtu-Minggu (0 hari kerja)'],
+    ['2025-09-05', '2025-09-08', 2, 'Cuti Jumat-Senin (2 hari kerja, Sabtu-Minggu tidak dihitung)'],
+    ['2025-09-01', '2025-09-01', 1, 'Cuti 1 hari'],
+    ['2025-09-06', '2025-09-06', 0, 'Cuti Sabtu (0 hari kerja)'],
+    ['2025-09-07', '2025-09-07', 0, 'Cuti Minggu (0 hari kerja)'],
+  ];
+  
+  console.log('Testing leave duration calculation:');
+  console.log('================================');
+  testCases.forEach(([start, end, expected, description]) => {
+    const result = calculateLeaveDuration(start, end);
+    const status = result === expected ? '✅' : '❌';
+    console.log(`${status} ${start} to ${end} → ${result} days (expected: ${expected})`);
+    console.log(`   ${description}`);
+  });
+  console.log('================================');
+};
