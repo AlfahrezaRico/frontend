@@ -22,6 +22,47 @@ const formatWorkingTime = (minutes: number | null): string => {
   return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
 };
 
+// Helper function to get status badge with colors
+const getStatusBadge = (status: string) => {
+  switch (status?.toUpperCase()) {
+    case 'PRESENT':
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+          <div className="w-2 h-2 bg-green-400 rounded-full mr-1.5"></div>
+          {status}
+        </span>
+      );
+    case 'LATE':
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 border border-orange-200">
+          <div className="w-2 h-2 bg-orange-400 rounded-full mr-1.5"></div>
+          {status}
+        </span>
+      );
+    case 'HALF_DAY':
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+          <div className="w-2 h-2 bg-yellow-400 rounded-full mr-1.5"></div>
+          {status}
+        </span>
+      );
+    case 'ABSENT':
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
+          <div className="w-2 h-2 bg-red-400 rounded-full mr-1.5"></div>
+          {status}
+        </span>
+      );
+    default:
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+          <div className="w-2 h-2 bg-gray-400 rounded-full mr-1.5"></div>
+          {status || 'UNKNOWN'}
+        </span>
+      );
+  }
+};
+
 export const AttendanceContent = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -225,26 +266,58 @@ export const AttendanceContent = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Data Absensi</h2>
-          <p className="text-gray-600">Monitor kehadiran dan jam kerja karyawan</p>
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            Data Absensi
+          </h2>
+          <p className="text-gray-600 mt-2 text-lg">Monitor kehadiran dan jam kerja karyawan</p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="hidden md:flex items-center gap-2 mr-4">
-            <label className="text-sm text-gray-600">Filter Bulan:</label>
-            <input type="month" value={selectedMonth} onChange={(e) => { setSelectedMonth(e.target.value); setPage(1); }} className="border rounded px-2 py-1" />
-            <Input placeholder="Cari nama/status" value={search} onChange={(e)=>{ setSearch(e.target.value); setPage(1); }} className="w-52" />
+        <div className="flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-3 mr-6">
+            <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm">
+              <label className="text-sm font-medium text-gray-700">Filter Bulan:</label>
+              <input 
+                type="month" 
+                value={selectedMonth} 
+                onChange={(e) => { setSelectedMonth(e.target.value); setPage(1); }} 
+                className="border-0 bg-transparent text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1" 
+              />
+            </div>
+            <div className="relative">
+              <Input 
+                placeholder="Cari nama/status" 
+                value={search} 
+                onChange={(e)=>{ setSearch(e.target.value); setPage(1); }} 
+                className="w-64 pl-10 pr-4 py-2 border-gray-200 focus:border-blue-500 focus:ring-blue-500 shadow-sm" 
+              />
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </div>
           </div>
-          <Button onClick={() => setBulkUploadOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+          <Button 
+            onClick={() => setBulkUploadOpen(true)} 
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-6 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+          >
             <Upload className="h-4 w-4 mr-2" />
             Bulk Upload
           </Button>
-          <Button onClick={downloadTemplate} variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50">
+          <Button 
+            onClick={downloadTemplate} 
+            variant="outline" 
+            className="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 hover:border-blue-700 font-semibold px-6 py-2 rounded-lg transition-all duration-200"
+          >
             <Download className="h-4 w-4 mr-2" />
             Template
           </Button>
-          <Button onClick={fetchAttendance} variant="outline" className="border-green-600 text-green-600 hover:bg-green-50">
+          <Button 
+            onClick={fetchAttendance} 
+            variant="outline" 
+            className="border-2 border-green-600 text-green-600 hover:bg-green-50 hover:border-green-700 font-semibold px-6 py-2 rounded-lg transition-all duration-200"
+          >
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
@@ -252,10 +325,10 @@ export const AttendanceContent = () => {
       </div>
 
       {/* Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Data Absensi Karyawan</CardTitle>
-          <CardDescription>Daftar kehadiran karyawan</CardDescription>
+      <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-blue-50/30">
+        <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
+          <CardTitle className="text-xl font-bold">Data Absensi Karyawan</CardTitle>
+          <CardDescription className="text-blue-100">Daftar kehadiran karyawan</CardDescription>
         </CardHeader>
         <CardContent>
           {/* Filter bar (mobile) */}
@@ -267,35 +340,58 @@ export const AttendanceContent = () => {
             <div className="text-center py-8">Memuat data...</div>
           ) : (
             <div className="overflow-x-auto">
-              <Table>
+              <Table className="border border-gray-200 rounded-lg overflow-hidden">
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Nama Karyawan</TableHead>
-                    <TableHead>Tanggal</TableHead>
-                    <TableHead>Jam Masuk</TableHead>
-                    <TableHead>Jam Pulang</TableHead>
-                    <TableHead>Jam Kerja</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Catatan</TableHead>
-                    <TableHead className="text-right pr-6">Aksi</TableHead>
+                  <TableRow className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b-2 border-blue-200">
+                    <TableHead className="font-semibold text-blue-900 py-4">Nama Karyawan</TableHead>
+                    <TableHead className="font-semibold text-blue-900 py-4">Tanggal</TableHead>
+                    <TableHead className="font-semibold text-blue-900 py-4">Jam Masuk</TableHead>
+                    <TableHead className="font-semibold text-blue-900 py-4">Jam Pulang</TableHead>
+                    <TableHead className="font-semibold text-blue-900 py-4">Jam Kerja</TableHead>
+                    <TableHead className="font-semibold text-blue-900 py-4">Status</TableHead>
+                    <TableHead className="font-semibold text-blue-900 py-4">Catatan</TableHead>
+                    <TableHead className="font-semibold text-blue-900 py-4 text-right pr-6">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paged.map((rec: any) => (
-                    <TableRow key={rec.id}>
-                      <TableCell>{rec.employee ? `${rec.employee.first_name ?? ''} ${rec.employee.last_name ?? ''}`.trim() : ''}</TableCell>
-                      <TableCell>{new Date(rec.date).toLocaleDateString('id-ID')}</TableCell>
-                      <TableCell>{formatTimeToStringWithFix(rec.check_in_time)}</TableCell>
-                      <TableCell>{formatTimeToStringWithFix(rec.check_out_time)}</TableCell>
-                      <TableCell>{formatWorkingTime(rec.working_time)}</TableCell>
-                      <TableCell>{rec.status}</TableCell>
-                      <TableCell>{rec.notes || '-'}</TableCell>
+                  {paged.map((rec: any, index: number) => (
+                    <TableRow 
+                      key={rec.id} 
+                      className={`hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 transition-all duration-200 ${
+                        index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                      }`}
+                    >
+                      <TableCell className="font-medium text-gray-900">
+                        {rec.employee ? `${rec.employee.first_name ?? ''} ${rec.employee.last_name ?? ''}`.trim() : ''}
+                      </TableCell>
+                      <TableCell className="text-gray-700">
+                        {new Date(rec.date).toLocaleDateString('id-ID')}
+                      </TableCell>
+                      <TableCell className="font-mono text-blue-600 font-medium">
+                        {formatTimeToStringWithFix(rec.check_in_time)}
+                      </TableCell>
+                      <TableCell className="font-mono text-purple-600 font-medium">
+                        {formatTimeToStringWithFix(rec.check_out_time)}
+                      </TableCell>
+                      <TableCell className="font-medium text-gray-900">{formatWorkingTime(rec.working_time)}</TableCell>
+                      <TableCell>{getStatusBadge(rec.status)}</TableCell>
+                      <TableCell className="text-gray-600">{rec.notes || '-'}</TableCell>
                       <TableCell className="text-right pr-6 flex justify-end gap-2">
-                        <Button size="icon" variant="outline" onClick={() => openDetail(rec)}>
+                        <Button 
+                          size="icon" 
+                          variant="outline" 
+                          onClick={() => openDetail(rec)}
+                          className="hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-all duration-200"
+                        >
                           <Eye className="h-4 w-4" />
                         </Button>
                         {rec.status === 'LATE' && (!rec.notes || String(rec.notes).trim() === '') && (
-                          <Button size="icon" variant="outline" className="w-9 h-9" onClick={() => openEdit(rec)}>
+                          <Button 
+                            size="icon" 
+                            variant="outline" 
+                            className="w-9 h-9 hover:bg-orange-50 hover:border-orange-300 hover:text-orange-600 transition-all duration-200" 
+                            onClick={() => openEdit(rec)}
+                          >
                             <Pencil className="h-4 w-4" />
                           </Button>
                         )}
@@ -312,14 +408,36 @@ export const AttendanceContent = () => {
               )}
               {/* Pagination */}
               {filtered.length > 0 && (
-                <div className="flex justify-between items-center mt-4">
-                  <div className="text-sm text-gray-600">
-                    Menampilkan {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, filtered.length)} dari {filtered.length}
+                <div className="flex justify-between items-center mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="text-sm text-gray-600 font-medium">
+                    Menampilkan <span className="text-blue-600 font-semibold">{(page - 1) * pageSize + 1}</span> - <span className="text-blue-600 font-semibold">{Math.min(page * pageSize, filtered.length)}</span> dari <span className="text-blue-600 font-semibold">{filtered.length}</span> data
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" disabled={page === 1} onClick={() => setPage(p => Math.max(1, p - 1))}>{'<'} Previous</Button>
-                    <div className="px-3 py-2 text-sm">Halaman {page} / {totalPages}</div>
-                    <Button variant="outline" disabled={page === totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>Next {'>'}</Button>
+                  <div className="flex items-center gap-3">
+                    <Button 
+                      variant="outline" 
+                      disabled={page === 1} 
+                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                      className="border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 rounded-lg"
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                      Previous
+                    </Button>
+                    <div className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg">
+                      Halaman <span className="text-blue-600">{page}</span> dari <span className="text-blue-600">{totalPages}</span>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      disabled={page === totalPages} 
+                      onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                      className="border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 rounded-lg"
+                    >
+                      Next
+                      <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Button>
                   </div>
                 </div>
               )}
