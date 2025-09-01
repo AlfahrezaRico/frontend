@@ -72,7 +72,8 @@ export const LeaveContent = () => {
         credentials: 'include',
         body: JSON.stringify({
           status: 'APPROVED',
-          approved_by: user?.id
+          approved_by: user?.id,
+          approved_at: new Date().toISOString()
         })
       });
 
@@ -345,7 +346,7 @@ export const LeaveContent = () => {
                     {selectedRequest.status === 'APPROVED' && selectedRequest.approved_by && (
                       <div className="flex justify-between">
                         <span className="font-medium">Disetujui pada:</span>
-                        <span>{formatDate(selectedRequest.updated_at)}</span>
+                        <span>{formatDate(selectedRequest.approved_at || selectedRequest.updated_at)}</span>
                       </div>
                     )}
                     {selectedRequest.status === 'REJECTED' && selectedRequest.rejected_by && (
