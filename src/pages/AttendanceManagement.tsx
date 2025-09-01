@@ -12,6 +12,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatTimeToStringWithFix } from "@/utils/timeFormatter";
 
+// Helper function to format working time from minutes to HH:MM format
+const formatWorkingTime = (minutes: number | null): string => {
+  if (minutes === null || minutes === undefined || minutes < 0) {
+    return '-';
+  }
+  
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  
+  return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+};
+
 const AttendanceManagement = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -545,6 +557,7 @@ const AttendanceManagement = () => {
                       <TableHead>Tanggal</TableHead>
                       <TableHead>Jam Masuk</TableHead>
                       <TableHead>Jam Keluar</TableHead>
+                      <TableHead>Jam Kerja</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Catatan</TableHead>
                     </TableRow>
@@ -561,6 +574,9 @@ const AttendanceManagement = () => {
                         </TableCell>
                         <TableCell>
                           {formatTimeToStringWithFix(record.check_out_time)}
+                        </TableCell>
+                        <TableCell>
+                          {formatWorkingTime(record.working_time)}
                         </TableCell>
                         <TableCell>{getStatusBadge(record.status)}</TableCell>
                         <TableCell>{record.notes || '-'}</TableCell>
@@ -604,6 +620,7 @@ const AttendanceManagement = () => {
                 <li>• Format tanggal: YYYY-MM-DD (contoh: 2025-01-15)</li>
                 <li>• Format waktu: HH:MM:SS (contoh: 08:00:00)</li>
                 <li>• Status yang valid: PRESENT, ABSENT, LATE, HALF_DAY</li>
+                <li>• Jam Kerja (working_time) akan dihitung otomatis dari selisih check_out_time - check_in_time</li>
               </ul>
             </div>
 
@@ -618,7 +635,7 @@ const AttendanceManagement = () => {
                 className="mt-1"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Maksimal ukuran file: 10MB. Kolom wajib: nik, date, check_in_time, check_out_time. Notes optional. Status dihitung otomatis.
+                Maksimal ukuran file: 10MB. Kolom wajib: nik, date, check_in_time, check_out_time. Notes optional. Status dihitung otomatis. Jam Kerja (working_time) akan dihitung otomatis dari selisih check_out_time - check_in_time.
               </p>
             </div>
 
