@@ -305,6 +305,16 @@ const AttendanceManagement = () => {
       const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
+        
+        // Debug logging for karyawan dashboard
+        if (location.state?.onlyMe) {
+          console.log('Debug: Data received from backend:', {
+            totalRecords: data.length,
+            sampleRecord: data[0],
+            selectedMonth: selectedMonth
+          });
+        }
+        
         setAttendanceRecords(data);
       }
     } catch (error) {
@@ -326,32 +336,75 @@ const AttendanceManagement = () => {
 
   // Filter dan pagination
   const filteredRecords = attendanceRecords.filter(rec => {
-    const q = search.toLowerCase();
-    return (
-      rec.employee?.first_name?.toLowerCase().includes(q) ||
-      rec.employee?.last_name?.toLowerCase().includes(q) ||
-      rec.employee?.email?.toLowerCase().includes(q) ||
-      rec.employee?.department?.toLowerCase().includes(q) ||
-      rec.employee?.position?.toLowerCase().includes(q) ||
-      rec.status?.toLowerCase().includes(q)
-    );
-  });
-  const pagedRecords = filteredRecords.slice((page - 1) * pageSize, page * pageSize);
-  const totalPages = Math.ceil(filteredRecords.length / pageSize);
-
-  // Filter data jika karyawan dan state.onlyMe true
-  const match = (rec: any) => {
+    // Filter berdasarkan employee (jika hanya melihat data sendiri)
     let match = true;
     if (location.state?.onlyMe && employeeId) {
       match = rec.employee_id === employeeId;
     }
-    // Filter bulan
+    
+    // Filter berdasarkan bulan
     if (selectedMonth) {
-      const recMonth = new Date(rec.date).toISOString().slice(0, 7);
-      match = match && recMonth === selectedMonth;
+      // Handle different date formats more robustly
+      let recMonth: string;
+      
+      if (typeof rec.date === 'string') {
+        // If date is already a string, try to extract month
+        if (rec.date.includes('-')) {
+          // Format: YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss
+          recMonth = rec.date.slice(0, 7);
+        } else {
+          // Try to parse as Date object
+          const dateObj = new Date(rec.date);
+          if (!isNaN(dateObj.getTime())) {
+            recMonth = dateObj.toISOString().slice(0, 7);
+          } else {
+            recMonth = '';
+          }
+        }
+      } else if (rec.date instanceof Date) {
+        // If date is a Date object
+        recMonth = rec.date.toISOString().slice(0, 7);
+      } else {
+        // Fallback
+        recMonth = '';
+      }
+      
+      const monthMatch = recMonth === selectedMonth;
+      
+      // Debug logging
+      if (location.state?.onlyMe) {
+        console.log('Debug month filter:', {
+          recordDate: rec.date,
+          recordDateType: typeof rec.date,
+          recordMonth: recMonth,
+          selectedMonth: selectedMonth,
+          monthMatch: monthMatch,
+          employeeName: rec.employee ? `${rec.employee.first_name} ${rec.employee.last_name}` : 'Unknown'
+        });
+      }
+      
+      match = match && monthMatch;
     }
+    
+    // Filter berdasarkan search
+    if (search) {
+      const q = search.toLowerCase();
+      const searchMatch = (
+        rec.employee?.first_name?.toLowerCase().includes(q) ||
+        rec.employee?.last_name?.toLowerCase().includes(q) ||
+        rec.employee?.email?.toLowerCase().includes(q) ||
+        rec.employee?.department?.toLowerCase().includes(q) ||
+        rec.employee?.position?.toLowerCase().includes(q) ||
+        rec.status?.toLowerCase().includes(q)
+      );
+      match = match && searchMatch;
+    }
+    
     return match;
-  };
+  });
+  
+  const pagedRecords = filteredRecords.slice((page - 1) * pageSize, page * pageSize);
+  const totalPages = Math.ceil(filteredRecords.length / pageSize);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
