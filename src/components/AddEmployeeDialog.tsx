@@ -11,6 +11,7 @@ import { useAvailableUsers } from '@/hooks/useAvailableUsers';
 import { useNIKConfiguration } from '@/hooks/useNIKConfiguration';
 import { useNIKFormat } from '@/hooks/useNIKFormat';
 import { useNIKValidation } from '@/hooks/useNIKValidation';
+import { useEmployeeStatus } from '@/hooks/useEmployeeStatus';
 
 const ADMIN_SECRET = import.meta.env.VITE_ADMIN_SECRET;
 
@@ -25,6 +26,7 @@ const AddEmployeeDialog = ({ onEmployeeAdded }: { onEmployeeAdded: () => void })
     phone_number: '',
     position: '',
     departemen_id: '',
+    status_employees: '',
     hire_date: '',
     date_of_birth: '',
     address: '',
@@ -39,6 +41,7 @@ const AddEmployeeDialog = ({ onEmployeeAdded }: { onEmployeeAdded: () => void })
   const [selectedUserId, setSelectedUserId] = useState('');
   const { generateNextNIKForDepartment } = useNIKConfiguration();
   const { validateNIK, validating: nikValidating, clearValidationCache } = useNIKValidation();
+  const { statusList, loading: statusLoading } = useEmployeeStatus();
   
   // Get department name for NIK format
   const selectedDepartemen = departemenList.find((dept: any) => dept.id === formData.departemen_id);
@@ -73,7 +76,7 @@ const AddEmployeeDialog = ({ onEmployeeAdded }: { onEmployeeAdded: () => void })
     e.preventDefault();
     // Validasi: semua field wajib diisi
     const requiredFields = [
-      'first_name', 'last_name', 'email', 'phone_number', 'position', 'departemen_id',
+      'first_name', 'last_name', 'email', 'phone_number', 'position', 'departemen_id', 'status_employees',
       'hire_date', 'date_of_birth', 'address', 'bank_account_number', 'bank_name', 'nik'
     ];
     for (const field of requiredFields) {
@@ -220,6 +223,7 @@ const AddEmployeeDialog = ({ onEmployeeAdded }: { onEmployeeAdded: () => void })
       phone_number: '',
       position: '',
       departemen_id: '',
+      status_employees: '',
       hire_date: '',
       date_of_birth: '',
       address: '',
@@ -382,6 +386,28 @@ const AddEmployeeDialog = ({ onEmployeeAdded }: { onEmployeeAdded: () => void })
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          
+          <div>
+            <Label htmlFor="status_employees">Status Kontrak</Label>
+            <Select value={formData.status_employees} onValueChange={val => {
+              setFormData({ ...formData, status_employees: val });
+            }}>
+              <SelectTrigger id="status_employees">
+                <SelectValue placeholder={statusLoading ? "Loading..." : "Pilih status kontrak"} />
+              </SelectTrigger>
+              <SelectContent>
+                {statusList && statusList.length > 0 ? (
+                  statusList.map((status: any) => (
+                    <SelectItem key={status.id} value={status.id}>{status.name}</SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="" disabled>
+                    {statusLoading ? "Loading..." : "Tidak ada status kontrak yang tersedia"}
+                  </SelectItem>
+                )}
+              </SelectContent>
+            </Select>
           </div>
           
           <div className="grid grid-cols-2 gap-4">

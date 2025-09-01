@@ -8,6 +8,7 @@ import { Edit, Zap } from 'lucide-react';
 import { useUpdateEmployee, Employee } from '@/hooks/useEmployees';
 import { useToast } from '@/hooks/use-toast';
 import { useNIKConfiguration } from '@/hooks/useNIKConfiguration';
+import { useEmployeeStatus } from '@/hooks/useEmployeeStatus';
 
 interface EditEmployeeDialogProps {
   employee: Employee;
@@ -34,12 +35,14 @@ export const EditEmployeeDialog = ({ employee }: EditEmployeeDialogProps) => {
     bank_account_number: employee.bank_account_number || '',
     bank_name: employee.bank_name || '',
     departemen_id: employee.departemen_id || '',
+    status_employees: employee.status_employees || '',
     nik: employee.nik || '',
   });
 
   const updateEmployee = useUpdateEmployee();
   const { toast } = useToast();
   const { generateNextNIKForDepartment } = useNIKConfiguration();
+  const { statusList, loading: statusLoading } = useEmployeeStatus();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,6 +60,7 @@ export const EditEmployeeDialog = ({ employee }: EditEmployeeDialogProps) => {
         bank_account_number: formData.bank_account_number,
         bank_name: formData.bank_name,
         departemen_id: formData.departemen_id,
+        status_employees: formData.status_employees,
         nik: formData.nik,
       };
       await updateEmployee.mutateAsync({
@@ -153,6 +157,26 @@ export const EditEmployeeDialog = ({ employee }: EditEmployeeDialogProps) => {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          
+          <div>
+            <Label htmlFor="status_employees">Status Kontrak</Label>
+            <Select value={formData.status_employees} onValueChange={val => setFormData({ ...formData, status_employees: val })}>
+              <SelectTrigger id="status_employees">
+                <SelectValue placeholder={statusLoading ? "Loading..." : "Pilih status kontrak"} />
+              </SelectTrigger>
+              <SelectContent>
+                {statusList && statusList.length > 0 ? (
+                  statusList.map((status: any) => (
+                    <SelectItem key={status.id} value={status.id}>{status.name}</SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="" disabled>
+                    {statusLoading ? "Loading..." : "Tidak ada status kontrak yang tersedia"}
+                  </SelectItem>
+                )}
+              </SelectContent>
+            </Select>
           </div>
           
           <div className="grid grid-cols-2 gap-4">

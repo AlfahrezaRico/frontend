@@ -244,6 +244,13 @@ export const EmployeeDetailDialog = ({ employee }: EmployeeDetailDialogProps) =>
                       <p className="text-sm font-medium text-gray-800 font-mono">{employee.nik || '-'}</p>
                     </div>
                   </div>
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <UserCheck className="w-4 h-4 text-gray-500" />
+                    <div>
+                      <p className="text-xs text-gray-500 font-medium">Status Kontrak</p>
+                      <p className="text-sm font-medium text-gray-800">{employee.status_label || '-'}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </CardContent>

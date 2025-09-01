@@ -28,7 +28,8 @@ export const EmployeesContent = () => {
     `${employee.first_name} ${employee.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     employee.position?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     employee.departemen?.nama?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.department?.toLowerCase().includes(searchTerm.toLowerCase())
+    employee.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    employee.status_label?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Pagination logic
@@ -142,7 +143,7 @@ export const EmployeesContent = () => {
             <div className="relative w-64">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Cari karyawan..."
+                placeholder="Cari nama, posisi, departemen, atau status kontrak..."
                 value={searchTerm}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 className="pl-8"
@@ -159,6 +160,7 @@ export const EmployeesContent = () => {
                   <TableHead>NIK</TableHead>
                   <TableHead>Posisi</TableHead>
                   <TableHead>Departemen</TableHead>
+                  <TableHead>Status Kontrak</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Aksi</TableHead>
                 </TableRow>
@@ -166,13 +168,13 @@ export const EmployeesContent = () => {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
+                    <TableCell colSpan={7} className="text-center py-8">
                       Loading...
                     </TableCell>
                   </TableRow>
                 ) : paginatedEmployees.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                       {searchTerm ? 'Tidak ada karyawan yang sesuai dengan pencarian' : 'Tidak ada data karyawan'}
                     </TableCell>
                   </TableRow>
@@ -185,6 +187,7 @@ export const EmployeesContent = () => {
                       <TableCell>{employee.nik || '-'}</TableCell>
                       <TableCell>{employee.position || '-'}</TableCell>
                       <TableCell>{employee.departemen?.nama || employee.department || '-'}</TableCell>
+                      <TableCell>{employee.status_label || '-'}</TableCell>
                       <TableCell>{employee.email || '-'}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
